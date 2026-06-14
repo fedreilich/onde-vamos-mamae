@@ -161,6 +161,34 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 .pin-praca{width:30px;height:30px;border-radius:50%;background:var(--verde);border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;font-size:14px;}
 #map-aviso-pin{display:none;position:absolute;top:130px;left:16px;right:16px;z-index:400;background:var(--navy);color:#fff;border-radius:var(--radius-sm);padding:12px 16px;font-size:.85rem;font-weight:600;text-align:center;}
 
+/* ── ADMIN ── */
+#tela-admin{position:fixed;inset:0;background:var(--cinza);z-index:600;display:none;overflow-y:auto;}
+#tela-admin.ativa{display:block;}
+.adm-header{background:var(--navy);color:#fff;padding:52px 20px 16px;display:flex;align-items:center;gap:14px;}
+.adm-header-back{background:rgba(255,255,255,.15);border:none;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;flex-shrink:0;}
+.adm-header-back svg{width:18px;height:18px;}
+.adm-header-title{font-size:1.2rem;font-weight:900;}
+.adm-header-sub{font-size:.75rem;opacity:.7;margin-top:1px;}
+.adm-tabs{display:flex;background:var(--branco);border-bottom:1px solid var(--borda);position:sticky;top:0;z-index:10;}
+.adm-tab{flex:1;border:none;background:none;padding:14px 8px;font-size:.82rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;color:var(--suave);border-bottom:2px solid transparent;}
+.adm-tab.ativo{color:var(--laranja);border-bottom-color:var(--laranja);}
+.adm-section{padding:16px 16px 80px;}
+.adm-add-btn{width:100%;background:var(--laranja);color:#fff;border:none;border-radius:var(--radius-sm);padding:14px;font-size:.9rem;font-weight:800;font-family:'Nunito',sans-serif;cursor:pointer;margin-bottom:16px;display:flex;align-items:center;justify-content:center;gap:8px;}
+.adm-card{background:var(--branco);border-radius:var(--radius);padding:14px;margin-bottom:10px;box-shadow:var(--sombra);}
+.adm-card-top{display:flex;gap:10px;align-items:flex-start;}
+.adm-card-foto{width:52px;height:52px;border-radius:var(--radius-sm);object-fit:cover;background:var(--borda);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.4rem;}
+.adm-card-body{flex:1;min-width:0;}
+.adm-card-nome{font-size:.92rem;font-weight:800;color:var(--texto);}
+.adm-card-sub{font-size:.75rem;color:var(--suave);margin-top:2px;}
+.adm-card-actions{display:flex;gap:8px;margin-top:10px;}
+.adm-btn-del{border:1.5px solid #FCA5A5;background:#FFF1F2;color:#BE123C;border-radius:8px;padding:7px 14px;font-size:.78rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;}
+.adm-btn-edit{border:1.5px solid var(--borda);background:var(--cinza);color:var(--texto);border-radius:8px;padding:7px 14px;font-size:.78rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;}
+.adm-empty{text-align:center;padding:40px 20px;color:var(--suave);font-size:.85rem;}
+.adm-senha-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:16px;padding:32px;}
+.adm-senha-wrap input{width:100%;max-width:280px;border:1.5px solid var(--borda);border-radius:var(--radius-sm);padding:12px 16px;font-size:1rem;font-family:'Nunito',sans-serif;text-align:center;letter-spacing:4px;}
+.adm-badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:.68rem;font-weight:800;margin-left:6px;}
+.adm-badge-seed{background:#EDE9FE;color:#6D28D9;}
+.adm-badge-user{background:#DCFCE7;color:#166534;}
 /* ── AGENDA ── */
 .agenda-header{padding:52px 20px 16px;background:var(--branco);}
 .agenda-titulo{font-size:1.4rem;font-weight:900;color:var(--texto);}
@@ -502,6 +530,63 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 
 </div><!-- #app -->
 
+<!-- ══ TELA ADMIN ══ -->
+<div id="tela-admin">
+  <!-- senha gate -->
+  <div id="adm-senha-gate">
+    <div class="adm-header" style="padding:52px 20px 20px;">
+      <div>
+        <div class="adm-header-title">Painel Admin</div>
+        <div class="adm-header-sub">Onde Vamos, Mamãe?</div>
+      </div>
+    </div>
+    <div class="adm-senha-wrap">
+      <div style="font-size:1.1rem;font-weight:800;color:var(--navy);">Acesso restrito</div>
+      <p style="font-size:.85rem;color:var(--suave);text-align:center;">Digite a senha para entrar no painel</p>
+      <input type="password" id="adm-senha-input" placeholder="••••••" onkeydown="if(event.key==='Enter')verificarSenhaAdmin()">
+      <button onclick="verificarSenhaAdmin()" style="background:var(--navy);color:#fff;border:none;border-radius:var(--radius-sm);padding:12px 32px;font-size:.9rem;font-weight:800;font-family:'Nunito',sans-serif;cursor:pointer;">Entrar</button>
+      <button onclick="sairAdmin()" style="background:none;border:none;color:var(--suave);font-size:.82rem;font-family:'Nunito',sans-serif;cursor:pointer;margin-top:4px;">Voltar ao app</button>
+    </div>
+  </div>
+  <!-- painel principal -->
+  <div id="adm-painel" style="display:none;">
+    <div class="adm-header">
+      <button class="adm-header-back" onclick="sairAdmin()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      <div>
+        <div class="adm-header-title">Painel Admin</div>
+        <div class="adm-header-sub" id="adm-header-sub">Carregando...</div>
+      </div>
+    </div>
+    <div class="adm-tabs">
+      <button class="adm-tab ativo" onclick="trocarTabAdmin(this,'lugares')">Lugares</button>
+      <button class="adm-tab" onclick="trocarTabAdmin(this,'eventos')">Eventos</button>
+      <button class="adm-tab" onclick="trocarTabAdmin(this,'usuarios')">Usuárias</button>
+    </div>
+    <!-- tab lugares -->
+    <div class="adm-section" id="adm-tab-lugares">
+      <button class="adm-add-btn" onclick="abrirAddLugarAdmin()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Adicionar lugar
+      </button>
+      <div id="adm-lista-lugares"></div>
+    </div>
+    <!-- tab eventos -->
+    <div class="adm-section" id="adm-tab-eventos" style="display:none;">
+      <button class="adm-add-btn" onclick="abrirAddEventoAdmin()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Adicionar evento
+      </button>
+      <div id="adm-lista-eventos"></div>
+    </div>
+    <!-- tab usuárias -->
+    <div class="adm-section" id="adm-tab-usuarios" style="display:none;">
+      <div id="adm-lista-usuarios"></div>
+    </div>
+  </div>
+</div>
+
 <!-- ══ BOTTOM NAV ══ -->
 <nav id="bottom-nav" style="display:none;">
   <button class="nav-btn ativo" data-tela="inicio" onclick="setarTela('inicio')">
@@ -539,6 +624,10 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
   <div class="mini-menu-item" onclick="abrirFeedback();fecharMiniMenu()" style="color:var(--suave);">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
     Enviar feedback
+  </div>
+  <div class="mini-menu-item" onclick="abrirAdmin();fecharMiniMenu()" style="color:var(--suave);">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+    Admin
   </div>
 </div>
 
@@ -2128,6 +2217,7 @@ async function publicarLugar(){
   fecharAddLugar();
   desenharPins();
   renderNovidades();
+  if(STATE._adminMode){ STATE._adminMode=false; renderAdmin(); }
   toast(isEdicao?"Lugar atualizado ✅":"Lugar publicado! Obrigada ✨");
   pinTemp=null;
 }
@@ -2352,7 +2442,164 @@ async function publicarEvento(){
   fecharAddEvento();
   renderHomeEventos();
   if(STATE.telaAtiva==="agenda") renderAgenda();
+  if(STATE._adminMode){ STATE._adminMode=false; renderAdmin(); }
   toast("Evento publicado! 🎉");
+}
+
+// ═══════════════════════════════════════════════════
+// ADMIN
+// ═══════════════════════════════════════════════════
+const ADMIN_SENHA = "ovm2025";
+let admTabAtiva = "lugares";
+
+function abrirAdmin(){
+  document.getElementById("tela-admin").classList.add("ativa");
+  document.getElementById("adm-senha-gate").style.display="block";
+  document.getElementById("adm-painel").style.display="none";
+  document.getElementById("adm-senha-input").value="";
+  history.pushState(null,"","#admin");
+}
+
+function verificarSenhaAdmin(){
+  const v = document.getElementById("adm-senha-input").value;
+  if(v===ADMIN_SENHA){
+    document.getElementById("adm-senha-gate").style.display="none";
+    document.getElementById("adm-painel").style.display="block";
+    renderAdmin();
+  } else {
+    toast("Senha incorreta");
+    document.getElementById("adm-senha-input").value="";
+  }
+}
+
+function sairAdmin(){
+  document.getElementById("tela-admin").classList.remove("ativa");
+  history.pushState(null,"","#inicio");
+  setarTela("inicio");
+}
+
+function trocarTabAdmin(el, tab){
+  document.querySelectorAll(".adm-tab").forEach(t=>t.classList.remove("ativo"));
+  el.classList.add("ativo");
+  ["lugares","eventos","usuarios"].forEach(t=>{
+    document.getElementById("adm-tab-"+t).style.display = t===tab?"block":"none";
+  });
+  admTabAtiva = tab;
+}
+
+async function renderAdmin(){
+  // atualiza dados do Firebase
+  if(db){
+    const lDocs = await fbList("lugares");
+    if(lDocs.length) STATE.lugares = lDocs;
+    const eDocs = await fbList("eventos");
+    STATE.eventos = eDocs;
+  }
+  const total = STATE.lugares.length + STATE.eventos.length;
+  document.getElementById("adm-header-sub").textContent =
+    `${STATE.lugares.length} lugares · ${STATE.eventos.length} eventos`;
+  renderAdmLugares();
+  renderAdmEventos();
+  renderAdmUsuarios();
+}
+
+function renderAdmLugares(){
+  const cont = document.getElementById("adm-lista-lugares");
+  if(!STATE.lugares.length){ cont.innerHTML=`<div class="adm-empty">Nenhum lugar cadastrado.</div>`; return; }
+  cont.innerHTML = STATE.lugares.map(l=>{
+    const emoji = l.tipo==="praca"?"🌳":"☕";
+    const fotoHtml = l.foto
+      ? `<img class="adm-card-foto" src="${esc(l.foto)}" onerror="this.textContent='${emoji}';this.style.fontSize='1.4rem'">`
+      : `<div class="adm-card-foto">${emoji}</div>`;
+    const badge = l.seeded
+      ? `<span class="adm-badge adm-badge-seed">seed</span>`
+      : `<span class="adm-badge adm-badge-user">usuária</span>`;
+    return `<div class="adm-card">
+      <div class="adm-card-top">
+        ${fotoHtml}
+        <div class="adm-card-body">
+          <div class="adm-card-nome">${esc(l.nome)}${badge}</div>
+          <div class="adm-card-sub">${esc(l.bairro)} · ${l.lat?'📍 com localização':'sem localização'}</div>
+        </div>
+      </div>
+      <div class="adm-card-actions">
+        <button class="adm-btn-edit" onclick="editarLugarAdmin('${esc(l.id)}')">Editar</button>
+        <button class="adm-btn-del" onclick="deletarLugar('${esc(l.id)}')">Excluir</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function renderAdmEventos(){
+  const cont = document.getElementById("adm-lista-eventos");
+  if(!STATE.eventos.length){ cont.innerHTML=`<div class="adm-empty">Nenhum evento cadastrado.</div>`; return; }
+  cont.innerHTML = STATE.eventos.map(e=>{
+    const fotoHtml = e.foto
+      ? `<img class="adm-card-foto" src="${esc(e.foto)}" onerror="this.textContent='★';this.style.fontSize='1.4rem'">`
+      : `<div class="adm-card-foto">★</div>`;
+    const quando = e.recorrente ? (e.recorrenciaTexto||"Recorrente") : (e.dataInicio||"—");
+    return `<div class="adm-card">
+      <div class="adm-card-top">
+        ${fotoHtml}
+        <div class="adm-card-body">
+          <div class="adm-card-nome">${esc(e.titulo)}</div>
+          <div class="adm-card-sub">${esc(e.local||e.bairro||"—")} · ${esc(quando)}</div>
+        </div>
+      </div>
+      <div class="adm-card-actions">
+        <button class="adm-btn-del" onclick="deletarEvento('${esc(e.id)}')">Excluir</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+async function renderAdmUsuarios(){
+  const cont = document.getElementById("adm-lista-usuarios");
+  cont.innerHTML=`<div class="adm-empty">Carregando...</div>`;
+  let usuarios = [];
+  if(db){ try{ const s=await db.collection("usuarios").get(); usuarios=s.docs.map(d=>d.data()); }catch(e){} }
+  if(!usuarios.length){ cont.innerHTML=`<div class="adm-empty">Nenhuma usuária cadastrada ainda.</div>`; return; }
+  cont.innerHTML = usuarios.map(u=>`
+    <div class="adm-card">
+      <div class="adm-card-nome">${esc(u.nome||"—")}</div>
+      <div class="adm-card-sub" style="margin-top:4px;">
+        ${u.email?`📧 ${esc(u.email)}`:''}
+        ${u.whatsapp?` · 📱 ${esc(u.whatsapp)}`:''}
+      </div>
+      <div style="font-size:.72rem;color:var(--suave);margin-top:4px;">${u.criadoEm?new Date(u.criadoEm).toLocaleDateString("pt-BR"):""}</div>
+    </div>`).join("");
+}
+
+async function deletarLugar(id){
+  if(!confirm("Excluir este lugar?")) return;
+  STATE.lugares = STATE.lugares.filter(l=>l.id!==id);
+  if(db) await fbDel("lugares",id);
+  renderAdmLugares();
+  toast("Lugar excluído.");
+}
+
+async function deletarEvento(id){
+  if(!confirm("Excluir este evento?")) return;
+  STATE.eventos = STATE.eventos.filter(e=>e.id!==id);
+  if(db) await fbDel("eventos",id);
+  renderAdmEventos();
+  toast("Evento excluído.");
+}
+
+function abrirAddLugarAdmin(){
+  // abre o sheet de lugar normal — ao salvar, volta para o admin
+  STATE._adminMode = true;
+  abrirAddLugar();
+}
+
+function abrirAddEventoAdmin(){
+  STATE._adminMode = true;
+  abrirAddEvento();
+}
+
+function editarLugarAdmin(id){
+  STATE._adminMode = true;
+  editarLugar(id);
 }
 
 // ═══════════════════════════════════════════════════
@@ -2399,6 +2646,8 @@ function handleDeepLink(){
     const id=hash.slice(7);
     const e=STATE.eventos.find(x=>x.id===id);
     if(e) abrirDetalheEvento(id);
+  } else if(hash==="admin"){
+    abrirAdmin();
   } else if(["inicio","mapa","agenda","salvos"].includes(hash)){
     setarTela(hash);
   }
