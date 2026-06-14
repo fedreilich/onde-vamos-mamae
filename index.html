@@ -560,26 +560,119 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
       </div>
     </div>
     <div class="adm-tabs">
-      <button class="adm-tab ativo" onclick="trocarTabAdmin(this,'lugares')">Lugares</button>
+      <button class="adm-tab ativo" onclick="trocarTabAdmin(this,'geral')">Início</button>
+      <button class="adm-tab" onclick="trocarTabAdmin(this,'lugares')">Lugares</button>
       <button class="adm-tab" onclick="trocarTabAdmin(this,'eventos')">Eventos</button>
       <button class="adm-tab" onclick="trocarTabAdmin(this,'usuarios')">Usuárias</button>
     </div>
+
+    <!-- tab visão geral -->
+    <div class="adm-section" id="adm-tab-geral">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
+        <div style="background:var(--branco);border-radius:var(--radius);padding:16px;box-shadow:var(--sombra);text-align:center;">
+          <div style="font-size:2rem;font-weight:900;color:var(--laranja);" id="adm-stat-lugares">—</div>
+          <div style="font-size:.75rem;color:var(--suave);font-weight:700;margin-top:4px;">Lugares</div>
+        </div>
+        <div style="background:var(--branco);border-radius:var(--radius);padding:16px;box-shadow:var(--sombra);text-align:center;">
+          <div style="font-size:2rem;font-weight:900;color:var(--verde);" id="adm-stat-eventos">—</div>
+          <div style="font-size:.75rem;color:var(--suave);font-weight:700;margin-top:4px;">Eventos</div>
+        </div>
+        <div style="background:var(--branco);border-radius:var(--radius);padding:16px;box-shadow:var(--sombra);text-align:center;">
+          <div style="font-size:2rem;font-weight:900;color:var(--rosa);" id="adm-stat-usuarios">—</div>
+          <div style="font-size:.75rem;color:var(--suave);font-weight:700;margin-top:4px;">Usuárias</div>
+        </div>
+        <div style="background:var(--branco);border-radius:var(--radius);padding:16px;box-shadow:var(--sombra);text-align:center;">
+          <div style="font-size:2rem;font-weight:900;color:var(--amarelo);" id="adm-stat-feedbacks">—</div>
+          <div style="font-size:.75rem;color:var(--suave);font-weight:700;margin-top:4px;">Feedbacks</div>
+        </div>
+      </div>
+      <div style="background:var(--branco);border-radius:var(--radius);padding:16px;box-shadow:var(--sombra);">
+        <div style="font-size:.82rem;font-weight:800;color:var(--navy);margin-bottom:12px;">Últimas usuárias</div>
+        <div id="adm-stat-ultimas-users" style="font-size:.8rem;color:var(--suave);">Carregando...</div>
+      </div>
+    </div>
+
     <!-- tab lugares -->
-    <div class="adm-section" id="adm-tab-lugares">
-      <button class="adm-add-btn" onclick="abrirAddLugarAdmin()">
+    <div class="adm-section" id="adm-tab-lugares" style="display:none;">
+      <!-- form simples -->
+      <div id="adm-form-lugar" style="display:none;background:var(--branco);border-radius:var(--radius);padding:16px;box-shadow:var(--sombra);margin-bottom:16px;">
+        <div style="font-weight:800;color:var(--navy);margin-bottom:14px;" id="adm-form-lugar-titulo">Novo lugar</div>
+        <input type="hidden" id="af-id">
+        <div class="campo"><label>Nome *</label><input id="af-nome" placeholder="Ex.: Café da Carol"></div>
+        <div class="campo"><label>Bairro *</label><input id="af-bairro" placeholder="Ex.: Botafogo"></div>
+        <div class="campo"><label>Tipo</label>
+          <select id="af-tipo">
+            <option value="cafe">Café / Restaurante</option>
+            <option value="praca">Praça / Parque</option>
+          </select>
+        </div>
+        <div class="campo"><label>Horário</label><input id="af-hora" placeholder="Ex.: Seg-Sex 8h–18h"></div>
+        <div class="campo"><label>Dica</label><textarea id="af-dica" placeholder="Dica rápida sobre o lugar…" maxlength="300" style="height:72px;resize:none;"></textarea></div>
+        <div class="campo"><label>Tags <span style="color:var(--suave);font-weight:400">(separadas por vírgula)</span></label><input id="af-tags" placeholder="café, área externa, espaço kids"></div>
+        <button type="button" onclick="admBuscarEndereco()"
+          style="width:100%;background:var(--navy);color:#fff;border:none;border-radius:var(--radius-sm);padding:11px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;margin-bottom:8px;">
+          Buscar localização pelo nome
+        </button>
+        <div id="af-geo-status" style="display:none;padding:8px 12px;border-radius:var(--radius-sm);font-size:.78rem;margin-bottom:8px;"></div>
+        <div id="af-geo-opcoes" style="display:none;flex-direction:column;gap:6px;margin-bottom:8px;"></div>
+        <input type="hidden" id="af-lat">
+        <input type="hidden" id="af-lng">
+        <div class="campo"><label>Foto URL <span style="color:var(--suave);font-weight:400">(opcional)</span></label><input id="af-foto" placeholder="https://..."></div>
+        <div style="display:flex;gap:8px;margin-top:4px;">
+          <button onclick="document.getElementById('adm-form-lugar').style.display='none'" style="flex:1;border:1.5px solid var(--borda);background:none;border-radius:var(--radius-sm);padding:11px;font-size:.85rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;">Cancelar</button>
+          <button onclick="admSalvarLugar()" style="flex:2;background:var(--laranja);color:#fff;border:none;border-radius:var(--radius-sm);padding:11px;font-size:.85rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;">Salvar lugar</button>
+        </div>
+      </div>
+      <button class="adm-add-btn" onclick="admAbrirFormLugar()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Adicionar lugar
       </button>
       <div id="adm-lista-lugares"></div>
     </div>
+
     <!-- tab eventos -->
     <div class="adm-section" id="adm-tab-eventos" style="display:none;">
-      <button class="adm-add-btn" onclick="abrirAddEventoAdmin()">
+      <!-- form simples -->
+      <div id="adm-form-evento" style="display:none;background:var(--branco);border-radius:var(--radius);padding:16px;box-shadow:var(--sombra);margin-bottom:16px;">
+        <div style="font-weight:800;color:var(--navy);margin-bottom:14px;">Novo evento</div>
+        <div class="campo"><label>Título *</label><input id="af-ev-titulo" placeholder="Ex.: Musicalização para bebês"></div>
+        <div class="campo"><label>Categoria</label>
+          <select id="af-ev-cat">
+            <option value="musicalização">Musicalização</option>
+            <option value="yoga">Yoga / Pilates</option>
+            <option value="contação">Contação de histórias</option>
+            <option value="arte">Arte e atividades</option>
+            <option value="feira">Feirinha</option>
+            <option value="natureza">Natureza</option>
+            <option value="dança">Dança</option>
+            <option value="outro">Outro</option>
+          </select>
+        </div>
+        <div class="campo"><label>Local</label><input id="af-ev-local" placeholder="Ex.: Espaço Encantar, Botafogo"></div>
+        <div class="campo"><label>Data</label><input type="date" id="af-ev-data"></div>
+        <div class="campo"><label>Horário</label><input id="af-ev-hora" placeholder="Ex.: 10h às 11h"></div>
+        <div class="campo"><label>Faixa etária</label><input id="af-ev-etaria" placeholder="Ex.: 0 a 3 anos"></div>
+        <div class="campo"><label>Contato / Link</label><input id="af-ev-contato" placeholder="@perfil ou (21) 99999-9999"></div>
+        <div class="campo"><label>Descrição</label><textarea id="af-ev-desc" placeholder="Detalhes do evento…" maxlength="400" style="height:72px;resize:none;"></textarea></div>
+        <div class="campo"><label>Valor</label>
+          <select id="af-ev-pago">
+            <option value="gratis">Gratuito</option>
+            <option value="pago">Pago</option>
+          </select>
+        </div>
+        <div class="campo"><label>Foto URL <span style="color:var(--suave);font-weight:400">(opcional)</span></label><input id="af-ev-foto" placeholder="https://..."></div>
+        <div style="display:flex;gap:8px;margin-top:4px;">
+          <button onclick="document.getElementById('adm-form-evento').style.display='none';document.querySelector('#adm-tab-eventos .adm-add-btn').style.display='flex'" style="flex:1;border:1.5px solid var(--borda);background:none;border-radius:var(--radius-sm);padding:11px;font-size:.85rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;">Cancelar</button>
+          <button onclick="admSalvarEvento()" style="flex:2;background:var(--laranja);color:#fff;border:none;border-radius:var(--radius-sm);padding:11px;font-size:.85rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;">Salvar evento</button>
+        </div>
+      </div>
+      <button class="adm-add-btn" onclick="document.getElementById('adm-form-evento').style.display='block';this.style.display='none'">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Adicionar evento
       </button>
       <div id="adm-lista-eventos"></div>
     </div>
+
     <!-- tab usuárias -->
     <div class="adm-section" id="adm-tab-usuarios" style="display:none;">
       <div id="adm-lista-usuarios"></div>
@@ -2450,7 +2543,7 @@ async function publicarEvento(){
 // ADMIN
 // ═══════════════════════════════════════════════════
 const ADMIN_SENHA = "ovm2025";
-let admTabAtiva = "lugares";
+let admTabAtiva = "geral";
 
 function abrirAdmin(){
   document.getElementById("tela-admin").classList.add("ativa");
@@ -2481,26 +2574,45 @@ function sairAdmin(){
 function trocarTabAdmin(el, tab){
   document.querySelectorAll(".adm-tab").forEach(t=>t.classList.remove("ativo"));
   el.classList.add("ativo");
-  ["lugares","eventos","usuarios"].forEach(t=>{
+  ["geral","lugares","eventos","usuarios"].forEach(t=>{
     document.getElementById("adm-tab-"+t).style.display = t===tab?"block":"none";
   });
   admTabAtiva = tab;
 }
 
 async function renderAdmin(){
-  // atualiza dados do Firebase
   if(db){
     const lDocs = await fbList("lugares");
     if(lDocs.length) STATE.lugares = lDocs;
     const eDocs = await fbList("eventos");
     STATE.eventos = eDocs;
   }
-  const total = STATE.lugares.length + STATE.eventos.length;
   document.getElementById("adm-header-sub").textContent =
     `${STATE.lugares.length} lugares · ${STATE.eventos.length} eventos`;
+  renderAdmGeral();
   renderAdmLugares();
   renderAdmEventos();
   renderAdmUsuarios();
+}
+
+async function renderAdmGeral(){
+  document.getElementById("adm-stat-lugares").textContent = STATE.lugares.length;
+  document.getElementById("adm-stat-eventos").textContent = STATE.eventos.length;
+  let usuarios = [];
+  let feedbacks = [];
+  if(db){
+    try{ const s=await db.collection("usuarios").get(); usuarios=s.docs.map(d=>d.data()); }catch(e){}
+    try{ const s=await db.collection("feedbacks").get(); feedbacks=s.docs.map(d=>d.data()); }catch(e){}
+  }
+  document.getElementById("adm-stat-usuarios").textContent = usuarios.length;
+  document.getElementById("adm-stat-feedbacks").textContent = feedbacks.length;
+  const ul = document.getElementById("adm-stat-ultimas-users");
+  if(!usuarios.length){ ul.textContent="Nenhuma usuária ainda."; return; }
+  ul.innerHTML = usuarios.slice(-5).reverse().map(u=>`
+    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--borda);">
+      <span style="font-weight:700;color:var(--texto);">${esc(u.nome||"—")}</span>
+      <span style="color:var(--suave);font-size:.72rem;">${u.criadoEm?new Date(u.criadoEm).toLocaleDateString("pt-BR"):""}</span>
+    </div>`).join("");
 }
 
 function renderAdmLugares(){
@@ -2509,7 +2621,7 @@ function renderAdmLugares(){
   cont.innerHTML = STATE.lugares.map(l=>{
     const emoji = l.tipo==="praca"?"🌳":"☕";
     const fotoHtml = l.foto
-      ? `<img class="adm-card-foto" src="${esc(l.foto)}" onerror="this.textContent='${emoji}';this.style.fontSize='1.4rem'">`
+      ? `<img class="adm-card-foto" src="${esc(l.foto)}" onerror="this.textContent='${emoji}'">`
       : `<div class="adm-card-foto">${emoji}</div>`;
     const badge = l.seeded
       ? `<span class="adm-badge adm-badge-seed">seed</span>`
@@ -2519,11 +2631,11 @@ function renderAdmLugares(){
         ${fotoHtml}
         <div class="adm-card-body">
           <div class="adm-card-nome">${esc(l.nome)}${badge}</div>
-          <div class="adm-card-sub">${esc(l.bairro)} · ${l.lat?'📍 com localização':'sem localização'}</div>
+          <div class="adm-card-sub">${esc(l.bairro)} · ${l.lat?'com localização':'sem localização'}</div>
         </div>
       </div>
       <div class="adm-card-actions">
-        <button class="adm-btn-edit" onclick="editarLugarAdmin('${esc(l.id)}')">Editar</button>
+        <button class="adm-btn-edit" onclick="admEditarLugar('${esc(l.id)}')">Editar</button>
         <button class="adm-btn-del" onclick="deletarLugar('${esc(l.id)}')">Excluir</button>
       </div>
     </div>`;
@@ -2535,9 +2647,9 @@ function renderAdmEventos(){
   if(!STATE.eventos.length){ cont.innerHTML=`<div class="adm-empty">Nenhum evento cadastrado.</div>`; return; }
   cont.innerHTML = STATE.eventos.map(e=>{
     const fotoHtml = e.foto
-      ? `<img class="adm-card-foto" src="${esc(e.foto)}" onerror="this.textContent='★';this.style.fontSize='1.4rem'">`
+      ? `<img class="adm-card-foto" src="${esc(e.foto)}" onerror="this.textContent='★'">`
       : `<div class="adm-card-foto">★</div>`;
-    const quando = e.recorrente ? (e.recorrenciaTexto||"Recorrente") : (e.dataInicio||"—");
+    const quando = e.recorrente?(e.recorrenciaTexto||"Recorrente"):(e.dataInicio||"—");
     return `<div class="adm-card">
       <div class="adm-card-top">
         ${fotoHtml}
@@ -2563,8 +2675,7 @@ async function renderAdmUsuarios(){
     <div class="adm-card">
       <div class="adm-card-nome">${esc(u.nome||"—")}</div>
       <div class="adm-card-sub" style="margin-top:4px;">
-        ${u.email?`📧 ${esc(u.email)}`:''}
-        ${u.whatsapp?` · 📱 ${esc(u.whatsapp)}`:''}
+        ${u.email?`${esc(u.email)}`:''}${u.whatsapp?` · ${esc(u.whatsapp)}`:''}
       </div>
       <div style="font-size:.72rem;color:var(--suave);margin-top:4px;">${u.criadoEm?new Date(u.criadoEm).toLocaleDateString("pt-BR"):""}</div>
     </div>`).join("");
@@ -2586,20 +2697,134 @@ async function deletarEvento(id){
   toast("Evento excluído.");
 }
 
-function abrirAddLugarAdmin(){
-  // abre o sheet de lugar normal — ao salvar, volta para o admin
-  STATE._adminMode = true;
-  abrirAddLugar();
+function admAbrirFormLugar(id){
+  const form = document.getElementById("adm-form-lugar");
+  form.style.display="block";
+  document.querySelector("#adm-tab-lugares .adm-add-btn").style.display="none";
+  document.getElementById("adm-form-lugar-titulo").textContent = id?"Editar lugar":"Novo lugar";
+  document.getElementById("af-geo-status").style.display="none";
+  document.getElementById("af-geo-opcoes").style.display="none";
+  if(id){
+    const l = STATE.lugares.find(x=>x.id===id);
+    if(!l) return;
+    document.getElementById("af-id").value=l.id;
+    document.getElementById("af-nome").value=l.nome||"";
+    document.getElementById("af-bairro").value=l.bairro||"";
+    document.getElementById("af-tipo").value=l.tipo||"cafe";
+    document.getElementById("af-hora").value=l.hora||"";
+    document.getElementById("af-dica").value=l.dica||"";
+    document.getElementById("af-tags").value=(l.tags||[]).join(", ");
+    document.getElementById("af-foto").value=l.foto||"";
+    document.getElementById("af-lat").value=l.lat||"";
+    document.getElementById("af-lng").value=l.lng||"";
+  } else {
+    ["af-id","af-nome","af-bairro","af-hora","af-dica","af-tags","af-foto","af-lat","af-lng"].forEach(id=>{
+      document.getElementById(id).value="";
+    });
+    document.getElementById("af-tipo").value="cafe";
+  }
+  form.scrollIntoView({behavior:"smooth"});
 }
 
-function abrirAddEventoAdmin(){
-  STATE._adminMode = true;
-  abrirAddEvento();
+function admEditarLugar(id){ admAbrirFormLugar(id); }
+
+async function admBuscarEndereco(){
+  const nome = document.getElementById("af-nome").value.trim();
+  const bairro = document.getElementById("af-bairro").value.trim();
+  if(!nome){ toast("Preenche o nome primeiro"); return; }
+  const status = document.getElementById("af-geo-status");
+  const opcoes = document.getElementById("af-geo-opcoes");
+  status.style.display="block"; status.style.background="#FFF9C4"; status.style.color="#B45309";
+  status.textContent=`Buscando "${nome}"...`;
+  opcoes.innerHTML=""; opcoes.style.display="none";
+  try{
+    const q=encodeURIComponent(`${nome}${bairro?", "+bairro:""}, Rio de Janeiro, Brasil`);
+    const r=await fetch(`https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=4&countrycodes=br`,
+      {headers:{"Accept-Language":"pt-BR","User-Agent":"OndeVamosMamae/1.0"}});
+    const results=await r.json();
+    if(!results.length){
+      status.style.background="#FFF1F2"; status.style.color="#BE123C";
+      status.textContent="Não encontrado. Insira lat/lng manualmente.";
+    } else {
+      status.style.background="#F0FDF4"; status.style.color="#15803D";
+      status.textContent="Confirme a localização:";
+      opcoes.style.display="flex"; opcoes.style.flexDirection="column"; opcoes.style.gap="6px"; opcoes.style.marginTop="6px";
+      opcoes.innerHTML = results.map(res=>`
+        <button onclick="admConfirmarGeo(${res.lat},${res.lon})"
+          style="background:#fff;border:1.5px solid var(--borda);border-radius:var(--radius-sm);padding:8px 12px;text-align:left;cursor:pointer;font-family:'Nunito',sans-serif;font-size:.78rem;">
+          <strong style="color:var(--navy);">${esc((res.display_name||"").split(",").slice(0,2).join(", "))}</strong>
+        </button>`).join("");
+    }
+  }catch(e){
+    status.style.background="#FFF1F2"; status.style.color="#BE123C";
+    status.textContent="Erro na busca.";
+  }
 }
 
-function editarLugarAdmin(id){
-  STATE._adminMode = true;
-  editarLugar(id);
+function admConfirmarGeo(lat,lng){
+  document.getElementById("af-lat").value=lat;
+  document.getElementById("af-lng").value=lng;
+  document.getElementById("af-geo-status").style.background="#F0FDF4";
+  document.getElementById("af-geo-status").style.color="#15803D";
+  document.getElementById("af-geo-status").textContent="Localização confirmada!";
+  document.getElementById("af-geo-opcoes").style.display="none";
+}
+
+async function admSalvarLugar(){
+  const nome=document.getElementById("af-nome").value.trim();
+  const bairro=document.getElementById("af-bairro").value.trim();
+  if(!nome||!bairro){ toast("Nome e bairro são obrigatórios"); return; }
+  const id=document.getElementById("af-id").value||uid();
+  const tagsRaw=document.getElementById("af-tags").value;
+  const tags=tagsRaw?tagsRaw.split(",").map(t=>t.trim()).filter(Boolean):[];
+  const lugar={
+    id, nome, bairro,
+    tipo:document.getElementById("af-tipo").value,
+    hora:document.getElementById("af-hora").value.trim(),
+    dica:document.getElementById("af-dica").value.trim(),
+    tags, ideal:[],
+    lat:parseFloat(document.getElementById("af-lat").value)||null,
+    lng:parseFloat(document.getElementById("af-lng").value)||null,
+    foto:document.getElementById("af-foto").value.trim(),
+    criadoEm:new Date().toISOString(),
+  };
+  const idx=STATE.lugares.findIndex(l=>l.id===id);
+  if(idx>=0) STATE.lugares[idx]=lugar; else STATE.lugares.push(lugar);
+  if(db) await fbSet("lugares",id,lugar);
+  document.getElementById("adm-form-lugar").style.display="none";
+  document.querySelector("#adm-tab-lugares .adm-add-btn").style.display="flex";
+  renderAdmLugares();
+  renderNovidades();
+  desenharPins();
+  toast("Lugar salvo!");
+}
+
+async function admSalvarEvento(){
+  const titulo=document.getElementById("af-ev-titulo").value.trim();
+  if(!titulo){ toast("Título é obrigatório"); return; }
+  const pago=document.getElementById("af-ev-pago").value==="pago";
+  const evento={
+    id:uid(), titulo,
+    categoria:document.getElementById("af-ev-cat").value,
+    local:document.getElementById("af-ev-local").value.trim(),
+    bairro:document.getElementById("af-ev-local").value.trim(),
+    dataInicio:document.getElementById("af-ev-data").value,
+    hora:document.getElementById("af-ev-hora").value.trim(),
+    faixaEtaria:document.getElementById("af-ev-etaria").value.trim(),
+    contato:document.getElementById("af-ev-contato").value.trim(),
+    descricao:document.getElementById("af-ev-desc").value.trim(),
+    foto:document.getElementById("af-ev-foto").value.trim(),
+    pago, recorrente:false,
+    criadoEm:new Date().toISOString(),
+    adicionadoPor:"Admin",
+  };
+  STATE.eventos.push(evento);
+  if(db) await fbSet("eventos",evento.id,evento);
+  document.getElementById("adm-form-evento").style.display="none";
+  document.querySelector("#adm-tab-eventos .adm-add-btn").style.display="flex";
+  renderAdmEventos();
+  renderHomeEventos();
+  toast("Evento salvo!");
 }
 
 // ═══════════════════════════════════════════════════
