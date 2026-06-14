@@ -634,7 +634,8 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
     <div class="adm-section" id="adm-tab-eventos" style="display:none;">
       <!-- form simples -->
       <div id="adm-form-evento" style="display:none;background:var(--branco);border-radius:var(--radius);padding:16px;box-shadow:var(--sombra);margin-bottom:16px;">
-        <div style="font-weight:800;color:var(--navy);margin-bottom:14px;">Novo evento</div>
+        <input type="hidden" id="af-ev-id">
+        <div style="font-weight:800;color:var(--navy);margin-bottom:14px;" id="adm-form-evento-titulo">Novo evento</div>
         <div class="campo"><label>Título *</label><input id="af-ev-titulo" placeholder="Ex.: Musicalização para bebês"></div>
         <div class="campo"><label>Categoria</label>
           <select id="af-ev-cat">
@@ -2659,6 +2660,8 @@ function renderAdmEventos(){
         </div>
       </div>
       <div class="adm-card-actions">
+        <button class="adm-btn-edit" onclick="admAbrirFormEvento('${esc(e.id)}')">Editar</button>
+        <button class="adm-btn-edit" onclick="admDuplicarEvento('${esc(e.id)}')">Duplicar</button>
         <button class="adm-btn-del" onclick="deletarEvento('${esc(e.id)}')">Excluir</button>
       </div>
     </div>`;
@@ -2799,12 +2802,51 @@ async function admSalvarLugar(){
   toast("Lugar salvo!");
 }
 
+function admAbrirFormEvento(id){
+  const form = document.getElementById("adm-form-evento");
+  form.style.display="block";
+  document.querySelector("#adm-tab-eventos .adm-add-btn").style.display="none";
+  document.getElementById("adm-form-evento-titulo").textContent = id?"Editar evento":"Novo evento";
+  if(id){
+    const e = STATE.eventos.find(x=>x.id===id);
+    if(!e) return;
+    document.getElementById("af-ev-id").value=e.id;
+    document.getElementById("af-ev-titulo").value=e.titulo||"";
+    document.getElementById("af-ev-cat").value=e.categoria||"musicalização";
+    document.getElementById("af-ev-local").value=e.local||"";
+    document.getElementById("af-ev-data").value=e.dataInicio||"";
+    document.getElementById("af-ev-hora").value=e.hora||"";
+    document.getElementById("af-ev-etaria").value=e.faixaEtaria||"";
+    document.getElementById("af-ev-contato").value=e.contato||"";
+    document.getElementById("af-ev-desc").value=e.descricao||"";
+    document.getElementById("af-ev-pago").value=e.pago?"pago":"gratuito";
+    document.getElementById("af-ev-foto").value=e.foto||"";
+  } else {
+    ["af-ev-id","af-ev-titulo","af-ev-local","af-ev-data","af-ev-hora","af-ev-etaria","af-ev-contato","af-ev-desc","af-ev-foto"].forEach(i=>{
+      document.getElementById(i).value="";
+    });
+    document.getElementById("af-ev-cat").value="musicalização";
+    document.getElementById("af-ev-pago").value="gratuito";
+  }
+  form.scrollIntoView({behavior:"smooth"});
+}
+
+function admDuplicarEvento(id){
+  const e = STATE.eventos.find(x=>x.id===id);
+  if(!e) return;
+  admAbrirFormEvento(id);
+  document.getElementById("af-ev-id").value="";
+  document.getElementById("adm-form-evento-titulo").textContent="Duplicar evento";
+}
+
 async function admSalvarEvento(){
   const titulo=document.getElementById("af-ev-titulo").value.trim();
   if(!titulo){ toast("Título é obrigatório"); return; }
+  const existingId=document.getElementById("af-ev-id").value;
+  const id=existingId||uid();
   const pago=document.getElementById("af-ev-pago").value==="pago";
   const evento={
-    id:uid(), titulo,
+    id, titulo,
     categoria:document.getElementById("af-ev-cat").value,
     local:document.getElementById("af-ev-local").value.trim(),
     bairro:document.getElementById("af-ev-local").value.trim(),
@@ -2818,8 +2860,9 @@ async function admSalvarEvento(){
     criadoEm:new Date().toISOString(),
     adicionadoPor:"Admin",
   };
-  STATE.eventos.push(evento);
-  if(db) await fbSet("eventos",evento.id,evento);
+  const idx=STATE.eventos.findIndex(e=>e.id===id);
+  if(idx>=0) STATE.eventos[idx]=evento; else STATE.eventos.push(evento);
+  if(db) await fbSet("eventos",id,evento);
   document.getElementById("adm-form-evento").style.display="none";
   document.querySelector("#adm-tab-eventos .adm-add-btn").style.display="flex";
   renderAdmEventos();
