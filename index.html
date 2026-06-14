@@ -1,0 +1,2260 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Onde Vamos, Mamãe?</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --laranja:#FF7A4D; --navy:#0F2D52; --verde:#2BA56B;
+  --rosa:#F15B93; --amarelo:#FFCB45; --azul:#2E6BFF;
+  --cream:#FFF7F0; --cinza:#F5F5F7; --borda:#E8E4DF;
+  --texto:#1A1A2E; --suave:#7A7A90; --branco:#FFFFFF;
+  --nav:68px; --radius:18px; --radius-sm:12px;
+  --sombra:0 2px 16px rgba(0,0,0,.08);
+  --sombra-forte:0 4px 28px rgba(0,0,0,.14);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background:var(--cinza);color:var(--texto);}
+
+/* ── TELAS ── */
+.tela{position:fixed;inset:0;bottom:var(--nav);overflow-y:auto;background:var(--cinza);display:none;-webkit-overflow-scrolling:touch;}
+.tela.ativa{display:block;}
+#tela-mapa{background:#e8e4df;overflow:hidden;}
+
+/* ── ONBOARDING ── */
+#onboarding{position:fixed;inset:0;background:var(--cream);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 28px;gap:24px;}
+#onboarding.oculto{display:none;}
+.ob-logo{display:flex;align-items:center;gap:12px;margin-bottom:8px;}
+.ob-logo svg{width:64px;height:64px;}
+.ob-titulo{font-family:'Caveat',cursive;font-size:2rem;font-weight:700;color:var(--navy);line-height:1;}
+.ob-sub{font-size:.95rem;color:var(--suave);text-align:center;line-height:1.5;max-width:300px;}
+.ob-form{width:100%;max-width:340px;display:flex;flex-direction:column;gap:12px;}
+.ob-label{font-size:.78rem;font-weight:700;color:var(--navy);margin-bottom:2px;display:block;}
+.ob-input{width:100%;border:2px solid var(--borda);border-radius:var(--radius-sm);padding:14px 16px;font-size:1rem;font-family:'Nunito',sans-serif;background:var(--branco);outline:none;transition:border-color .2s;}
+.ob-input:focus{border-color:var(--laranja);}
+.ob-hint{font-size:.75rem;color:var(--suave);margin-top:-6px;}
+.ob-btn{background:var(--laranja);color:#fff;border:none;border-radius:var(--radius-sm);padding:16px;font-size:1rem;font-weight:800;font-family:'Nunito',sans-serif;cursor:pointer;width:100%;max-width:340px;letter-spacing:.3px;}
+.ob-btn:hover{filter:brightness(1.05);}
+
+/* ── BOTTOM NAV ── */
+#bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav);background:var(--branco);border-top:1px solid var(--borda);display:flex;align-items:center;justify-content:space-around;z-index:500;padding-bottom:env(safe-area-inset-bottom);}
+.nav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;color:var(--suave);font-size:.68rem;font-family:'Nunito',sans-serif;font-weight:600;padding:6px 14px;transition:color .15s;}
+.nav-btn.ativo{color:var(--laranja);}
+.nav-btn svg{width:22px;height:22px;}
+.nav-fab{width:52px;height:52px;background:var(--laranja);border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(255,122,77,.4);margin-top:-8px;}
+.nav-fab svg{width:26px;height:26px;color:#fff;}
+
+/* ── HEADER ── */
+.app-header{padding:52px 20px 16px;background:var(--branco);}
+.header-row{display:flex;align-items:center;justify-content:space-between;}
+.header-logo{display:flex;align-items:center;gap:10px;}
+.header-logo svg{width:36px;height:36px;}
+.logo-text{font-family:'Caveat',cursive;font-size:1.3rem;font-weight:700;color:var(--navy);line-height:1.1;}
+.header-avatar{width:38px;height:38px;border-radius:50%;background:var(--laranja);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:1rem;cursor:pointer;}
+
+/* ── BUSCA ── */
+.busca-container{margin:12px 20px 0;position:relative;}
+.busca-input{width:100%;border:none;border-radius:var(--radius-sm);padding:12px 16px 12px 44px;font-size:.9rem;font-family:'Nunito',sans-serif;background:var(--cinza);outline:none;color:var(--texto);}
+.busca-icone{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--suave);}
+.busca-icone svg{width:18px;height:18px;}
+
+/* ── CHIPS CATEGORIA ── */
+.chips-scroll{display:flex;gap:10px;padding:16px 20px 4px;overflow-x:auto;scrollbar-width:none;}
+.chips-scroll::-webkit-scrollbar{display:none;}
+.chip-cat{display:flex;flex-direction:column;align-items:center;gap:6px;background:var(--branco);border:1.5px solid var(--borda);border-radius:var(--radius-sm);padding:10px 14px;cursor:pointer;transition:all .15s;min-width:80px;white-space:nowrap;font-size:.72rem;font-weight:700;color:var(--texto);}
+.chip-cat.ativo{background:var(--navy);border-color:var(--navy);color:#fff;}
+.chip-cat svg{width:22px;height:22px;}
+
+/* ── SECAO HOME ── */
+.secao{padding:20px 20px 0;}
+.secao-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.secao-titulo{font-size:1rem;font-weight:800;color:var(--texto);}
+.secao-ver{font-size:.8rem;font-weight:700;color:var(--laranja);background:none;border:none;cursor:pointer;font-family:'Nunito',sans-serif;}
+
+/* ── CARDS HORIZONTAL ── */
+.cards-h{display:flex;gap:12px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;}
+.cards-h::-webkit-scrollbar{display:none;}
+.card-h{min-width:160px;background:var(--branco);border-radius:var(--radius);overflow:hidden;box-shadow:var(--sombra);cursor:pointer;flex-shrink:0;}
+.card-h-foto{width:100%;height:100px;object-fit:cover;background:var(--borda);display:block;}
+.card-h-foto-placeholder{width:100%;height:100px;background:linear-gradient(135deg,var(--cream),var(--borda));display:flex;align-items:center;justify-content:center;font-size:2rem;}
+.card-h-body{padding:10px 12px;}
+.card-h-badge{display:inline-block;background:var(--laranja);color:#fff;font-size:.6rem;font-weight:700;border-radius:999px;padding:2px 8px;margin-bottom:5px;text-transform:uppercase;letter-spacing:.3px;}
+.card-h-nome{font-size:.85rem;font-weight:800;line-height:1.2;color:var(--texto);}
+.card-h-bairro{font-size:.72rem;color:var(--suave);margin-top:2px;}
+.card-h-dist{font-size:.68rem;color:var(--verde);font-weight:700;margin-top:3px;}
+
+/* ── CARD EVENTO ── */
+.card-evt{background:var(--branco);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;box-shadow:var(--sombra);cursor:pointer;display:flex;gap:14px;}
+.card-evt-data{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:48px;background:var(--cream);border-radius:var(--radius-sm);padding:8px 6px;}
+.card-evt-dia{font-size:1.4rem;font-weight:900;color:var(--laranja);line-height:1;}
+.card-evt-mes{font-size:.6rem;font-weight:700;color:var(--suave);text-transform:uppercase;letter-spacing:.5px;}
+.card-evt-recorrente{font-size:.55rem;font-weight:700;color:var(--verde);text-align:center;margin-top:2px;}
+.card-evt-body{flex:1;min-width:0;}
+.card-evt-titulo{font-size:.95rem;font-weight:800;color:var(--texto);line-height:1.2;}
+.card-evt-local{font-size:.75rem;color:var(--suave);margin-top:3px;}
+.card-evt-badges{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;}
+.badge{display:inline-flex;align-items:center;gap:3px;font-size:.65rem;font-weight:700;border-radius:999px;padding:3px 9px;}
+.badge-verde{background:#E8F8EE;color:var(--verde);}
+.badge-laranja{background:#FFF0EA;color:var(--laranja);}
+.badge-rosa{background:#FEE8F2;color:var(--rosa);}
+.badge-amarelo{background:#FFF9E0;color:#B8820A;}
+.badge-azul{background:#EBF1FF;color:var(--azul);}
+
+/* ── CARD LUGAR (lista) ── */
+.card-lugar{background:var(--branco);border-radius:var(--radius);margin-bottom:10px;box-shadow:var(--sombra);overflow:hidden;cursor:pointer;}
+.card-lugar-foto{width:100%;height:140px;object-fit:cover;background:var(--borda);display:block;}
+.card-lugar-foto-ph{width:100%;height:80px;background:linear-gradient(135deg,var(--cream),var(--borda));display:flex;align-items:center;justify-content:center;font-size:2.5rem;}
+.card-lugar-body{padding:12px 14px;}
+.card-lugar-row{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
+.card-lugar-nome{font-size:1rem;font-weight:800;color:var(--texto);line-height:1.2;}
+.card-lugar-bairro{font-size:.75rem;color:var(--suave);margin-top:2px;}
+.card-lugar-dist{font-size:.72rem;color:var(--verde);font-weight:700;}
+.card-lugar-salvar{background:none;border:none;cursor:pointer;color:var(--suave);padding:2px;}
+.card-lugar-salvar.salvo{color:var(--rosa);}
+.card-lugar-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+.tag-pill{font-size:.68rem;font-weight:700;padding:3px 10px;border-radius:999px;background:var(--cinza);color:var(--texto);}
+.estrelas{display:flex;gap:1px;align-items:center;}
+.estrela{font-size:.85rem;color:#ddd;}
+.estrela.cheia{color:#FFCB45;}
+.nota-mini{font-size:.72rem;color:var(--suave);font-weight:600;margin-left:4px;}
+
+/* ── MAPA ── */
+#tela-mapa{padding-bottom:0;}
+.mapa-header{position:absolute;top:0;left:0;right:0;z-index:400;padding:52px 16px 12px;background:linear-gradient(180deg,rgba(255,255,255,.98) 70%,transparent);}
+.mapa-header-row{display:flex;gap:10px;align-items:center;}
+.mapa-busca{flex:1;background:var(--branco);border:none;border-radius:var(--radius-sm);padding:11px 16px 11px 40px;font-size:.88rem;font-family:'Nunito',sans-serif;outline:none;box-shadow:var(--sombra);}
+.mapa-busca-wrap{position:relative;flex:1;}
+.mapa-busca-ico{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--suave);}
+.mapa-busca-ico svg{width:16px;height:16px;}
+.btn-filtros{background:var(--branco);border:none;border-radius:var(--radius-sm);padding:11px 14px;display:flex;align-items:center;gap:6px;font-size:.82rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;box-shadow:var(--sombra);white-space:nowrap;color:var(--texto);}
+.btn-filtros svg{width:16px;height:16px;}
+#leaflet-map{position:absolute;inset:0;z-index:1;}
+.mapa-strip-wrap{position:absolute;bottom:12px;left:0;right:0;z-index:400;display:flex;align-items:center;gap:0;pointer-events:auto;}
+.mapa-strip-wrap.oculta{display:none;}
+.mapa-strip-btn{background:var(--branco);border:none;border-radius:50%;width:32px;height:32px;box-shadow:var(--sombra-forte);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;color:var(--texto);margin:0 6px;}
+.mapa-strip-btn:active{opacity:.7;}
+.mapa-lista-strip{flex:1;display:flex;gap:10px;overflow-x:auto;padding:4px 0;scrollbar-width:none;-ms-overflow-style:none;}
+.mapa-lista-strip::-webkit-scrollbar{display:none;}
+.mapa-card-mini{background:var(--branco);border-radius:var(--radius);padding:10px 12px;box-shadow:var(--sombra-forte);cursor:pointer;flex-shrink:0;width:200px;display:flex;gap:10px;align-items:center;}
+.mapa-card-mini-foto{width:46px;height:46px;border-radius:var(--radius-sm);object-fit:cover;background:var(--borda);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.3rem;}
+.mapa-card-mini-body{flex:1;min-width:0;}
+.mapa-card-mini-nome{font-size:.82rem;font-weight:800;color:var(--texto);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mapa-card-mini-bairro{font-size:.72rem;color:var(--suave);margin-top:1px;}
+.mapa-card-preview{position:absolute;bottom:12px;left:12px;right:12px;z-index:401;background:var(--branco);border-radius:var(--radius);padding:14px;box-shadow:var(--sombra-forte);display:none;cursor:pointer;}
+.mapa-card-preview.visivel{display:flex;gap:12px;align-items:center;}
+.mapa-preview-foto{width:60px;height:60px;border-radius:var(--radius-sm);object-fit:cover;background:var(--borda);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.6rem;}
+.mapa-preview-info{flex:1;min-width:0;}
+.mapa-preview-nome{font-size:.95rem;font-weight:800;color:var(--texto);}
+.mapa-preview-bairro{font-size:.75rem;color:var(--suave);margin-top:1px;}
+.mapa-preview-seta{color:var(--suave);}
+
+/* ── PIN MAPA ── */
+.pin-ovm{width:32px;height:32px;border-radius:50% 50% 50% 4px;transform:rotate(-45deg);border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;}
+.pin-ovm span{transform:rotate(45deg);font-size:13px;}
+.pin-laranja{background:var(--laranja);}
+.pin-verde{background:var(--verde);}
+.pin-azul{background:var(--azul);}
+.pin-novo{background:var(--rosa);}
+.pin-praca{width:30px;height:30px;border-radius:50%;background:var(--verde);border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;font-size:14px;}
+#map-aviso-pin{display:none;position:absolute;top:130px;left:16px;right:16px;z-index:400;background:var(--navy);color:#fff;border-radius:var(--radius-sm);padding:12px 16px;font-size:.85rem;font-weight:600;text-align:center;}
+
+/* ── AGENDA ── */
+.agenda-header{padding:52px 20px 16px;background:var(--branco);}
+.agenda-titulo{font-size:1.4rem;font-weight:900;color:var(--texto);}
+.agenda-filtros{display:flex;gap:8px;margin-top:12px;}
+.agenda-filtro{border:1.5px solid var(--borda);background:var(--branco);border-radius:999px;padding:7px 16px;font-size:.8rem;font-weight:700;cursor:pointer;color:var(--suave);font-family:'Nunito',sans-serif;}
+.agenda-filtro.ativo{background:var(--navy);border-color:var(--navy);color:#fff;}
+.agenda-lista{padding:16px 20px;}
+.agenda-vazia{text-align:center;padding:60px 20px;color:var(--suave);}
+.agenda-vazia p{font-size:.9rem;margin-top:8px;}
+
+/* ── SALVOS ── */
+.salvos-header{padding:52px 20px 16px;background:var(--branco);}
+.salvos-titulo{font-size:1.4rem;font-weight:900;color:var(--texto);}
+.salvos-tabs{display:flex;gap:0;margin-top:12px;background:var(--cinza);border-radius:var(--radius-sm);padding:3px;}
+.salvos-tab{flex:1;border:none;background:none;padding:8px;border-radius:10px;font-size:.85rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;color:var(--suave);}
+.salvos-tab.ativo{background:var(--branco);color:var(--texto);box-shadow:0 1px 4px rgba(0,0,0,.08);}
+.salvos-lista{padding:16px 20px;}
+.salvos-vazio{text-align:center;padding:60px 20px;color:var(--suave);}
+.salvos-vazio p{font-size:.9rem;margin-top:8px;}
+.card-salvo{background:var(--branco);border-radius:var(--radius);padding:12px 14px;margin-bottom:10px;box-shadow:var(--sombra);cursor:pointer;display:flex;gap:12px;align-items:center;}
+.card-salvo-foto{width:56px;height:56px;border-radius:var(--radius-sm);object-fit:cover;background:var(--borda);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.5rem;}
+.card-salvo-body{flex:1;min-width:0;}
+.card-salvo-nome{font-size:.9rem;font-weight:800;color:var(--texto);}
+.card-salvo-sub{font-size:.75rem;color:var(--suave);margin-top:2px;}
+.card-salvo-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px;}
+
+/* ── FAB ── */
+.fab{position:fixed;right:20px;bottom:calc(var(--nav) + 16px);width:52px;height:52px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(255,122,77,.4);z-index:400;font-size:1.5rem;background:var(--laranja);color:#fff;}
+.fab svg{width:24px;height:24px;}
+
+/* ── OVERLAY DETALHE ── */
+.overlay{position:fixed;inset:0;z-index:700;background:var(--cinza);overflow-y:auto;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1);}
+.overlay.aberto{transform:translateY(0);}
+.overlay-back{position:absolute;top:52px;left:16px;z-index:10;background:rgba(255,255,255,.9);border:none;border-radius:50%;width:40px;height:40px;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);}
+.overlay-back svg{width:20px;height:20px;color:var(--texto);}
+.overlay-salvar{position:absolute;top:52px;right:16px;z-index:10;background:rgba(255,255,255,.9);border:none;border-radius:50%;width:40px;height:40px;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);}
+.overlay-salvar svg{width:20px;height:20px;color:var(--suave);}
+.overlay-salvar.salvo svg{color:var(--rosa);}
+.det-foto{width:100%;height:240px;object-fit:cover;background:linear-gradient(135deg,var(--cream),var(--borda));display:flex;align-items:center;justify-content:center;font-size:4rem;}
+.det-foto img{width:100%;height:100%;object-fit:cover;}
+.det-corpo{background:var(--branco);border-radius:var(--radius) var(--radius) 0 0;margin-top:-20px;padding:20px 20px 32px;position:relative;}
+.det-nome{font-size:1.4rem;font-weight:900;color:var(--texto);line-height:1.2;}
+.det-meta{font-size:.82rem;color:var(--suave);margin-top:4px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.det-aberto{color:var(--verde);font-weight:700;}
+.det-fechado{color:var(--rosa);font-weight:700;}
+.det-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;}
+.det-secao{margin-top:20px;}
+.det-secao-titulo{font-size:.8rem;font-weight:800;color:var(--navy);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;}
+.ideal-grid{display:flex;gap:10px;flex-wrap:wrap;}
+.ideal-item{display:flex;flex-direction:column;align-items:center;gap:5px;background:var(--cinza);border-radius:var(--radius-sm);padding:10px 12px;font-size:.7rem;font-weight:700;color:var(--texto);text-align:center;min-width:72px;}
+.ideal-item svg{width:24px;height:24px;}
+.det-dica{background:var(--cream);border-radius:var(--radius-sm);padding:12px 14px;font-size:.85rem;line-height:1.5;color:var(--texto);}
+.comentario-item{padding:10px 0;border-bottom:1px solid var(--cinza);}
+.comentario-autor{font-weight:700;font-size:.82rem;color:var(--navy);}
+.comentario-quando{font-size:.7rem;color:var(--suave);margin-left:6px;}
+.comentario-texto{font-size:.82rem;color:var(--texto);margin-top:3px;line-height:1.4;}
+.form-comentario{display:flex;gap:8px;margin-top:12px;}
+.inp-comentario{flex:1;border:1.5px solid var(--borda);border-radius:var(--radius-sm);padding:10px 14px;font-size:.85rem;font-family:'Nunito',sans-serif;outline:none;}
+.inp-comentario:focus{border-color:var(--laranja);}
+.btn-comentario{background:var(--navy);color:#fff;border:none;border-radius:var(--radius-sm);padding:10px 16px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;}
+.det-acoes{display:flex;gap:10px;margin-top:20px;}
+.btn-acao{flex:1;padding:14px;border-radius:var(--radius-sm);font-size:.88rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;border:none;}
+.btn-acao-outline{background:var(--cinza);color:var(--texto);}
+.btn-acao-primary{background:var(--laranja);color:#fff;}
+.estrelas-interativas{display:flex;gap:4px;margin-top:8px;}
+.estrela-int{font-size:1.4rem;cursor:pointer;color:#ddd;}
+.estrela-int.cheia{color:var(--amarelo);}
+
+/* ── DETALHE EVENTO ── */
+.det-evt-categoria{display:inline-flex;align-items:center;gap:6px;background:var(--cream);border-radius:999px;padding:6px 14px;font-size:.78rem;font-weight:700;color:var(--laranja);margin-bottom:12px;}
+.det-evt-info-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;}
+.det-evt-info-icon{width:32px;height:32px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.9rem;}
+.det-evt-info-icon.cal{background:#FFF0EA;}
+.det-evt-info-icon.loc{background:#E8F8EE;}
+.det-evt-info-icon.price{background:#FFF9E0;}
+.det-evt-info-texto{font-size:.85rem;color:var(--texto);line-height:1.4;}
+.det-evt-info-label{font-size:.7rem;font-weight:700;color:var(--suave);display:block;}
+
+/* ── PAINEL FILTROS ── */
+.veu-filtros{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:800;display:none;}
+.veu-filtros.aberto{display:block;}
+.painel-filtros{position:fixed;bottom:0;left:0;right:0;background:var(--branco);border-radius:var(--radius) var(--radius) 0 0;max-height:85vh;overflow-y:auto;z-index:801;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1);}
+.painel-filtros.aberto{transform:translateY(0);}
+.painel-handle{width:40px;height:4px;background:var(--borda);border-radius:999px;margin:12px auto 16px;}
+.painel-titulo{font-size:1.1rem;font-weight:800;padding:0 20px 16px;display:flex;justify-content:space-between;align-items:center;}
+.painel-titulo button{background:none;border:none;cursor:pointer;color:var(--suave);font-size:1.2rem;}
+.filtro-secao{padding:0 20px 20px;}
+.filtro-secao-label{font-size:.72rem;font-weight:800;color:var(--suave);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;display:block;}
+.filtro-chips{display:flex;gap:8px;flex-wrap:wrap;}
+.filtro-chip{border:1.5px solid var(--borda);background:var(--branco);border-radius:999px;padding:7px 14px;font-size:.8rem;font-weight:600;cursor:pointer;color:var(--texto);font-family:'Nunito',sans-serif;}
+.filtro-chip.ativo{background:var(--navy);border-color:var(--navy);color:#fff;}
+.ideal-filtros{display:flex;gap:8px;flex-wrap:wrap;}
+.ideal-filtro{display:flex;flex-direction:column;align-items:center;gap:4px;background:var(--cinza);border-radius:var(--radius-sm);padding:10px 12px;cursor:pointer;font-size:.7rem;font-weight:700;border:1.5px solid transparent;min-width:68px;text-align:center;}
+.ideal-filtro.ativo{border-color:var(--laranja);background:var(--cream);}
+.ideal-filtro svg{width:22px;height:22px;}
+.painel-footer{padding:16px 20px;border-top:1px solid var(--cinza);}
+.btn-ver-resultados{width:100%;background:var(--laranja);color:#fff;border:none;border-radius:var(--radius-sm);padding:15px;font-size:.95rem;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;}
+
+/* ── MODAL ADICIONAR (sheet) ── */
+.modal-sheet{position:fixed;bottom:0;left:0;right:0;background:var(--branco);border-radius:var(--radius) var(--radius) 0 0;max-height:92vh;overflow-y:auto;z-index:900;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1);}
+.modal-sheet.aberto{transform:translateY(0);}
+.veu-sheet{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:899;display:none;}
+.veu-sheet.aberto{display:block;}
+.sheet-handle{width:40px;height:4px;background:var(--borda);border-radius:999px;margin:12px auto 0;}
+.sheet-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 0;}
+.sheet-titulo{font-size:1.1rem;font-weight:800;color:var(--texto);}
+.sheet-fechar{background:none;border:none;cursor:pointer;width:32px;height:32px;border-radius:50%;background:var(--cinza);display:flex;align-items:center;justify-content:center;}
+.sheet-fechar svg{width:16px;height:16px;color:var(--suave);}
+.sheet-body{padding:20px;}
+.sheet-passos{display:flex;gap:6px;margin-bottom:20px;}
+.passo-dot{flex:1;height:4px;border-radius:999px;background:var(--borda);}
+.passo-dot.ativo{background:var(--laranja);}
+.passo-dot.done{background:var(--verde);}
+.campo{margin-bottom:16px;}
+.campo label{display:block;font-size:.78rem;font-weight:700;color:var(--navy);margin-bottom:6px;}
+.campo input,.campo textarea,.campo select{width:100%;border:1.5px solid var(--borda);border-radius:var(--radius-sm);padding:12px 14px;font-size:.9rem;font-family:'Nunito',sans-serif;background:var(--branco);outline:none;transition:border-color .2s;color:var(--texto);}
+.campo input:focus,.campo textarea:focus,.campo select:focus{border-color:var(--laranja);}
+.campo textarea{resize:vertical;min-height:80px;}
+.campo-hint{font-size:.72rem;color:var(--suave);margin-top:4px;}
+.sheet-nav{display:flex;gap:10px;margin-top:8px;padding-bottom:20px;}
+.btn-sheet-sec{flex:1;background:var(--cinza);color:var(--texto);border:none;border-radius:var(--radius-sm);padding:14px;font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;}
+.btn-sheet-pri{flex:1;background:var(--laranja);color:#fff;border:none;border-radius:var(--radius-sm);padding:14px;font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;}
+.tags-grid{display:flex;gap:8px;flex-wrap:wrap;}
+.tag-check{display:flex;align-items:center;gap:6px;background:var(--cinza);border-radius:999px;padding:7px 12px;cursor:pointer;border:1.5px solid transparent;font-size:.78rem;font-weight:600;}
+.tag-check.sel{border-color:var(--laranja);background:var(--cream);}
+.tag-check input{display:none;}
+.ideal-grid-sel{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;}
+.ideal-sel{display:flex;flex-direction:column;align-items:center;gap:5px;background:var(--cinza);border-radius:var(--radius-sm);padding:10px 12px;cursor:pointer;font-size:.7rem;font-weight:700;text-align:center;border:1.5px solid transparent;min-width:72px;}
+.ideal-sel.sel{border-color:var(--laranja);background:var(--cream);}
+.ideal-sel svg{width:22px;height:22px;}
+.btn-pin-mapa{width:100%;background:var(--cream);border:1.5px dashed var(--laranja);border-radius:var(--radius-sm);padding:12px;font-size:.85rem;font-weight:700;cursor:pointer;color:var(--laranja);font-family:'Nunito',sans-serif;margin-top:4px;}
+.btn-pin-mapa.ok{background:#E8F8EE;border-style:solid;border-color:var(--verde);color:var(--verde);}
+.foto-upload-area{border:2px dashed var(--borda);border-radius:var(--radius-sm);padding:24px;text-align:center;cursor:pointer;background:var(--cinza);}
+.foto-upload-area:hover{border-color:var(--laranja);}
+.foto-upload-area svg{width:32px;height:32px;color:var(--suave);margin-bottom:8px;}
+.foto-upload-area p{font-size:.82rem;color:var(--suave);}
+.foto-preview{width:100%;height:160px;object-fit:cover;border-radius:var(--radius-sm);display:none;}
+
+/* ── MINI MENU AÇÕES ── */
+.mini-menu{position:fixed;bottom:calc(var(--nav) + 80px);left:50%;transform:translateX(-50%);background:var(--branco);border-radius:var(--radius);padding:6px;box-shadow:var(--sombra-forte);z-index:600;display:none;min-width:200px;}
+.mini-menu.aberto{display:block;}
+.mini-menu-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:var(--radius-sm);cursor:pointer;font-size:.9rem;font-weight:700;color:var(--texto);}
+.mini-menu-item:hover{background:var(--cinza);}
+.mini-menu-item svg{width:20px;height:20px;color:var(--laranja);}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:calc(var(--nav) + 16px);left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:12px 24px;border-radius:999px;font-size:.85rem;font-weight:600;z-index:9000;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;box-shadow:var(--sombra-forte);}
+.toast.show{opacity:1;}
+
+/* ── UTILITÁRIOS ── */
+.pb-nav{padding-bottom:calc(var(--nav) + 16px);}
+.divider{height:1px;background:var(--cinza);margin:8px 0;}
+.mt-16{margin-top:16px;}
+.secao-grupo{padding:0 20px;margin-top:8px;}
+.grupo-label{font-size:.72rem;font-weight:800;color:var(--laranja);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+.grupo-label::after{content:'';flex:1;height:1px;background:var(--borda);}
+.aviso-pin-mapa{display:none;position:absolute;top:120px;left:16px;right:16px;z-index:450;background:var(--navy);color:#fff;border-radius:var(--radius-sm);padding:12px 16px;text-align:center;font-size:.85rem;font-weight:600;}
+@media(min-width:540px){
+  .tela{width:100%;max-width:540px;left:50%;right:auto;transform:translateX(-50%);}
+  .overlay{max-width:540px;left:50%;right:auto;transform:translateX(-50%) translateY(100%);}
+  .overlay.aberto{transform:translateX(-50%) translateY(0);}
+  .modal-sheet{max-width:540px;left:50%;right:auto;transform:translateX(-50%) translateY(100%);}
+  .modal-sheet.aberto{transform:translateX(-50%) translateY(0);}
+  .painel-filtros{max-width:540px;left:50%;right:auto;transform:translateX(-50%) translateY(100%);}
+  .painel-filtros.aberto{transform:translateX(-50%) translateY(0);}
+  #bottom-nav{max-width:540px;left:50%;transform:translateX(-50%);right:auto;}
+  #leaflet-map{width:540px;max-width:100%;left:50%;transform:translateX(-50%);right:auto;}
+  .mapa-card-preview,.aviso-pin-mapa{max-width:510px;left:50%;transform:translateX(-50%);right:auto;}
+  .mini-menu{left:auto;right:16px;transform:none;}
+  .toast,.fab{max-width:none;}
+  #onboarding{max-width:540px;left:50%;transform:translateX(-50%);right:auto;}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ ONBOARDING ══ -->
+<div id="onboarding">
+  <img src="https://res.cloudinary.com/onde-vamos-mamae/image/upload/v1781459303/onde_vamos_mamae_puoi8h.png"
+       alt="Onde Vamos, Mamãe?" style="height:160px;object-fit:contain;margin-bottom:8px;">
+  <p class="ob-sub">Descubra lugares acolhedores para viver a maternidade fora de casa.</p>
+  <div class="ob-form">
+    <div>
+      <label class="ob-label">Como podemos te chamar? *</label>
+      <input class="ob-input" id="ob-nome" placeholder="ex.: Fernanda" autocomplete="given-name">
+    </div>
+    <div>
+      <label class="ob-label">Email <span style="color:var(--suave);font-weight:500">(opcional)</span></label>
+      <input class="ob-input" id="ob-email" type="email" placeholder="fernanda@email.com" autocomplete="email">
+      <p class="ob-hint" style="margin-top:6px;">Para te avisar de novidades e eventos</p>
+    </div>
+    <div>
+      <label class="ob-label">WhatsApp <span style="color:var(--suave);font-weight:500">(opcional)</span></label>
+      <input class="ob-input" id="ob-whatsapp" type="tel" placeholder="(21) 99999-9999" autocomplete="tel">
+      <p class="ob-hint" style="margin-top:6px;">Para receber alertas de eventos no grupo</p>
+    </div>
+  </div>
+  <button class="ob-btn" id="ob-entrar">Entrar no app →</button>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app" style="display:none;">
+
+  <!-- TELA: INÍCIO -->
+  <div class="tela ativa" id="tela-inicio">
+    <!-- header -->
+    <div class="app-header">
+      <div style="display:flex;justify-content:center;margin-bottom:10px;">
+        <img src="https://res.cloudinary.com/onde-vamos-mamae/image/upload/v1781459303/onde_vamos_mamae_puoi8h.png"
+             alt="Onde Vamos, Mamãe?" style="height:42px;object-fit:contain;">
+      </div>
+      <div class="header-row">
+        <div>
+          <div style="font-size:.78rem;color:var(--suave);font-weight:600;" id="header-saudacao">Bom dia,</div>
+          <div style="font-size:1.2rem;font-weight:900;color:var(--texto);" id="header-nome">Mamãe! ☀️</div>
+        </div>
+        <div class="header-avatar" id="header-avatar">M</div>
+      </div>
+      <!-- busca -->
+      <div class="busca-container">
+        <span class="busca-icone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span>
+        <input class="busca-input" placeholder="Buscar lugares, eventos..." id="busca-global" readonly onclick="setarTela('mapa')">
+      </div>
+    </div>
+    <!-- categorias -->
+    <div class="chips-scroll">
+      <div class="chip-cat ativo" data-cat="Todos" onclick="filtrarCategoria(this,'Todos')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+        Todos
+      </div>
+      <div class="chip-cat" data-cat="Cafés" onclick="filtrarCategoria(this,'Cafés')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+        Cafés
+      </div>
+      <div class="chip-cat" data-cat="Praças" onclick="filtrarCategoria(this,'Praças')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 8C8 10 5.9 16.17 3.82 22"/><path d="M9.5 9.5C5 11 3 19 3 22"/><path d="M12 3C5.5 6 5 14 5 17"/><path d="M20 4C16 6 14 9 14 13"/></svg>
+        Praças
+      </div>
+      <div class="chip-cat" data-cat="Kids" onclick="filtrarCategoria(this,'Kids')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.44-4.24Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.44-4.24Z"/></svg>
+        Espaço Kids
+      </div>
+      <div class="chip-cat" data-cat="Tranquilos" onclick="filtrarCategoria(this,'Tranquilos')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+        Tranquilos
+      </div>
+    </div>
+    <!-- novidades -->
+    <div class="secao mt-16">
+      <div class="secao-header">
+        <span class="secao-titulo">Novidades da semana</span>
+        <button class="secao-ver" onclick="setarTela('mapa')">Ver todas</button>
+      </div>
+      <div class="cards-h" id="novidades-lista"></div>
+    </div>
+    <!-- eventos -->
+    <div class="secao mt-16">
+      <div class="secao-header">
+        <span class="secao-titulo">Acontecendo esta semana</span>
+        <button class="secao-ver" onclick="setarTela('agenda')">Ver todos</button>
+      </div>
+      <div id="home-eventos"></div>
+    </div>
+    <!-- footer -->
+    <div style="text-align:center;padding:28px 20px 8px;margin-top:8px;border-top:1px solid var(--borda);">
+      <img src="https://res.cloudinary.com/onde-vamos-mamae/image/upload/v1781459303/onde_vamos_mamae_puoi8h.png" alt="" style="width:36px;height:36px;object-fit:contain;opacity:.4;margin-bottom:6px;">
+      <div style="font-size:.72rem;color:var(--suave);line-height:1.7;">
+        Desenvolvido por <strong style="color:var(--navy);">Fernanda Coelho</strong><br>
+        Powered by <strong style="color:var(--laranja);">Claude</strong> · Feito para mães do Rio
+      </div>
+    </div>
+    <div style="height:calc(var(--nav) + 12px);"></div>
+  </div>
+
+  <!-- TELA: MAPA -->
+  <div class="tela" id="tela-mapa">
+    <div class="mapa-header">
+      <div class="mapa-header-row">
+        <div class="mapa-busca-wrap">
+          <span class="mapa-busca-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span>
+          <input class="mapa-busca" placeholder="Buscar no mapa..." id="mapa-busca-inp" oninput="filtrarMapa(this.value)">
+        </div>
+        <button class="btn-filtros" onclick="abrirFiltros()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
+          Filtros
+        </button>
+      </div>
+    </div>
+    <div id="leaflet-map"></div>
+    <div id="aviso-pin-mapa" class="aviso-pin-mapa">📍 Toque no mapa exatamente onde fica o lugar</div>
+    <!-- strip de lugares -->
+    <div class="mapa-strip-wrap" id="mapa-strip-wrap">
+      <button class="mapa-strip-btn" onclick="scrollStrip(-1)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      <div class="mapa-lista-strip" id="mapa-lista-strip"></div>
+      <button class="mapa-strip-btn" onclick="scrollStrip(1)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+    </div>
+    <!-- card preview no mapa -->
+    <div class="mapa-card-preview" id="mapa-preview" onclick="abrirDetalhe(mapaPreviewId)">
+      <div class="mapa-preview-foto" id="mapa-preview-foto">☕</div>
+      <div class="mapa-preview-info">
+        <div class="mapa-preview-nome" id="mapa-preview-nome">—</div>
+        <div class="mapa-preview-bairro" id="mapa-preview-bairro">—</div>
+        <div style="display:flex;gap:6px;margin-top:6px;" id="mapa-preview-tags"></div>
+      </div>
+      <svg class="mapa-preview-seta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="m9 18 6-6-6-6"/></svg>
+    </div>
+  </div>
+
+  <!-- TELA: AGENDA -->
+  <div class="tela" id="tela-agenda">
+    <div class="agenda-header">
+      <div style="font-size:1.4rem;font-weight:900;color:var(--texto);">Agenda</div>
+      <p style="font-size:.82rem;color:var(--suave);margin-top:4px;">Eventos e atividades para vocês dois</p>
+      <div class="agenda-filtros">
+        <button class="agenda-filtro ativo" data-af="todos" onclick="filtrarAgenda(this,'todos')">Todos</button>
+        <button class="agenda-filtro" data-af="semana" onclick="filtrarAgenda(this,'semana')">Esta semana</button>
+        <button class="agenda-filtro" data-af="fds" onclick="filtrarAgenda(this,'fds')">Fim de semana</button>
+        <button class="agenda-filtro" data-af="gratis" onclick="filtrarAgenda(this,'gratis')">Gratuitos</button>
+      </div>
+    </div>
+    <div class="agenda-lista pb-nav" id="agenda-lista"></div>
+  </div>
+
+  <!-- TELA: SALVOS -->
+  <div class="tela" id="tela-salvos">
+    <div class="salvos-header">
+      <div style="font-size:1.4rem;font-weight:900;color:var(--texto);">Salvos</div>
+      <div class="salvos-tabs mt-16">
+        <button class="salvos-tab ativo" data-st="lugares" onclick="trocarTabSalvos(this,'lugares')">Lugares</button>
+        <button class="salvos-tab" data-st="eventos" onclick="trocarTabSalvos(this,'eventos')">Eventos</button>
+      </div>
+    </div>
+    <div class="salvos-lista pb-nav" id="salvos-lista"></div>
+  </div>
+
+</div><!-- #app -->
+
+<!-- ══ BOTTOM NAV ══ -->
+<nav id="bottom-nav" style="display:none;">
+  <button class="nav-btn ativo" data-tela="inicio" onclick="setarTela('inicio')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Início
+  </button>
+  <button class="nav-btn" data-tela="mapa" onclick="setarTela('mapa')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+    Mapa
+  </button>
+  <button class="nav-fab" onclick="toggleMiniMenu()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  </button>
+  <button class="nav-btn" data-tela="agenda" onclick="setarTela('agenda')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    Agenda
+  </button>
+  <button class="nav-btn" data-tela="salvos" onclick="setarTela('salvos')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
+    Salvos
+  </button>
+</nav>
+
+<!-- mini menu + -->
+<div class="mini-menu" id="mini-menu">
+  <div class="mini-menu-item" onclick="abrirAddLugar();fecharMiniMenu()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+    Adicionar lugar
+  </div>
+  <div class="mini-menu-item" onclick="abrirAddEvento();fecharMiniMenu()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="12" y1="14" x2="12" y2="18"/><line x1="10" y1="16" x2="14" y2="16"/></svg>
+    Sugerir evento
+  </div>
+  <div style="height:1px;background:var(--cinza);margin:4px 0;"></div>
+  <div class="mini-menu-item" onclick="abrirFeedback();fecharMiniMenu()" style="color:var(--suave);">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    Enviar feedback
+  </div>
+</div>
+
+<!-- ══ MODAL FEEDBACK ══ -->
+<div class="veu-sheet" id="veu-feedback" onclick="fecharFeedback()"></div>
+<div class="modal-sheet" id="sheet-feedback">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <div class="sheet-titulo">💌 Feedback</div>
+    <button class="sheet-fechar" onclick="fecharFeedback()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div class="sheet-body">
+    <p style="font-size:.85rem;color:var(--suave);margin-bottom:16px;">Sugestão, elogio ou algo que travou? Conta pra gente!</p>
+    <div class="campo">
+      <label>Sua mensagem *</label>
+      <textarea id="fb-mensagem" placeholder="O que você achou? O que poderia melhorar?" style="min-height:100px;"></textarea>
+    </div>
+    <div class="campo">
+      <label>Tipo</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:.85rem;font-weight:600;"><input type="radio" name="fb-tipo" value="sugestão" checked style="accent-color:var(--laranja);"> 💡 Sugestão</label>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:.85rem;font-weight:600;"><input type="radio" name="fb-tipo" value="elogio" style="accent-color:var(--laranja);"> 💛 Elogio</label>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:.85rem;font-weight:600;"><input type="radio" name="fb-tipo" value="bug" style="accent-color:var(--laranja);"> 🐛 Bug</label>
+      </div>
+    </div>
+    <div class="sheet-nav">
+      <button class="btn-sheet-sec" onclick="fecharFeedback()">Cancelar</button>
+      <button class="btn-sheet-pri" onclick="enviarFeedback()">Enviar 💌</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ OVERLAY DETALHE LUGAR ══ -->
+<div class="overlay" id="overlay-lugar">
+  <button class="overlay-back" onclick="fecharOverlay('overlay-lugar')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+  </button>
+  <button class="overlay-salvar" id="det-salvar-btn" onclick="toggleSalvarLugar()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+  </button>
+  <div class="det-foto" id="det-foto-wrap">
+    <img id="det-foto-img" src="" alt="" onerror="this.style.display='none'" style="display:none;">
+    <span id="det-foto-emoji">☕</span>
+  </div>
+  <div class="det-corpo">
+    <div class="det-nome" id="det-nome"></div>
+    <div class="det-meta" id="det-meta"></div>
+    <div class="det-tags" id="det-tags"></div>
+    <div class="det-secao">
+      <div class="det-secao-titulo">Ideal para</div>
+      <div class="ideal-grid" id="det-ideal"></div>
+    </div>
+    <div class="det-secao" id="det-dica-wrap">
+      <div class="det-secao-titulo">Dica das mães</div>
+      <div class="det-dica" id="det-dica"></div>
+    </div>
+    <div class="det-secao">
+      <div class="det-secao-titulo">Avaliação</div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div class="estrelas-interativas" id="det-estrelas"></div>
+        <span class="nota-mini" id="det-nota-texto"></span>
+      </div>
+    </div>
+    <div class="det-secao" id="det-editar-wrap" style="display:none;">
+      <button style="background:var(--cinza);border:none;border-radius:var(--radius-sm);padding:10px 16px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;color:var(--suave);" onclick="editarLugarAtual()">✏️ Editar este lugar</button>
+    </div>
+    <div class="det-secao">
+      <div class="det-secao-titulo">O que as mães dizem</div>
+      <div id="det-comentarios"></div>
+      <div class="form-comentario mt-16">
+        <input class="inp-comentario" id="det-inp-comentario" placeholder="Deixe sua dica ou review…" maxlength="300">
+        <button class="btn-comentario" onclick="enviarComentarioDet()">Enviar</button>
+      </div>
+    </div>
+    <div class="det-acoes">
+      <button class="btn-acao btn-acao-outline" id="det-btn-maps">🗺️ Como chegar</button>
+      <button class="btn-acao btn-acao-primary" onclick="compartilharLugar()">📤 Compartilhar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ OVERLAY DETALHE EVENTO ══ -->
+<div class="overlay" id="overlay-evento">
+  <button class="overlay-back" onclick="fecharOverlay('overlay-evento')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+  </button>
+  <button class="overlay-salvar" id="det-evt-salvar-btn" onclick="toggleSalvarEvento()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+  </button>
+  <div class="det-foto" style="background:linear-gradient(135deg,#FFF0EA,var(--cream));">
+    <span style="font-size:4rem;" id="det-evt-emoji">🎵</span>
+  </div>
+  <div class="det-corpo">
+    <div class="det-evt-categoria" id="det-evt-cat"></div>
+    <div class="det-nome" id="det-evt-nome"></div>
+    <div class="det-meta" id="det-evt-etaria"></div>
+    <div class="det-secao">
+      <div class="det-evt-info-row">
+        <div class="det-evt-info-icon cal">📅</div>
+        <div class="det-evt-info-texto"><span class="det-evt-info-label">Quando</span><span id="det-evt-quando"></span></div>
+      </div>
+      <div class="det-evt-info-row">
+        <div class="det-evt-info-icon loc">📍</div>
+        <div class="det-evt-info-texto"><span class="det-evt-info-label">Onde</span><span id="det-evt-local"></span></div>
+      </div>
+      <div class="det-evt-info-row" id="det-evt-price-row">
+        <div class="det-evt-info-icon price">💰</div>
+        <div class="det-evt-info-texto"><span class="det-evt-info-label">Valor</span><span id="det-evt-preco"></span></div>
+      </div>
+    </div>
+    <div class="det-secao" id="det-evt-desc-wrap">
+      <div class="det-secao-titulo">Sobre</div>
+      <div class="det-dica" id="det-evt-desc"></div>
+    </div>
+    <div class="det-secao">
+      <div class="det-secao-titulo">Ideal para</div>
+      <div class="ideal-grid" id="det-evt-ideal"></div>
+    </div>
+    <div class="det-acoes">
+      <button class="btn-acao btn-acao-outline" onclick="compartilharEvento()">📤 Compartilhar</button>
+      <button class="btn-acao btn-acao-primary" id="det-evt-btn-contato">Quero participar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PAINEL FILTROS ══ -->
+<div class="veu-filtros" id="veu-filtros" onclick="fecharFiltros()"></div>
+<div class="painel-filtros" id="painel-filtros">
+  <div class="painel-handle"></div>
+  <div class="painel-titulo">
+    Filtros
+    <button onclick="fecharFiltros()">✕</button>
+  </div>
+  <div class="filtro-secao">
+    <span class="filtro-secao-label">O que você procura?</span>
+    <div class="filtro-chips" id="filtro-tipo-chips">
+      <button class="filtro-chip ativo" data-ft="Todos" onclick="selecionarFiltroTipo(this,'Todos')">Todos</button>
+      <button class="filtro-chip" data-ft="Cafés" onclick="selecionarFiltroTipo(this,'Cafés')">☕ Cafés</button>
+      <button class="filtro-chip" data-ft="Praças" onclick="selecionarFiltroTipo(this,'Praças')">🌳 Praças</button>
+      <button class="filtro-chip" data-ft="Kids" onclick="selecionarFiltroTipo(this,'Kids')">🧒 Espaço Kids</button>
+      <button class="filtro-chip" data-ft="Tranquilos" onclick="selecionarFiltroTipo(this,'Tranquilos')">🤫 Tranquilos</button>
+    </div>
+  </div>
+  <div class="filtro-secao">
+    <span class="filtro-secao-label">Ideal para</span>
+    <div class="ideal-filtros" id="filtro-ideal">
+      <div class="ideal-filtro" data-ideal="bebê de colo" onclick="toggleIdealFiltro(this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="22" height="22"><path d="M12 2a3 3 0 100 6 3 3 0 000-6z"/><path d="M17 11H7a2 2 0 00-2 2v5h2l1 4h8l1-4h2v-5a2 2 0 00-2-2z"/></svg>
+        Bebê de colo
+      </div>
+      <div class="ideal-filtro" data-ideal="acessível para carrinho" onclick="toggleIdealFiltro(this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="22" height="22"><circle cx="8" cy="21" r="1"/><circle cx="18" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 002 1.58h9.78a2 2 0 001.95-1.57l1.65-7.43H5.12"/></svg>
+        Carrinho
+      </div>
+      <div class="ideal-filtro" data-ideal="amamentação" onclick="toggleIdealFiltro(this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="22" height="22"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+        Amamentação
+      </div>
+      <div class="ideal-filtro" data-ideal="encontrar mães" onclick="toggleIdealFiltro(this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="22" height="22"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        Encontrar mães
+      </div>
+    </div>
+  </div>
+  <div class="filtro-secao">
+    <span class="filtro-secao-label">Bairro</span>
+    <div class="filtro-chips" id="filtro-bairro-chips"></div>
+  </div>
+  <div class="painel-footer">
+    <button class="btn-ver-resultados" onclick="aplicarFiltros()">Ver resultados</button>
+  </div>
+</div>
+
+<!-- ══ SHEET: ADICIONAR LUGAR ══ -->
+<div class="veu-sheet" id="veu-add-lugar" onclick="fecharAddLugar()"></div>
+<div class="modal-sheet" id="sheet-add-lugar">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <div class="sheet-titulo" id="add-lugar-titulo">Adicionar lugar</div>
+    <button class="sheet-fechar" onclick="fecharAddLugar()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div class="sheet-body">
+    <div class="sheet-passos">
+      <div class="passo-dot ativo" id="pd1"></div>
+      <div class="passo-dot" id="pd2"></div>
+      <div class="passo-dot" id="pd3"></div>
+    </div>
+    <!-- PASSO 1 -->
+    <div id="add-p1">
+      <p style="font-size:1.1rem;font-weight:800;margin-bottom:4px;">Vamos começar!</p>
+      <p style="font-size:.82rem;color:var(--suave);margin-bottom:20px;">Qual o nome do lugar?</p>
+      <div class="campo">
+        <label>Nome do lugar *</label>
+        <input id="f-nome" placeholder="Ex.: Café Jardim das Mães">
+      </div>
+      <div class="campo">
+        <label>Onde fica? *</label>
+        <input id="f-bairro" placeholder="Ex.: Botafogo, Rio de Janeiro">
+      </div>
+      <button type="button" id="btn-buscar-end" onclick="buscarEndereco()"
+        style="width:100%;background:var(--navy);color:#fff;border:none;border-radius:var(--radius-sm);padding:12px;font-size:.85rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;margin-bottom:8px;">
+        🔍 Buscar localização pelo nome
+      </button>
+      <div id="busca-end-status" style="display:none;padding:10px 12px;border-radius:var(--radius-sm);font-size:.82rem;margin-bottom:8px;"></div>
+      <div id="busca-end-opcoes"></div>
+      <button class="btn-pin-mapa" id="btn-pin-mapa" onclick="iniciarPin()">📍 Ou marcar manualmente no mapa</button>
+      <div class="campo" style="margin-top:14px;">
+        <label>Horário de funcionamento</label>
+        <input id="f-hora" placeholder="Ex.: seg–sex 8h–18h">
+      </div>
+      <div class="sheet-nav">
+        <button class="btn-sheet-sec" onclick="fecharAddLugar()">Cancelar</button>
+        <button class="btn-sheet-pri" onclick="avancarPasso(2)">Continuar →</button>
+      </div>
+    </div>
+    <!-- PASSO 2 -->
+    <div id="add-p2" style="display:none;">
+      <p style="font-size:1.1rem;font-weight:800;margin-bottom:4px;">Conte mais sobre o lugar</p>
+      <p style="font-size:.82rem;color:var(--suave);margin-bottom:20px;">Selecione as características.</p>
+      <div class="campo">
+        <label>Ideal para</label>
+        <div class="ideal-grid-sel">
+          <div class="ideal-sel" data-v="bebê de colo" onclick="toggleIdealSel(this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="22" height="22"><path d="M12 2a3 3 0 100 6 3 3 0 000-6z"/><path d="M17 11H7a2 2 0 00-2 2v5h2l1 4h8l1-4h2v-5a2 2 0 00-2-2z"/></svg>
+            Bebê de colo
+          </div>
+          <div class="ideal-sel" data-v="acessível para carrinho" onclick="toggleIdealSel(this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="22" height="22"><circle cx="8" cy="21" r="1"/><circle cx="18" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 002 1.58h9.78a2 2 0 001.95-1.57l1.65-7.43H5.12"/></svg>
+            Carrinho
+          </div>
+          <div class="ideal-sel" data-v="amamentação" onclick="toggleIdealSel(this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="22" height="22"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+            Amamentação
+          </div>
+          <div class="ideal-sel" data-v="encontrar mães" onclick="toggleIdealSel(this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="22" height="22"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+            Encontrar mães
+          </div>
+        </div>
+      </div>
+      <div class="campo">
+        <label>Estrutura</label>
+        <div class="tags-grid" id="tags-estrutura">
+          <div class="tag-check" data-v="trocador" onclick="toggleTagCheck(this)">🚿 Trocador</div>
+          <div class="tag-check" data-v="acessível para carrinho" onclick="toggleTagCheck(this)">🛒 Acessível p/ carrinho</div>
+          <div class="tag-check" data-v="área externa" onclick="toggleTagCheck(this)">☀️ Área externa</div>
+          <div class="tag-check" data-v="com cobertura" onclick="toggleTagCheck(this)">⛱️ Com cobertura</div>
+          <div class="tag-check" data-v="estacionamento" onclick="toggleTagCheck(this)">🅿️ Estacionamento</div>
+          <div class="tag-check" data-v="espaço kids" onclick="toggleTagCheck(this)">🧒 Espaço kids</div>
+          <div class="tag-check" data-v="piso plano" onclick="toggleTagCheck(this)">🛤️ Piso plano</div>
+        </div>
+      </div>
+      <div class="campo">
+        <label>Categoria</label>
+        <div class="tags-grid" id="tags-categoria">
+          <div class="tag-check" data-v="café" onclick="toggleTagCheck(this)">☕ Café</div>
+          <div class="tag-check" data-v="brunch" onclick="toggleTagCheck(this)">🥐 Brunch</div>
+          <div class="tag-check" data-v="almoço" onclick="toggleTagCheck(this)">🍽️ Almoço</div>
+          <div class="tag-check" data-v="padaria" onclick="toggleTagCheck(this)">🥖 Padaria</div>
+          <div class="tag-check" data-v="gelato" onclick="toggleTagCheck(this)">🍦 Gelato</div>
+          <div class="tag-check" data-v="livraria" onclick="toggleTagCheck(this)">📚 Livraria</div>
+          <div class="tag-check" data-v="praia" onclick="toggleTagCheck(this)">🏖️ Praia</div>
+          <div class="tag-check" data-v="vista" onclick="toggleTagCheck(this)">🌆 Vista</div>
+          <div class="tag-check" data-v="silencioso" onclick="toggleTagCheck(this)">🤫 Silencioso</div>
+        </div>
+      </div>
+      <div class="sheet-nav">
+        <button class="btn-sheet-sec" onclick="voltarPasso(1)">← Voltar</button>
+        <button class="btn-sheet-pri" onclick="avancarPasso(3)">Continuar →</button>
+      </div>
+    </div>
+    <!-- PASSO 3 -->
+    <div id="add-p3" style="display:none;">
+      <p style="font-size:1.1rem;font-weight:800;margin-bottom:4px;">Quase lá!</p>
+      <p style="font-size:.82rem;color:var(--suave);margin-bottom:20px;">Adicione uma foto e deixe seu comentário.</p>
+      <div class="campo">
+        <label>Foto do lugar</label>
+        <input type="file" id="f-foto-file" accept="image/*" style="display:none" onchange="uploadFotoLugar(this)">
+        <div class="foto-upload-area" onclick="document.getElementById('f-foto-file').click()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <p>Adicionar foto ou selecionar da galeria</p>
+        </div>
+        <img id="f-foto-preview" class="foto-preview" alt="">
+        <input type="hidden" id="f-foto-url">
+        <div id="f-foto-status" style="font-size:.75rem;color:var(--suave);margin-top:4px;"></div>
+      </div>
+      <div class="campo">
+        <label>Seu comentário <span style="color:var(--suave);font-weight:400">(opcional)</span></label>
+        <textarea id="f-dica" placeholder="Compartilhe sua experiência com outras mães…" maxlength="300"></textarea>
+        <div class="campo-hint">0/300 caracteres</div>
+      </div>
+      <div class="campo">
+        <label>Seu nome</label>
+        <input id="f-autor" placeholder="Como você quer aparecer">
+      </div>
+      <div class="sheet-nav">
+        <button class="btn-sheet-sec" onclick="voltarPasso(2)">← Voltar</button>
+        <button class="btn-sheet-pri" onclick="publicarLugar()">Publicar lugar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SHEET: ADICIONAR EVENTO ══ -->
+<div class="veu-sheet" id="veu-add-evento" onclick="fecharAddEvento()"></div>
+<div class="modal-sheet" id="sheet-add-evento">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <div class="sheet-titulo">Sugerir evento</div>
+    <button class="sheet-fechar" onclick="fecharAddEvento()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div class="sheet-body">
+    <div class="campo">
+      <label>Nome do evento *</label>
+      <input id="ev-titulo" placeholder="Ex.: Musicalização para bebês">
+    </div>
+    <div class="campo">
+      <label>Categoria</label>
+      <select id="ev-categoria">
+        <option value="">Selecione...</option>
+        <option value="musicalização">🎵 Musicalização</option>
+        <option value="yoga">🧘 Yoga / Pilates</option>
+        <option value="contação">📚 Contação de histórias</option>
+        <option value="arte">🎨 Arte e atividades</option>
+        <option value="feira">🛍️ Feirinha</option>
+        <option value="natureza">🌿 Natureza</option>
+        <option value="dança">💃 Dança</option>
+        <option value="outro">⭐ Outro</option>
+      </select>
+    </div>
+    <div class="campo">
+      <label>Faixa etária</label>
+      <input id="ev-etaria" placeholder="Ex.: 0 a 12 meses, 1 a 3 anos">
+    </div>
+    <div class="campo">
+      <label>Local</label>
+      <input id="ev-local" placeholder="Ex.: Espaço Encantar">
+    </div>
+    <div class="campo">
+      <label>Endereço / Bairro</label>
+      <input id="ev-endereco" placeholder="Ex.: Rua X, 45 – Botafogo">
+    </div>
+    <!-- Recorrente -->
+    <div class="campo">
+      <label>Este evento é recorrente?</label>
+      <div style="display:flex;gap:10px;margin-top:4px;flex-wrap:wrap;">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.88rem;font-weight:600;">
+          <input type="radio" name="ev-recorrente" value="nao" checked onchange="toggleRecorrente(false)"> Evento único
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.88rem;font-weight:600;">
+          <input type="radio" name="ev-recorrente" value="sim" onchange="toggleRecorrente(true)"> Recorrente
+        </label>
+      </div>
+    </div>
+    <!-- evento único: data -->
+    <div class="campo" id="ev-data-wrap">
+      <label>Data *</label>
+      <input type="date" id="ev-data">
+    </div>
+    <!-- recorrente: frequência estruturada -->
+    <div id="ev-recorrencia-wrap" style="display:none;">
+      <div class="campo">
+        <label>Frequência</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;" id="ev-freq-opcoes">
+          <label class="tag-check" style="cursor:pointer;"><input type="radio" name="ev-freq" value="semanal" style="display:none;" onchange="trocarFreq('semanal')"> Semanal</label>
+          <label class="tag-check" style="cursor:pointer;"><input type="radio" name="ev-freq" value="quinzenal" style="display:none;" onchange="trocarFreq('quinzenal')"> Quinzenal</label>
+          <label class="tag-check" style="cursor:pointer;"><input type="radio" name="ev-freq" value="mensal" style="display:none;" onchange="trocarFreq('mensal')"> Mensal</label>
+          <label class="tag-check" style="cursor:pointer;"><input type="radio" name="ev-freq" value="outro" style="display:none;" onchange="trocarFreq('outro')"> Outro</label>
+        </div>
+      </div>
+      <!-- dias da semana (semanal / quinzenal) -->
+      <div class="campo" id="ev-dias-wrap" style="display:none;">
+        <label>Dia(s) da semana</label>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;">
+          <div class="tag-check" data-dia="Segunda" onclick="toggleDia(this)">Seg</div>
+          <div class="tag-check" data-dia="Terça" onclick="toggleDia(this)">Ter</div>
+          <div class="tag-check" data-dia="Quarta" onclick="toggleDia(this)">Qua</div>
+          <div class="tag-check" data-dia="Quinta" onclick="toggleDia(this)">Qui</div>
+          <div class="tag-check" data-dia="Sexta" onclick="toggleDia(this)">Sex</div>
+          <div class="tag-check" data-dia="Sábado" onclick="toggleDia(this)">Sáb</div>
+          <div class="tag-check" data-dia="Domingo" onclick="toggleDia(this)">Dom</div>
+        </div>
+      </div>
+      <!-- semana do mês (quinzenal) -->
+      <div class="campo" id="ev-semana-wrap" style="display:none;">
+        <label>Qual semana do mês?</label>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;">
+          <div class="tag-check" data-sem="1ª" onclick="toggleSemana(this)">1ª semana</div>
+          <div class="tag-check" data-sem="2ª" onclick="toggleSemana(this)">2ª semana</div>
+          <div class="tag-check" data-sem="3ª" onclick="toggleSemana(this)">3ª semana</div>
+          <div class="tag-check" data-sem="4ª" onclick="toggleSemana(this)">4ª semana</div>
+        </div>
+      </div>
+      <!-- mensal -->
+      <div class="campo" id="ev-mensal-wrap" style="display:none;">
+        <label>Como se repete?</label>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-top:6px;">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.88rem;font-weight:600;">
+            <input type="radio" name="ev-mensal-tipo" value="dia" checked onchange="trocarMensalTipo('dia')" style="accent-color:var(--laranja);"> Todo dia
+            <input type="number" id="ev-mensal-dia" min="1" max="31" placeholder="15" style="width:60px;border:1.5px solid var(--borda);border-radius:8px;padding:6px;font-size:.88rem;font-family:'Nunito',sans-serif;text-align:center;"> do mês
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.88rem;font-weight:600;flex-wrap:wrap;">
+            <input type="radio" name="ev-mensal-tipo" value="semana" onchange="trocarMensalTipo('semana')" style="accent-color:var(--laranja);">
+            <select id="ev-mensal-nth" style="border:1.5px solid var(--borda);border-radius:8px;padding:6px;font-size:.85rem;font-family:'Nunito',sans-serif;">
+              <option value="1ª">1ª</option><option value="2ª">2ª</option><option value="3ª">3ª</option><option value="4ª">4ª</option><option value="última">última</option>
+            </select>
+            <select id="ev-mensal-diasem" style="border:1.5px solid var(--borda);border-radius:8px;padding:6px;font-size:.85rem;font-family:'Nunito',sans-serif;">
+              <option value="segunda">segunda</option><option value="terça">terça</option><option value="quarta">quarta</option>
+              <option value="quinta">quinta</option><option value="sexta">sexta</option><option value="sábado">sábado</option><option value="domingo">domingo</option>
+            </select>
+            do mês
+          </label>
+        </div>
+      </div>
+      <!-- outro: texto livre -->
+      <div class="campo" id="ev-outro-wrap" style="display:none;">
+        <label>Descreva a frequência</label>
+        <input id="ev-outro-texto" placeholder="Ex.: A cada 2 meses, nas férias escolares…">
+      </div>
+      <!-- preview do texto gerado -->
+      <div id="ev-recorrencia-preview" style="display:none;background:var(--cream);border-radius:var(--radius-sm);padding:10px 14px;font-size:.82rem;color:var(--navy);font-weight:600;margin-top:4px;"></div>
+    </div>
+    <div class="campo">
+      <label>Horário</label>
+      <input id="ev-hora" placeholder="Ex.: 10h às 11h">
+    </div>
+    <!-- Pago -->
+    <div class="campo">
+      <label>Valor</label>
+      <div style="display:flex;gap:10px;margin-top:4px;">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.88rem;font-weight:600;">
+          <input type="radio" name="ev-pago" value="gratis" checked onchange="togglePago(false)"> Gratuito
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.88rem;font-weight:600;">
+          <input type="radio" name="ev-pago" value="pago" onchange="togglePago(true)"> Pago
+        </label>
+      </div>
+    </div>
+    <div class="campo" id="ev-preco-wrap" style="display:none;">
+      <label>Preço / Condições</label>
+      <input id="ev-preco" placeholder="Ex.: R$ 80 por mês, R$ 25 por aula">
+    </div>
+    <div class="campo">
+      <label>Vagas limitadas?</label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.88rem;font-weight:600;margin-top:4px;">
+        <input type="checkbox" id="ev-vagas" style="width:auto;accent-color:var(--laranja);"> Sim, vagas limitadas
+      </label>
+    </div>
+    <div class="campo">
+      <label>Contato / Link de inscrição <span style="color:var(--suave);font-weight:400">(opcional)</span></label>
+      <input id="ev-contato" placeholder="Ex.: @espaço.encantar, (21) 99999-9999">
+    </div>
+    <div class="campo">
+      <label>Descrição <span style="color:var(--suave);font-weight:400">(opcional)</span></label>
+      <textarea id="ev-desc" placeholder="Conta mais sobre o evento…" maxlength="400"></textarea>
+    </div>
+    <div class="campo">
+      <label>Seu nome</label>
+      <input id="ev-autor" placeholder="Como você quer aparecer">
+    </div>
+    <div class="sheet-nav">
+      <button class="btn-sheet-sec" onclick="fecharAddEvento()">Cancelar</button>
+      <button class="btn-sheet-pri" onclick="publicarEvento()">Publicar evento</button>
+    </div>
+  </div>
+</div>
+
+<!-- toast -->
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+// ═══════════════════════════════════════════════════
+// FIREBASE CONFIG
+// ═══════════════════════════════════════════════════
+const FB_CONFIG = {
+  apiKey:"AIzaSyDPjcCwE6vE3xlr15rzV65kAyZ_f9BWhaw",
+  authDomain:"onde-vamos-mamae.firebaseapp.com",
+  projectId:"onde-vamos-mamae",
+  storageBucket:"onde-vamos-mamae.firebasestorage.app",
+  messagingSenderId:"355836115732",
+  appId:"1:355836115732:web:0b2d3bf10fb2070577a001"
+};
+let db = null;
+
+async function initFirebase(){
+  try{
+    await Promise.all([
+      loadScript("https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"),
+      loadScript("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js")
+    ]);
+    firebase.initializeApp(FB_CONFIG);
+    db = firebase.firestore();
+  }catch(e){ console.warn("Firebase offline, usando localStorage",e); }
+}
+function loadScript(src){ return new Promise((ok,fail)=>{ const s=document.createElement("script"); s.src=src; s.onload=ok; s.onerror=fail; document.head.appendChild(s); }); }
+
+// ═══════════════════════════════════════════════════
+// DADOS BASE (seed inicial)
+// ═══════════════════════════════════════════════════
+const SEED_LUGARES = [
+ {id:"doc",nome:"D.O.C. Bakery",bairro:"Leblon",lat:-22.98457,lng:-43.22498,tipo:"cafe",
+  dica:"Fomos ontem — mesmo esquema, mas muuuito gostosa!",hora:"todos os dias 7h45–20h",
+  tags:["café","brunch","padaria","área externa"],ideal:["acessível para carrinho"]},
+ {id:"carol",nome:"Café da Carol",bairro:"Barra da Tijuca",lat:-23.00685,lng:-43.29552,tipo:"cafe",
+  dica:"Ainda não fui, mas parece que funciona bem. Fica na Estrada Sorimã.",hora:"seg–sex 7h, sáb–dom 8h, até 18h",
+  tags:["café","brunch","padaria"],ideal:[]},
+ {id:"musa",nome:"Musa (Quiosque)",bairro:"São Conrado",lat:-23.00020,lng:-43.26905,tipo:"cafe",
+  dica:"Chegar cedo porque enche (abre 8h) — proteger os bebês dos mosquitos! Cardápio muito bom.",hora:"todos os dias 8h–20h",
+  tags:["café","almoço","área externa"],ideal:["bebê de colo"]},
+ {id:"momosc",nome:"Momo Café",bairro:"São Conrado",lat:-23.00060,lng:-43.27106,tipo:"cafe",
+  dica:"Pertinho do Musa, dá pra ver os parapentes pousando.",hora:"qua–dom a partir das 8h",
+  tags:["café","gelato"],ideal:[]},
+ {id:"quintal",nome:"Quintal do Rio",bairro:"Lagoa",lat:-22.97392,lng:-43.20272,tipo:"cafe",
+  dica:"Dos restaurantes da Lagoa, é o que eu costumo ir. Tudo aberto, de frente pra Lagoa.",hora:"qui–dom (almoço a partir de sex)",
+  tags:["almoço","área externa","vista"],ideal:["acessível para carrinho","bebê de colo"]},
+ {id:"maya",nome:"Maya Café",bairro:"Laranjeiras",lat:-22.94117,lng:-43.19190,tipo:"cafe",
+  dica:"Joia escondida de Laranjeiras, clima de bairro.",hora:"todos os dias 11h–21h30",
+  tags:["café","almoço","doces"],ideal:[]},
+ {id:"brisa",nome:"Brisa Café",bairro:"Leme",lat:-22.96228,lng:-43.16835,tipo:"cafe",
+  dica:"Quase na praia, pão de queijo elogiado.",hora:"todos os dias 8h–19h",
+  tags:["café","brunch","praia","padaria"],ideal:["bebê de colo"]},
+ {id:"momocopa",nome:"Gelateria Momo",bairro:"Copacabana",lat:-22.96732,lng:-43.17892,tipo:"cafe",
+  dica:"Na Av. Atlântica, ao lado do Copacabana Palace. Gelato + café.",hora:"todos os dias a partir das 8h",
+  tags:["café","gelato","praia"],ideal:[]},
+ {id:"roma",nome:"Roma Bakery",bairro:"Tijuca",lat:-22.91545,lng:-43.22135,tipo:"cafe",
+  dica:"Padoca de bairro na Tijuca/Maracanã. Fica cheia nas manhãs de fim de semana.",hora:"seg–sex 7h–19h, sáb 7h–14h",
+  tags:["café","brunch","padaria"],ideal:[]},
+ {id:"emporio",nome:"Empório Jardim · Casa Firjan",bairro:"Botafogo",lat:-22.95008,lng:-43.18907,tipo:"cafe",
+  dica:"Tem área de recreação ao ar livre pras crianças! No fim de semana, chegar antes das 9h30.",hora:"ter–dom 8h–18h30",
+  tags:["café","almoço","espaço kids","área externa"],ideal:["espaço kids","bebê de colo","encontrar mães"]},
+ {id:"casaverde",nome:"Casa Verde Livraria & Café",bairro:"Tijuca",lat:-22.92444,lng:-43.23067,tipo:"cafe",
+  dica:"Livraria com café dentro, super aconchegante — bom acervo infantil. Nota 5.0!",hora:"seg–sex 10h–18h, sáb 10h–14h",
+  tags:["café","livraria","silencioso"],ideal:["bebê de colo","amamentação"]},
+ {id:"giappo",nome:"Giappo (Jockey Club)",bairro:"Gávea",lat:-22.97431,lng:-43.22565,tipo:"cafe",
+  dica:"No Jockey: parquinho, varanda e lago com carpas. Muito espaço pro carrinho.",hora:"todos os dias 12h–0h",
+  tags:["almoço","espaço kids","área externa","vista","acessível para carrinho"],ideal:["acessível para carrinho","bebê de colo","encontrar mães"]},
+ {id:"tocatraira",nome:"Toca da Traíra",bairro:"Tijuca",lat:-22.91729,lng:-43.22361,tipo:"cafe",
+  dica:"Espaço kids com escorrega e piscina de bolinhas. Moquecas e caldeiradas muito elogiadas.",hora:"todos os dias 11h–23h",
+  tags:["almoço","espaço kids","trocador"],ideal:["espaço kids","trocador"]},
+ {id:"casuarina",nome:"Casuarina (Orla)",bairro:"Recreio",lat:-23.02458,lng:-43.45713,tipo:"cafe",
+  dica:"Na orla do Recreio, área kids com escorrega e casinha. Bolinho de costela famoso.",hora:"todos os dias 11h–0h",
+  tags:["almoço","espaço kids","praia","vista"],ideal:["espaço kids","acessível para carrinho"]},
+ // PRAÇAS
+ {id:"praca-baixo-bebe",nome:"Baixo Bebê",bairro:"Leblon",lat:-22.9855,lng:-43.2249,tipo:"praca",
+  dica:"Av. Delfim Moreira, Posto 12. Cercadinho na areia com brinquedos pra quem engatinha.",
+  tags:["área externa","praia","acessível para carrinho","piso plano"],ideal:["bebê de colo","acessível para carrinho"]},
+ {id:"praca-sra-paz",nome:"Praça Nossa Sra. da Paz",bairro:"Ipanema",lat:-22.9835,lng:-43.2029,tipo:"praca",
+  dica:"Caminhos largos perfeitos pro carrinho, árvores com sombra e bancos confortáveis.",
+  tags:["área externa","piso plano","acessível para carrinho"],ideal:["acessível para carrinho","bebê de colo"]},
+ {id:"parque-guinle",nome:"Parque Guinle",bairro:"Laranjeiras",lat:-22.9411,lng:-43.1919,tipo:"praca",
+  dica:"Gramado plano ótimo pra manta de piquenique, lagos com patos. Silêncio que ajuda o bebê a dormir.",
+  tags:["área externa","silencioso"],ideal:["bebê de colo","amamentação"]},
+ {id:"largo-machado",nome:"Largo do Machado",bairro:"Catete",lat:-22.9530,lng:-43.1760,tipo:"praca",
+  foto:"https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Largo_do_Machado_-_Rio_de_Janeiro.jpg/640px-Largo_do_Machado_-_Rio_de_Janeiro.jpg",
+  dica:"Muito arborizado, plano e acesso pelo metrô. Cafés ao redor e parquinho cercado com muitas famílias.",
+  tags:["área externa","espaço kids","piso plano"],ideal:["acessível para carrinho","encontrar mães"]},
+ {id:"parque-patins",nome:"Parque dos Patins",bairro:"Lagoa",lat:-22.9717,lng:-43.2155,tipo:"praca",
+  dica:"Extensão plana à beira da Lagoa. Ideal pra sentar na grama e fazer estimulação sensorial.",
+  tags:["área externa","vista","piso plano","acessível para carrinho"],ideal:["bebê de colo","acessível para carrinho"]},
+ {id:"aterro-flamengo",nome:"Aterro do Flamengo",bairro:"Flamengo",lat:-22.9350,lng:-43.1776,tipo:"praca",
+  foto:"https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Aterro_do_Flamengo_-_Rio_de_Janeiro.jpg/640px-Aterro_do_Flamengo_-_Rio_de_Janeiro.jpg",
+  dica:"Imensas áreas gramadas planas pra caminhar sem pressa com o bebê.",
+  tags:["área externa","vista","piso plano","acessível para carrinho"],ideal:["acessível para carrinho","bebê de colo"]},
+ {id:"parque-botanico",nome:"Jardim Botânico",bairro:"Jardim Botânico",lat:-22.9671,lng:-43.2287,tipo:"praca",
+  foto:"https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Jardim_Bot%C3%A2nico_do_Rio_de_Janeiro_-_panoramio_%2813%29.jpg/640px-Jardim_Bot%C3%A2nico_do_Rio_de_Janeiro_-_panoramio_%2813%29.jpg",
+  dica:"Alamedas de palmeiras imperiais planas, extremamente calmas. Entrada paga, mas vale.",
+  tags:["área externa","vista","silencioso","acessível para carrinho"],ideal:["bebê de colo","amamentação","acessível para carrinho"]},
+ {id:"parque-lage",nome:"Parque Lage",bairro:"Jardim Botânico",lat:-22.9688,lng:-43.2269,tipo:"praca",
+  foto:"https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Parque_Lage_Rio_de_Janeiro_2014.jpg/640px-Parque_Lage_Rio_de_Janeiro_2014.jpg",
+  dica:"Caminhos de terra sob mata fechada — clima fresco. Gramados perto das cavernas artificiais.",
+  tags:["área externa","vista","silencioso"],ideal:["bebê de colo","encontrar mães"]},
+ {id:"quinta-boa-vista",nome:"Quinta da Boa Vista",bairro:"São Cristóvão",lat:-22.8986,lng:-43.2321,tipo:"praca",
+  foto:"https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Quinta_da_Boa_Vista_-_Rio_de_Janeiro%2C_Brasil.jpg/640px-Quinta_da_Boa_Vista_-_Rio_de_Janeiro%2C_Brasil.jpg",
+  dica:"Gramados planos perto dos lagos, perfeitos pra relaxar ao sol da manhã.",
+  tags:["área externa","vista","acessível para carrinho"],ideal:["acessível para carrinho","bebê de colo"]},
+ {id:"parque-madureira",nome:"Parque Madureira",bairro:"Madureira",lat:-22.8762,lng:-43.3368,tipo:"praca",
+  foto:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Parque_Madureira.jpg/640px-Parque_Madureira.jpg",
+  dica:"Parque linear gigantesco e totalmente plano. Ótimo pra longas caminhadas de manhã.",
+  tags:["área externa","piso plano","acessível para carrinho"],ideal:["acessível para carrinho"]},
+ {id:"praca-osorio",nome:"Praça General Osório",bairro:"Ipanema",lat:-22.9843,lng:-43.2029,tipo:"praca",
+  foto:"https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Pra%C3%A7a_General_Os%C3%B3rio%2C_Ipanema%2C_Rio_de_Janeiro%2C_Brasil.jpg/640px-Pra%C3%A7a_General_Os%C3%B3rio%2C_Ipanema%2C_Rio_de_Janeiro%2C_Brasil.jpg",
+  dica:"Árvores frondosas com ótimas sombras, calçadas largas e parquinho infantil tradicional.",
+  tags:["área externa","espaço kids"],ideal:["espaço kids","encontrar mães"]},
+ {id:"bosque-barra",nome:"Bosque da Barra",bairro:"Barra da Tijuca",lat:-23.0068,lng:-43.3655,tipo:"praca",
+  dica:"Av. das Américas, km 6. Alamedas de terra batida suaves. Som da natureza acalma o bebê.",
+  tags:["área externa","silencioso"],ideal:["bebê de colo","amamentação"]},
+];
+
+// ═══════════════════════════════════════════════════
+// ESTADO GLOBAL
+// ═══════════════════════════════════════════════════
+let STATE = {
+  lugares: [],
+  eventos: [],
+  comentarios: {},
+  avaliacoes: {},
+  salvos: { lugares:[], eventos:[] },
+  usuario: null,
+  uid: null,
+  telaAtiva: "inicio",
+  filtros: { tipo:"Todos", ideal:[], bairro:"" },
+  filtroAgenda: "todos",
+  tabSalvos: "lugares",
+  catHome: "Todos",
+};
+let map = null, camadaPins = null, mapaIniciado = false;
+let pinTemp = null, modoPin = false;
+let lugareEditandoId = null;
+let mapaPreviewId = null;
+let detLugarAtual = null, detEventoAtual = null;
+
+function esc(s){ const d=document.createElement("div"); d.textContent=s||""; return d.innerHTML; }
+function uid(){ return "x"+Date.now()+Math.random().toString(36).slice(2,7); }
+function getUid(){ let u=localStorage.getItem("ovm_uid"); if(!u){ u="u"+Date.now(); localStorage.setItem("ovm_uid",u); } return u; }
+
+// ═══════════════════════════════════════════════════
+// FIREBASE HELPERS
+// ═══════════════════════════════════════════════════
+async function fbSet(col,id,data){ if(!db) return; try{ await db.collection(col).doc(id).set({...data,_ts:firebase.firestore.FieldValue.serverTimestamp()},{merge:true}); }catch(e){ console.error(e); } }
+async function fbGet(col,id){ if(!db) return null; try{ const d=await db.collection(col).doc(id).get(); return d.exists?d.data():null; }catch(e){ return null; } }
+async function fbList(col){ if(!db) return []; try{ const s=await db.collection(col).get(); return s.docs.map(d=>({id:d.id,...d.data()})); }catch(e){ return []; } }
+async function fbDel(col,id){ if(!db) return; try{ await db.collection(col).doc(id).delete(); }catch(e){} }
+
+// localStorage fallback
+function lsGet(k,def){ try{ return JSON.parse(localStorage.getItem(k))||def; }catch(e){ return def; } }
+function lsSet(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+
+// ═══════════════════════════════════════════════════
+// SEED — migra dados base para o Firebase na 1ª vez
+// ═══════════════════════════════════════════════════
+async function seedSeNecessario(){
+  if(!db){ STATE.lugares = SEED_LUGARES.map(l=>({...l,seeded:true})); return; }
+  const meta = await fbGet("meta","config");
+  if(meta && meta.seeded){ return; }
+  // seed
+  const batch = db.batch();
+  SEED_LUGARES.forEach(l=>{
+    const ref = db.collection("lugares").doc(l.id);
+    batch.set(ref,{...l,seeded:true,criadoEm:new Date().toISOString()},{merge:true});
+  });
+  batch.set(db.collection("meta").doc("config"),{seeded:true,seedEm:new Date().toISOString()});
+  await batch.commit();
+}
+
+async function carregarDados(){
+  // lugares
+  if(db){
+    const lDocs = await fbList("lugares");
+    STATE.lugares = lDocs.length > 0 ? lDocs : SEED_LUGARES;
+    const eDocs = await fbList("eventos");
+    STATE.eventos = eDocs;
+    const cDocs = await fbList("comentarios");
+    cDocs.forEach(d=>{ STATE.comentarios[d.id]=d.lista||[]; });
+    const aDocs = await fbList("avaliacoes");
+    aDocs.forEach(d=>{ STATE.avaliacoes[d.id]={media:d.media||0,total:d.total||0}; });
+  } else {
+    STATE.lugares = lsGet("ovm_lugares", SEED_LUGARES);
+    STATE.eventos = lsGet("ovm_eventos", []);
+    STATE.comentarios = lsGet("ovm_comentarios", {});
+    STATE.avaliacoes = lsGet("ovm_avaliacoes", {});
+  }
+  STATE.salvos = lsGet("ovm_salvos", {lugares:[],eventos:[]});
+}
+
+// ═══════════════════════════════════════════════════
+// ONBOARDING
+// ═══════════════════════════════════════════════════
+function checkOnboarding(){
+  const nome = localStorage.getItem("ovm_nome");
+  if(nome){
+    STATE.usuario = {nome, email:localStorage.getItem("ovm_email")||""};
+    STATE.uid = getUid();
+    document.getElementById("onboarding").classList.add("oculto");
+    document.getElementById("app").style.display="block";
+    document.getElementById("bottom-nav").style.display="flex";
+    atualizarHeader();
+  }
+}
+
+document.getElementById("ob-entrar").addEventListener("click", async ()=>{
+  const nome = document.getElementById("ob-nome").value.trim();
+  if(!nome){ toast("Coloca seu nome pra continuar 🙂"); return; }
+  const email = document.getElementById("ob-email").value.trim();
+  const whatsapp = document.getElementById("ob-whatsapp").value.trim();
+  localStorage.setItem("ovm_nome", nome);
+  if(email) localStorage.setItem("ovm_email", email);
+  if(whatsapp) localStorage.setItem("ovm_whatsapp", whatsapp);
+  STATE.uid = getUid();
+  STATE.usuario = {nome, email, whatsapp};
+  if(db){
+    await fbSet("usuarios", STATE.uid, {nome, email:email||"", whatsapp:whatsapp||"", criadoEm:new Date().toISOString(), dispositivo:navigator.userAgent.substring(0,80)});
+  }
+  document.getElementById("onboarding").classList.add("oculto");
+  document.getElementById("app").style.display="block";
+  document.getElementById("bottom-nav").style.display="flex";
+  atualizarHeader();
+  renderHome();
+});
+
+function atualizarHeader(){
+  if(!STATE.usuario) return;
+  const nome = STATE.usuario.nome;
+  const hora = new Date().getHours();
+  let s = "Bom dia";
+  if(hora>=12 && hora<18) s="Boa tarde";
+  else if(hora>=18) s="Boa noite";
+  document.getElementById("header-saudacao").textContent = s+",";
+  document.getElementById("header-nome").textContent = nome+" ☀️";
+  document.getElementById("header-avatar").textContent = nome.charAt(0).toUpperCase();
+}
+
+// ═══════════════════════════════════════════════════
+// NAVEGAÇÃO DE TELAS
+// ═══════════════════════════════════════════════════
+function setarTela(tela){
+  document.querySelectorAll(".tela").forEach(t=>t.classList.remove("ativa"));
+  document.getElementById("tela-"+tela).classList.add("ativa");
+  document.querySelectorAll(".nav-btn[data-tela]").forEach(b=>b.classList.remove("ativo"));
+  const nb = document.querySelector(`.nav-btn[data-tela="${tela}"]`);
+  if(nb) nb.classList.add("ativo");
+  STATE.telaAtiva = tela;
+  fecharMiniMenu();
+  if(tela==="mapa"){ iniciarMapa(); setTimeout(()=>{if(map)map.invalidateSize();},200); }
+  if(tela==="agenda") renderAgenda();
+  if(tela==="salvos") renderSalvos();
+  // deep link
+  history.pushState(null,"","#"+tela);
+}
+
+// ═══════════════════════════════════════════════════
+// HOME
+// ═══════════════════════════════════════════════════
+function filtrarCategoria(el, cat){
+  document.querySelectorAll(".chip-cat").forEach(c=>c.classList.remove("ativo"));
+  el.classList.add("ativo");
+  STATE.catHome = cat;
+  renderNovidades();
+}
+
+function renderHome(){
+  renderNovidades();
+  renderHomeEventos();
+}
+
+function lugarPassaCat(l, cat){
+  if(cat==="Todos") return true;
+  if(cat==="Cafés") return l.tipo==="cafe"||(l.tags||[]).some(t=>["café","brunch","almoço","padaria","gelato"].includes(t));
+  if(cat==="Praças") return l.tipo==="praca";
+  if(cat==="Kids") return (l.tags||[]).includes("espaço kids")||(l.ideal||[]).includes("espaço kids");
+  if(cat==="Tranquilos") return (l.tags||[]).includes("silencioso");
+  return true;
+}
+
+function renderNovidades(){
+  const cat = STATE.catHome;
+  const lista = STATE.lugares.filter(l=>lugarPassaCat(l,cat));
+  // novos = adicionados nos últimos 14 dias OU sem criadoEm (seed mostrado como novidade inicial)
+  const novos = lista.filter(l=>l.criadoEm && (Date.now()-new Date(l.criadoEm).getTime())<14*24*3600*1000);
+  const exibir = novos.length>0 ? novos : lista.slice(0,6);
+  const cont = document.getElementById("novidades-lista");
+  if(!cont) return;
+  cont.innerHTML = exibir.map(l=>{
+    const emoji = l.tipo==="praca"?"🌳":"☕";
+    const fotoHtml = l.foto
+      ? `<img class="card-h-foto" src="${esc(l.foto)}" alt="" onerror="this.style.display='none'">`
+      : `<div class="card-h-foto-placeholder">${emoji}</div>`;
+    const isNovo = l.criadoEm && (Date.now()-new Date(l.criadoEm).getTime())<7*24*3600*1000;
+    return `<div class="card-h" onclick="abrirDetalhe('${esc(l.id)}')">
+      ${fotoHtml}
+      <div class="card-h-body">
+        ${isNovo?'<div class="card-h-badge">Novo</div>':''}
+        <div class="card-h-nome">${esc(l.nome)}</div>
+        <div class="card-h-bairro">${esc(l.bairro)}</div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function renderHomeEventos(){
+  const cont = document.getElementById("home-eventos");
+  if(!cont) return;
+  const agora = new Date();
+  const emBreve = STATE.eventos.filter(e=>{
+    if(e.recorrente) return true;
+    if(!e.dataInicio) return true;
+    const d = new Date(e.dataInicio);
+    return d >= agora && (d-agora)<7*24*3600*1000;
+  }).slice(0,3);
+  if(!emBreve.length){
+    cont.innerHTML=`<div style="text-align:center;padding:32px 20px 16px;">
+      <svg width="110" height="90" viewBox="0 0 110 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="55" cy="82" rx="36" ry="6" fill="#FFCB45" opacity=".2"/>
+        <path d="M25 65 Q35 28 55 38 Q75 48 80 26 Q85 8 65 18 Q45 28 30 12 Q15 -2 20 24 Q25 48 25 65Z" fill="#FFF7F0" stroke="#FF7A4D" stroke-width="1.5"/>
+        <circle cx="50" cy="42" r="4" fill="#FF7A4D"/>
+        <path d="M60 32 Q65 25 70 29 Q75 33 69 37 Q63 41 60 35Z" fill="#F15B93" opacity=".75"/>
+        <path d="M35 52 Q39 47 43 50 Q47 53 43 57 Q39 61 35 57Z" fill="#2BA56B" opacity=".75"/>
+        <path d="M56 61 Q59 54 63 57 Q67 60 64 65 Q61 70 57 66Z" fill="#FFCB45" opacity=".85"/>
+        <line x1="50" y1="46" x2="50" y2="75" stroke="#FF7A4D" stroke-width="1.5" stroke-dasharray="2 3"/>
+      </svg>
+      <p style="color:var(--suave);font-size:.85rem;margin-top:4px;">Nenhum evento esta semana.<br>Seja a primeira a sugerir!</p>
+    </div>`;
+    return;
+  }
+  cont.innerHTML = emBreve.map(e=>renderCardEvento(e)).join("");
+}
+
+// ═══════════════════════════════════════════════════
+// MAPA (Leaflet)
+// ═══════════════════════════════════════════════════
+function iniciarMapa(){
+  if(mapaIniciado) return;
+  mapaIniciado = true;
+  map = L.map("leaflet-map",{scrollWheelZoom:false,tap:true,touchZoom:true,zoomControl:false}).setView([-22.965,-43.21],12);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:"© OpenStreetMap",maxZoom:19}).addTo(map);
+  L.control.zoom({position:"bottomright"}).addTo(map);
+  camadaPins = L.layerGroup().addTo(map);
+  setTimeout(()=>{
+    map.invalidateSize();
+    desenharPins();
+    renderMapaStrip();
+    // geolocalização: zoom na área da usuária
+    if(navigator.geolocation){
+      navigator.geolocation.getCurrentPosition(pos=>{
+        map.setView([pos.coords.latitude, pos.coords.longitude], 14);
+        renderMapaStrip(pos.coords.latitude, pos.coords.longitude);
+      }, ()=>{/* sem permissão, fica no Rio */});
+    }
+  },200);
+  map.on("click",e=>{
+    if(!modoPin){ fecharPreviewMapa(); return; }
+    pinTemp = {lat:e.latlng.lat, lng:e.latlng.lng};
+    modoPin = false;
+    document.getElementById("leaflet-map").style.cursor="";
+    document.getElementById("aviso-pin-mapa").style.display="none";
+    document.getElementById("btn-pin-mapa").className="btn-pin-mapa ok";
+    document.getElementById("btn-pin-mapa").textContent="✅ Localização marcada!";
+    // reabre sheet
+    document.getElementById("veu-add-lugar").classList.add("aberto");
+    document.getElementById("sheet-add-lugar").classList.add("aberto");
+  });
+  desenharPins();
+}
+
+function iconePin(l){
+  if(l.tipo==="praca") return L.divIcon({className:"",html:'<div class="pin-praca">🌳</div>',iconSize:[30,30],iconAnchor:[15,30],popupAnchor:[0,-30]});
+  const cor = l._novo?"pin-rosa":l.seeded?"pin-laranja":"pin-azul";
+  const em = (l.tags||[]).includes("espaço kids")?"🧒":"☕";
+  return L.divIcon({className:"",html:`<div class="pin-ovm ${cor}"><span>${em}</span></div>`,iconSize:[32,32],iconAnchor:[16,30],popupAnchor:[0,-28]});
+}
+
+function lugarPassaFiltros(l){
+  const f = STATE.filtros;
+  if(f.tipo!=="Todos" && !lugarPassaCat(l,f.tipo)) return false;
+  if(f.ideal.length && !f.ideal.every(i=>(l.ideal||[]).includes(i)||(l.tags||[]).includes(i))) return false;
+  if(f.bairro && l.bairro!==f.bairro) return false;
+  return true;
+}
+
+function desenharPins(){
+  if(!camadaPins) return;
+  camadaPins.clearLayers();
+  STATE.lugares.filter(l=>l.lat!=null && lugarPassaFiltros(l)).forEach(l=>{
+    const m = L.marker([l.lat,l.lng],{icon:iconePin(l)});
+    m.on("click",()=>mostrarPreviewMapa(l.id));
+    camadaPins.addLayer(m);
+  });
+}
+
+function renderMapaStrip(userLat, userLng){
+  const cont = document.getElementById("mapa-lista-strip");
+  if(!cont) return;
+  let lista = STATE.lugares.filter(l=>l.lat!=null && lugarPassaFiltros(l));
+  if(userLat!=null){
+    lista = lista.map(l=>({...l, _dist: Math.hypot(l.lat-userLat, l.lng-userLng)}))
+                 .sort((a,b)=>a._dist-b._dist);
+  }
+  cont.innerHTML = lista.slice(0,12).map(l=>{
+    const emoji = l.tipo==="praca"?"🌳":"☕";
+    const fotoHtml = l.foto
+      ? `<img class="mapa-card-mini-foto" src="${esc(l.foto)}" onerror="this.style.display='none'">`
+      : `<div class="mapa-card-mini-foto">${emoji}</div>`;
+    return `<div class="mapa-card-mini" onclick="focarLugarMapa('${esc(l.id)}')">
+      ${fotoHtml}
+      <div class="mapa-card-mini-body">
+        <div class="mapa-card-mini-nome">${esc(l.nome)}</div>
+        <div class="mapa-card-mini-bairro">${esc(l.bairro)}</div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function focarLugarMapa(id){
+  const l = STATE.lugares.find(x=>x.id===id);
+  if(!l || !map) return;
+  map.setView([l.lat, l.lng], 15);
+  mostrarPreviewMapa(id);
+}
+
+function mostrarPreviewMapa(id){
+  const l = STATE.lugares.find(x=>x.id===id);
+  if(!l) return;
+  mapaPreviewId = id;
+  document.getElementById("mapa-strip-wrap")?.classList.add("oculta");
+  const prev = document.getElementById("mapa-preview");
+  const emoji = l.tipo==="praca"?"🌳":"☕";
+  const fotoEl = document.getElementById("mapa-preview-foto");
+  if(l.foto){ fotoEl.innerHTML=`<img src="${esc(l.foto)}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;" onerror="this.parentElement.textContent='${emoji}'">`; }
+  else { fotoEl.textContent = emoji; }
+  document.getElementById("mapa-preview-nome").textContent = l.nome;
+  document.getElementById("mapa-preview-bairro").textContent = l.bairro;
+  const tagsEl = document.getElementById("mapa-preview-tags");
+  tagsEl.innerHTML = (l.tags||[]).slice(0,2).map(t=>`<span class="tag-pill">${esc(t)}</span>`).join("");
+  prev.classList.add("visivel");
+}
+
+function fecharPreviewMapa(){
+  document.getElementById("mapa-preview").classList.remove("visivel");
+  document.getElementById("mapa-strip-wrap")?.classList.remove("oculta");
+}
+
+function scrollStrip(dir){
+  const strip = document.getElementById("mapa-lista-strip");
+  if(strip) strip.scrollBy({left: dir * 220, behavior:"smooth"});
+}
+
+function filtrarMapa(q){
+  if(!q){ desenharPins(); fecharPreviewMapa(); return; }
+  const ql = q.toLowerCase();
+  if(!camadaPins) return;
+  camadaPins.clearLayers();
+  STATE.lugares.filter(l=>l.lat!=null&&(l.nome.toLowerCase().includes(ql)||l.bairro.toLowerCase().includes(ql))).forEach(l=>{
+    const m=L.marker([l.lat,l.lng],{icon:iconePin(l)});
+    m.on("click",()=>mostrarPreviewMapa(l.id));
+    camadaPins.addLayer(m);
+  });
+}
+
+// ═══════════════════════════════════════════════════
+// AGENDA
+// ═══════════════════════════════════════════════════
+function filtrarAgenda(el,f){
+  document.querySelectorAll(".agenda-filtro").forEach(b=>b.classList.remove("ativo"));
+  el.classList.add("ativo");
+  STATE.filtroAgenda = f;
+  renderAgenda();
+}
+
+function renderAgenda(){
+  const f = STATE.filtroAgenda;
+  const agora = new Date();
+  const dom = agora.getDay();
+  let lista = [...STATE.eventos];
+  if(f==="semana"){
+    lista = lista.filter(e=>{
+      if(e.recorrente) return true;
+      if(!e.dataInicio) return true;
+      const d=new Date(e.dataInicio);
+      return d>=agora && (d-agora)<7*24*3600*1000;
+    });
+  } else if(f==="fds"){
+    lista = lista.filter(e=>{
+      if(e.recorrente && e.recorrenciaTexto&&(e.recorrenciaTexto.toLowerCase().includes("sáb")||e.recorrenciaTexto.toLowerCase().includes("dom")||e.recorrenciaTexto.toLowerCase().includes("fim"))) return true;
+      if(!e.dataInicio) return e.recorrente;
+      const d=new Date(e.dataInicio); return d.getDay()===0||d.getDay()===6;
+    });
+  } else if(f==="gratis"){
+    lista = lista.filter(e=>!e.pago);
+  }
+  const cont = document.getElementById("agenda-lista");
+  if(!lista.length){
+    cont.innerHTML=`<div class="agenda-vazia">
+      <svg width="120" height="100" viewBox="0 0 120 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="60" cy="88" rx="40" ry="7" fill="#2BA56B" opacity=".15"/>
+        <rect x="22" y="20" width="64" height="58" rx="10" fill="#FFF7F0" stroke="#0F2D52" stroke-width="1.5"/>
+        <rect x="22" y="20" width="64" height="18" rx="10" fill="#0F2D52"/>
+        <rect x="33" y="38" width="0" height="0" rx="5" fill="#0F2D52"/>
+        <circle cx="38" cy="14" r="5" fill="#FF7A4D"/>
+        <circle cx="80" cy="14" r="5" fill="#FF7A4D"/>
+        <rect x="32" y="46" width="16" height="14" rx="4" fill="#FF7A4D" opacity=".25"/>
+        <rect x="52" y="46" width="16" height="14" rx="4" fill="#FFCB45" opacity=".4"/>
+        <rect x="72" y="46" width="16" height="14" rx="4" fill="#2BA56B" opacity=".25"/>
+        <rect x="32" y="64" width="16" height="8" rx="3" fill="#F15B93" opacity=".3"/>
+        <rect x="52" y="64" width="16" height="8" rx="3" fill="#FF7A4D" opacity=".2"/>
+        <line x1="22" y1="38" x2="86" y2="38" stroke="#0F2D52" stroke-width="1" opacity=".15"/>
+      </svg>
+      <p>Nenhum evento aqui ainda.<br>Que tal sugerir o primeiro?</p>
+    </div>`;
+    return;
+  }
+  cont.innerHTML = lista.map(e=>renderCardEvento(e)).join("");
+}
+
+const CAT_EMOJI = {musicalização:"🎵",yoga:"🧘",contação:"📚",arte:"🎨",feira:"🛍️",natureza:"🌿",dança:"💃",outro:"⭐"};
+function renderCardEvento(e){
+  const emoji = CAT_EMOJI[e.categoria]||"⭐";
+  let diaHtml;
+  if(e.recorrente){
+    diaHtml=`<div class="card-evt-data"><div style="font-size:1.1rem;">🔄</div><div class="card-evt-recorrente">Recorrente</div></div>`;
+  } else if(e.dataInicio){
+    const d=new Date(e.dataInicio+"T12:00:00");
+    const dia=d.getDate();
+    const mes=d.toLocaleDateString("pt-BR",{month:"short"}).replace(".","");
+    diaHtml=`<div class="card-evt-data"><div class="card-evt-dia">${dia}</div><div class="card-evt-mes">${mes}</div></div>`;
+  } else {
+    diaHtml=`<div class="card-evt-data"><div style="font-size:1.2rem;">${emoji}</div></div>`;
+  }
+  return `<div class="card-evt" onclick="abrirDetalheEvento('${esc(e.id)}')">
+    ${diaHtml}
+    <div class="card-evt-body">
+      <div class="card-evt-titulo">${esc(e.titulo)}</div>
+      <div class="card-evt-local">${esc(e.bairro||e.local||"")}</div>
+      <div class="card-evt-badges">
+        ${e.faixaEtaria?`<span class="badge badge-azul">👶 ${esc(e.faixaEtaria)}</span>`:""}
+        ${e.pago?`<span class="badge badge-amarelo">💰 ${esc(e.preco||"Pago")}</span>`:`<span class="badge badge-verde">✅ Gratuito</span>`}
+        ${e.recorrente?`<span class="badge badge-laranja">🔄 ${esc(e.recorrenciaTexto||"Recorrente")}</span>`:""}
+        ${e.vagasLimitadas?`<span class="badge badge-rosa">⚡ Vagas limitadas</span>`:""}
+      </div>
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════
+// SALVOS
+// ═══════════════════════════════════════════════════
+function trocarTabSalvos(el,tab){
+  document.querySelectorAll(".salvos-tab").forEach(t=>t.classList.remove("ativo"));
+  el.classList.add("ativo");
+  STATE.tabSalvos = tab;
+  renderSalvos();
+}
+
+function renderSalvos(){
+  const cont = document.getElementById("salvos-lista");
+  if(STATE.tabSalvos==="lugares"){
+    const ids = STATE.salvos.lugares||[];
+    const lista = STATE.lugares.filter(l=>ids.includes(l.id));
+    if(!lista.length){
+      cont.innerHTML=`<div class="salvos-vazio">
+        <svg width="120" height="100" viewBox="0 0 120 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="60" cy="88" rx="38" ry="7" fill="#FF7A4D" opacity=".15"/>
+          <path d="M42 18 Q42 14 46 14 L74 14 Q78 14 78 18 L78 78 L60 66 L42 78 Z" fill="#FFF7F0" stroke="#0F2D52" stroke-width="1.8"/>
+          <path d="M42 18 Q42 14 46 14 L74 14 Q78 14 78 18 L78 38 L42 38 Z" fill="#FF7A4D" opacity=".2"/>
+          <circle cx="60" cy="30" r="6" fill="#FF7A4D" opacity=".5"/>
+          <path d="M52 48 L68 48" stroke="#0F2D52" stroke-width="1.5" stroke-linecap="round" opacity=".2"/>
+          <path d="M52 55 L64 55" stroke="#0F2D52" stroke-width="1.5" stroke-linecap="round" opacity=".15"/>
+          <circle cx="85" cy="25" r="8" fill="#F15B93" opacity=".2"/>
+          <circle cx="32" cy="55" r="6" fill="#FFCB45" opacity=".3"/>
+          <circle cx="90" cy="60" r="5" fill="#2BA56B" opacity=".25"/>
+        </svg>
+        <p>Você ainda não salvou nenhum lugar.<br>Explore o mapa e salve seus favoritos!</p>
+      </div>`;
+      return;
+    }
+    cont.innerHTML = lista.map(l=>{
+      const emoji = l.tipo==="praca"?"🌳":"☕";
+      const fotoHtml = l.foto?`<img class="card-salvo-foto" src="${esc(l.foto)}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`:"";
+      return `<div class="card-salvo" onclick="abrirDetalhe('${esc(l.id)}')">
+        <div class="card-salvo-foto">${l.foto?`<img src="${esc(l.foto)}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;" onerror="this.parentElement.textContent='${emoji}'">`:`${emoji}`}</div>
+        <div class="card-salvo-body">
+          <div class="card-salvo-nome">${esc(l.nome)}</div>
+          <div class="card-salvo-sub">${esc(l.bairro)}</div>
+          <div class="card-salvo-tags">${(l.tags||[]).slice(0,3).map(t=>`<span class="tag-pill">${esc(t)}</span>`).join("")}</div>
+        </div>
+      </div>`;
+    }).join("");
+  } else {
+    const ids = STATE.salvos.eventos||[];
+    const lista = STATE.eventos.filter(e=>ids.includes(e.id));
+    if(!lista.length){
+      cont.innerHTML=`<div class="salvos-vazio">
+        <svg width="120" height="100" viewBox="0 0 120 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="60" cy="88" rx="38" ry="7" fill="#2BA56B" opacity=".15"/>
+          <rect x="24" y="22" width="60" height="54" rx="10" fill="#FFF7F0" stroke="#0F2D52" stroke-width="1.5"/>
+          <rect x="24" y="22" width="60" height="16" rx="10" fill="#2BA56B" opacity=".35"/>
+          <circle cx="37" cy="16" r="4.5" fill="#2BA56B" opacity=".6"/>
+          <circle cx="75" cy="16" r="4.5" fill="#2BA56B" opacity=".6"/>
+          <path d="M42 52 Q42 48 46 48 L56 48 Q60 48 60 52 L60 68 L51 62 L42 68 Z" fill="#FF7A4D" opacity=".35"/>
+          <path d="M66 52 Q66 48 70 48 L76 48 Q80 48 80 52 L80 68 L73 62 L66 68 Z" fill="#F15B93" opacity=".3"/>
+          <line x1="24" y1="38" x2="84" y2="38" stroke="#0F2D52" stroke-width="1" opacity=".12"/>
+        </svg>
+        <p>Nenhum evento salvo ainda.<br>Explore a agenda e salve os que quiser!</p>
+      </div>`;
+      return;
+    }
+    cont.innerHTML = lista.map(e=>renderCardEvento(e)).join("");
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// DETALHE LUGAR
+// ═══════════════════════════════════════════════════
+function abrirDetalhe(id){
+  const l = STATE.lugares.find(x=>x.id===id);
+  if(!l) return;
+  detLugarAtual = l;
+  // foto
+  const fotoWrap = document.getElementById("det-foto-wrap");
+  const img = document.getElementById("det-foto-img");
+  const emj = document.getElementById("det-foto-emoji");
+  if(l.foto){ img.src=l.foto; img.style.display="block"; emj.style.display="none"; }
+  else { img.style.display="none"; emj.style.display="block"; emj.textContent=l.tipo==="praca"?"🌳":"☕"; }
+  // salvar btn
+  const salvoBt = document.getElementById("det-salvar-btn");
+  const estaS = (STATE.salvos.lugares||[]).includes(l.id);
+  salvoBt.classList.toggle("salvo", estaS);
+  // info
+  document.getElementById("det-nome").textContent = l.nome;
+  document.getElementById("det-meta").innerHTML = `<span>${esc(l.bairro)}</span>${l.hora?`<span>🕐 ${esc(l.hora)}</span>`:""}`;
+  document.getElementById("det-tags").innerHTML = (l.tags||[]).map(t=>`<span class="tag-pill">${esc(t)}</span>`).join("");
+  // ideal
+  const idealMap = {
+    "bebê de colo":{emoji:"👶",label:"Bebê de colo"},
+    "acessível para carrinho":{emoji:"🛒",label:"Carrinho"},
+    "amamentação":{emoji:"🤱",label:"Amamentação"},
+    "encontrar mães":{emoji:"👩‍👩‍👧",label:"Encontrar mães"},
+    "espaço kids":{emoji:"🧒",label:"Espaço kids"},
+    "trocador":{emoji:"🚿",label:"Trocador"},
+  };
+  const idealKeys = [...new Set([...(l.ideal||[]), ...(l.tags||[]).filter(t=>idealMap[t])])];
+  document.getElementById("det-ideal").innerHTML = idealKeys.slice(0,4).map(k=>idealMap[k]?`<div class="ideal-item"><span style="font-size:1.4rem;">${idealMap[k].emoji}</span>${idealMap[k].label}</div>`:"").join("");
+  // dica
+  const dicaW = document.getElementById("det-dica-wrap");
+  if(l.dica){ dicaW.style.display="block"; document.getElementById("det-dica").textContent=l.dica; }
+  else { dicaW.style.display="none"; }
+  // avaliação
+  const av = STATE.avaliacoes[l.id]||{media:0,total:0};
+  renderEstrelasDet(l.id, av.media, av.total);
+  // editar (se o lugar foi adicionado por alguém — não é seed fixo, mas agora todos são editáveis)
+  document.getElementById("det-editar-wrap").style.display = "block";
+  // comentários
+  renderComentariosDet(l.id);
+  // botão maps
+  const btnMaps = document.getElementById("det-btn-maps");
+  if(l.lat!=null){
+    btnMaps.onclick = ()=>window.open(`https://www.google.com/maps/dir/?api=1&destination=${l.lat},${l.lng}`,"_blank","noopener");
+    btnMaps.disabled = false;
+  } else { btnMaps.disabled = true; }
+  // deep link
+  history.pushState(null,"","#lugar/"+l.id);
+  document.getElementById("overlay-lugar").classList.add("aberto");
+}
+
+function renderEstrelasDet(id, media, total){
+  const inteiros = Math.round(media);
+  const cont = document.getElementById("det-estrelas");
+  cont.innerHTML = "";
+  for(let i=1;i<=5;i++){
+    const s=document.createElement("span");
+    s.className="estrela-int"+(i<=inteiros?" cheia":"");
+    s.textContent="★";
+    s.onclick=(()=>{ const nota=i; return ()=>votarDet(id,nota); })();
+    cont.appendChild(s);
+  }
+  document.getElementById("det-nota-texto").textContent = total>0?`${media.toFixed(1)} (${total} voto${total>1?"s":""})`:"Seja a primeira a avaliar!";
+}
+
+async function votarDet(id, nota){
+  if(localStorage.getItem("voto-"+id)){ toast("Você já avaliou este lugar ⭐"); return; }
+  const av = STATE.avaliacoes[id]||{media:0,total:0};
+  const novoTotal=av.total+1, novaMedia=((av.media*av.total)+nota)/novoTotal;
+  STATE.avaliacoes[id]={media:novaMedia,total:novoTotal};
+  localStorage.setItem("voto-"+id,nota);
+  if(db) await fbSet("avaliacoes",id,{media:novaMedia,total:novoTotal});
+  else lsSet("ovm_avaliacoes",STATE.avaliacoes);
+  renderEstrelasDet(id,novaMedia,novoTotal);
+  toast("Avaliação salva! "+"⭐".repeat(nota));
+}
+
+function renderComentariosDet(id){
+  const cs = STATE.comentarios[id]||[];
+  const cont = document.getElementById("det-comentarios");
+  if(!cs.length){
+    cont.innerHTML=`<p style="font-size:.82rem;color:var(--suave);font-style:italic;">Seja a primeira a comentar ✨</p>`;
+    return;
+  }
+  cont.innerHTML = cs.map(c=>`<div class="comentario-item">
+    <span class="comentario-autor">${esc(c.autor)}</span><span class="comentario-quando">${esc(c.quando)}</span>
+    <div class="comentario-texto">${esc(c.texto)}</div>
+  </div>`).join("");
+}
+
+async function enviarComentarioDet(){
+  if(!detLugarAtual) return;
+  const id = detLugarAtual.id;
+  const inp = document.getElementById("det-inp-comentario");
+  const texto = inp.value.trim();
+  if(!texto) return;
+  const autor = STATE.usuario?.nome||localStorage.getItem("ovm_nome")||"Anônima";
+  const quando = new Date().toLocaleDateString("pt-BR",{day:"2-digit",month:"short"});
+  const lista = [...(STATE.comentarios[id]||[]),{autor,texto,quando}];
+  STATE.comentarios[id] = lista;
+  if(db) await fbSet("comentarios",id,{lista});
+  else lsSet("ovm_comentarios",STATE.comentarios);
+  inp.value="";
+  renderComentariosDet(id);
+  toast("Comentário publicado 💬");
+}
+
+function toggleSalvarLugar(){
+  if(!detLugarAtual) return;
+  const id = detLugarAtual.id;
+  const idx = (STATE.salvos.lugares||[]).indexOf(id);
+  if(idx>=0) STATE.salvos.lugares.splice(idx,1);
+  else STATE.salvos.lugares.push(id);
+  lsSet("ovm_salvos",STATE.salvos);
+  const estaS = STATE.salvos.lugares.includes(id);
+  document.getElementById("det-salvar-btn").classList.toggle("salvo",estaS);
+  toast(estaS?"Lugar salvo 🔖":"Lugar removido dos salvos");
+}
+
+function compartilharLugar(){
+  if(!detLugarAtual) return;
+  const l=detLugarAtual;
+  const texto=`${l.nome} — ${l.bairro}\n\nVi no Onde Vamos, Mamãe! 🍼\n${l.lat!=null?`https://www.google.com/maps?q=${l.lat},${l.lng}`:""}`;
+  if(navigator.share) navigator.share({title:"Onde Vamos, Mamãe?",text:texto}).catch(()=>{});
+  else { navigator.clipboard.writeText(texto).then(()=>toast("Copiado! Cola no WhatsApp 💬")); }
+}
+
+function editarLugarAtual(){
+  if(!detLugarAtual) return;
+  // preenche sheet de edição reaproveitando o fluxo de add
+  lugareEditandoId = detLugarAtual.id;
+  fecharOverlay("overlay-lugar");
+  abrirAddLugar();
+  setTimeout(()=>{
+    const l=detLugarAtual;
+    document.getElementById("f-nome").value=l.nome||"";
+    document.getElementById("f-bairro").value=l.bairro||"";
+    document.getElementById("f-hora").value=l.hora||"";
+    document.getElementById("f-dica").value=l.dica||"";
+    document.getElementById("add-lugar-titulo").textContent="Editar lugar";
+    // marcar tags
+    (l.tags||[]).forEach(v=>{
+      const el=document.querySelector(`#add-p2 .tag-check[data-v="${v}"]`);
+      if(el) el.classList.add("sel");
+    });
+    (l.ideal||[]).forEach(v=>{
+      const el=document.querySelector(`#add-p2 .ideal-sel[data-v="${v}"]`);
+      if(el) el.classList.add("sel");
+    });
+  },200);
+}
+
+// ═══════════════════════════════════════════════════
+// DETALHE EVENTO
+// ═══════════════════════════════════════════════════
+function abrirDetalheEvento(id){
+  const e = STATE.eventos.find(x=>x.id===id);
+  if(!e) return;
+  detEventoAtual = e;
+  const emoji = CAT_EMOJI[e.categoria]||"⭐";
+  document.getElementById("det-evt-emoji").textContent = emoji;
+  document.getElementById("det-evt-cat").innerHTML = `${emoji} ${esc(e.categoria||"Evento")}`;
+  document.getElementById("det-evt-nome").textContent = e.titulo;
+  document.getElementById("det-evt-etaria").innerHTML = e.faixaEtaria?`<span>👶 ${esc(e.faixaEtaria)}</span>`:"";
+  // quando
+  let quando="";
+  if(e.recorrente) quando=e.recorrenciaTexto||"Recorrente";
+  else if(e.dataInicio){ const d=new Date(e.dataInicio+"T12:00:00"); quando=d.toLocaleDateString("pt-BR",{weekday:"long",day:"2-digit",month:"long"}); }
+  if(e.hora) quando+= (quando?" · ":"")+e.hora;
+  document.getElementById("det-evt-quando").textContent = quando;
+  document.getElementById("det-evt-local").textContent = [e.local,e.endereco||e.bairro].filter(Boolean).join(" — ");
+  // preço
+  const priceRow=document.getElementById("det-evt-price-row");
+  if(e.pago){ priceRow.style.display="flex"; document.getElementById("det-evt-preco").textContent=e.preco||"Consulte os organizadores"; }
+  else { priceRow.style.display="flex"; document.getElementById("det-evt-preco").textContent="Gratuito ✅"; }
+  // desc
+  const descW=document.getElementById("det-evt-desc-wrap");
+  if(e.descricao){ descW.style.display="block"; document.getElementById("det-evt-desc").textContent=e.descricao; }
+  else descW.style.display="none";
+  // ideal
+  document.getElementById("det-evt-ideal").innerHTML=`<div class="ideal-item"><span style="font-size:1.4rem;">👶</span>${esc(e.faixaEtaria||"Todos os bebês")}</div>`;
+  // salvar
+  const salvoBt=document.getElementById("det-evt-salvar-btn");
+  salvoBt.classList.toggle("salvo",(STATE.salvos.eventos||[]).includes(e.id));
+  // contato
+  const btnContato=document.getElementById("det-evt-btn-contato");
+  if(e.contato){ btnContato.onclick=()=>{ const txt=e.contato; if(navigator.share) navigator.share({title:e.titulo,text:txt}).catch(()=>{}); else { navigator.clipboard.writeText(txt).then(()=>toast("Contato copiado 📋")); } }; }
+  history.pushState(null,"","#evento/"+e.id);
+  document.getElementById("overlay-evento").classList.add("aberto");
+}
+
+function toggleSalvarEvento(){
+  if(!detEventoAtual) return;
+  const id=detEventoAtual.id;
+  const idx=(STATE.salvos.eventos||[]).indexOf(id);
+  if(idx>=0) STATE.salvos.eventos.splice(idx,1);
+  else STATE.salvos.eventos.push(id);
+  lsSet("ovm_salvos",STATE.salvos);
+  document.getElementById("det-evt-salvar-btn").classList.toggle("salvo",STATE.salvos.eventos.includes(id));
+  toast(STATE.salvos.eventos.includes(id)?"Evento salvo 🔖":"Evento removido dos salvos");
+}
+
+function compartilharEvento(){
+  if(!detEventoAtual) return;
+  const e=detEventoAtual;
+  const txt=`${e.titulo}\n${e.local||""} — ${e.bairro||""}\nVi no Onde Vamos, Mamãe! 🍼`;
+  if(navigator.share) navigator.share({title:"Onde Vamos, Mamãe?",text:txt}).catch(()=>{});
+  else navigator.clipboard.writeText(txt).then(()=>toast("Copiado! 💬"));
+}
+
+// ═══════════════════════════════════════════════════
+// FILTROS
+// ═══════════════════════════════════════════════════
+function abrirFiltros(){
+  // popular bairros
+  const bairros=[...new Set(STATE.lugares.map(l=>l.bairro))].sort();
+  const cont=document.getElementById("filtro-bairro-chips");
+  cont.innerHTML=bairros.map(b=>`<button class="filtro-chip${STATE.filtros.bairro===b?" ativo":""}" onclick="selecionarFiltroBairro(this,'${b.replace(/'/g,"&apos;")}')">${esc(b)}</button>`).join("");
+  document.getElementById("veu-filtros").classList.add("aberto");
+  document.getElementById("painel-filtros").classList.add("aberto");
+}
+function fecharFiltros(){
+  document.getElementById("veu-filtros").classList.remove("aberto");
+  document.getElementById("painel-filtros").classList.remove("aberto");
+}
+function selecionarFiltroTipo(el,v){
+  document.querySelectorAll("#filtro-tipo-chips .filtro-chip").forEach(c=>c.classList.remove("ativo"));
+  el.classList.add("ativo"); STATE.filtros.tipo=v;
+}
+function selecionarFiltroBairro(el,v){
+  document.querySelectorAll("#filtro-bairro-chips .filtro-chip").forEach(c=>c.classList.remove("ativo"));
+  if(STATE.filtros.bairro===v){ STATE.filtros.bairro=""; }
+  else{ el.classList.add("ativo"); STATE.filtros.bairro=v; }
+}
+function toggleIdealFiltro(el){
+  el.classList.toggle("ativo");
+  const v=el.getAttribute("data-ideal");
+  const idx=STATE.filtros.ideal.indexOf(v);
+  if(idx>=0) STATE.filtros.ideal.splice(idx,1);
+  else STATE.filtros.ideal.push(v);
+}
+function aplicarFiltros(){
+  fecharFiltros();
+  desenharPins();
+  setarTela("mapa");
+}
+
+// ═══════════════════════════════════════════════════
+// ADD LUGAR (3 passos)
+// ═══════════════════════════════════════════════════
+let passoAtual = 1;
+function abrirAddLugar(){
+  passoAtual=1;
+  lugareEditandoId=null;
+  document.getElementById("add-lugar-titulo").textContent="Adicionar lugar";
+  mostrarPasso(1);
+  // reset
+  ["f-nome","f-bairro","f-hora","f-dica","f-autor","f-foto-url"].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=""; });
+  const fp=document.getElementById("f-foto-preview"); if(fp){fp.style.display="none";fp.src="";}
+  document.getElementById("f-foto-status").textContent="";
+  document.getElementById("btn-pin-mapa").className="btn-pin-mapa";
+  document.getElementById("btn-pin-mapa").textContent="📍 Marcar no mapa";
+  document.querySelectorAll("#add-p2 .tag-check, #add-p2 .ideal-sel").forEach(el=>el.classList.remove("sel"));
+  pinTemp=null;
+  document.getElementById("veu-add-lugar").classList.add("aberto");
+  document.getElementById("sheet-add-lugar").classList.add("aberto");
+}
+function fecharAddLugar(){
+  document.getElementById("veu-add-lugar").classList.remove("aberto");
+  document.getElementById("sheet-add-lugar").classList.remove("aberto");
+  lugareEditandoId=null;
+}
+function mostrarPasso(n){
+  [1,2,3].forEach(i=>{
+    document.getElementById("add-p"+i).style.display=i===n?"block":"none";
+    const dot=document.getElementById("pd"+i);
+    dot.className="passo-dot"+(i===n?" ativo":i<n?" done":"");
+  });
+  passoAtual=n;
+}
+function avancarPasso(n){
+  if(n===2){
+    if(!document.getElementById("f-nome").value.trim()||!document.getElementById("f-bairro").value.trim()){
+      toast("Preenche nome e bairro 🙂"); return;
+    }
+  }
+  mostrarPasso(n);
+}
+function voltarPasso(n){ mostrarPasso(n); }
+
+function toggleTagCheck(el){ el.classList.toggle("sel"); }
+function toggleIdealSel(el){ el.classList.toggle("sel"); }
+
+function iniciarPin(){
+  fecharAddLugar();
+  setarTela("mapa");
+  setTimeout(()=>{
+    modoPin=true;
+    document.getElementById("leaflet-map").style.cursor="crosshair";
+    document.getElementById("aviso-pin-mapa").style.display="block";
+  },300);
+}
+
+async function uploadFotoLugar(input){
+  const file=input.files[0]; if(!file) return;
+  const status=document.getElementById("f-foto-status");
+  const preview=document.getElementById("f-foto-preview");
+  const reader=new FileReader();
+  reader.onload=e=>{ preview.src=e.target.result; preview.style.display="block"; };
+  reader.readAsDataURL(file);
+  status.textContent="⏳ Enviando foto...";
+  try{
+    const fd=new FormData();
+    fd.append("file",file); fd.append("upload_preset","onde_vamos_mamae"); fd.append("folder","onde-vamos-mamae");
+    const r=await fetch("https://api.cloudinary.com/v1_1/onde-vamos-mamae/image/upload",{method:"POST",body:fd});
+    const data=await r.json();
+    if(data.secure_url){ document.getElementById("f-foto-url").value=data.secure_url; status.textContent="✅ Foto enviada!"; }
+    else throw new Error(data.error?.message||"Erro");
+  }catch(e){ status.textContent="❌ Erro ao enviar foto. Tente novamente."; console.error(e); }
+}
+
+// ═══════════════════════════════════════════════════
+// GEOCODING (Nominatim / OpenStreetMap — sem API key)
+// ═══════════════════════════════════════════════════
+async function buscarEndereco(){
+  const nome = document.getElementById("f-nome").value.trim();
+  const bairro = document.getElementById("f-bairro").value.trim();
+  if(!nome || !bairro){ toast("Preenche nome e bairro primeiro 🙂"); return; }
+  const btn = document.getElementById("btn-buscar-end");
+  const status = document.getElementById("busca-end-status");
+  const opcoes = document.getElementById("busca-end-opcoes");
+  btn.textContent = "🔍 Buscando..."; btn.disabled = true;
+  status.style.display = "block";
+  status.style.background = "#FFF9C4"; status.style.color = "#B45309";
+  status.textContent = `Buscando "${nome}" em ${bairro}...`;
+  opcoes.innerHTML = ""; opcoes.style.display = "none";
+  try{
+    const q = encodeURIComponent(`${nome}, ${bairro}, Rio de Janeiro, Brasil`);
+    const r = await fetch(`https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=4&countrycodes=br`,
+      {headers:{"Accept-Language":"pt-BR","User-Agent":"OndeVamosMamae/1.0"}});
+    const results = await r.json();
+    if(!results.length){
+      status.style.background="#FFF1F2"; status.style.color="#BE123C";
+      status.textContent = "❌ Não encontrei. Tente marcar no mapa manualmente.";
+      document.getElementById("btn-pin-mapa").style.animation="pulsar .5s ease 3";
+    } else {
+      status.style.background="#F0FDF4"; status.style.color="#15803D";
+      status.textContent = "✅ Confirme o endereço correto:";
+      opcoes.style.display = "flex"; opcoes.style.flexDirection = "column"; opcoes.style.gap = "8px"; opcoes.style.marginTop = "8px";
+      opcoes.innerHTML = results.map(res=>`
+        <button onclick="confirmarEndereco(${res.lat},${res.lon},'${(res.display_name||"").replace(/'/g,"").substring(0,60)}')"
+          style="background:#fff;border:1.5px solid var(--borda);border-radius:var(--radius-sm);padding:10px 14px;text-align:left;cursor:pointer;font-family:'Nunito',sans-serif;font-size:.82rem;">
+          <strong style="display:block;color:var(--navy);">📍 ${esc((res.display_name||"").split(",").slice(0,2).join(", "))}</strong>
+          <span style="color:var(--suave);font-size:.75rem;">${esc((res.display_name||"").split(",").slice(2,4).join(", "))}</span>
+        </button>`).join("")+
+        `<button onclick="iniciarPin()" style="background:var(--cream);border:1.5px dashed var(--laranja);border-radius:var(--radius-sm);padding:10px 14px;text-align:left;cursor:pointer;font-family:'Nunito',sans-serif;font-size:.82rem;color:var(--laranja);font-weight:700;">
+          🗺️ Nenhum desses — marcar no mapa
+        </button>`;
+    }
+  }catch(e){
+    status.style.background="#FFF1F2"; status.style.color="#BE123C";
+    status.textContent = "❌ Erro na busca. Tente marcar no mapa.";
+  }
+  btn.textContent = "🔍 Buscar localização"; btn.disabled = false;
+}
+function confirmarEndereco(lat,lng,label){
+  pinTemp = {lat:parseFloat(lat), lng:parseFloat(lng)};
+  document.getElementById("busca-end-status").style.background="#F0FDF4";
+  document.getElementById("busca-end-status").style.color="#15803D";
+  document.getElementById("busca-end-status").textContent = `✅ Localização confirmada!`;
+  document.getElementById("busca-end-opcoes").style.display = "none";
+  document.getElementById("btn-pin-mapa").className = "btn-pin-mapa ok";
+  document.getElementById("btn-pin-mapa").textContent = "✅ Localização confirmada!";
+}
+
+// ═══════════════════════════════════════════════════
+// FEEDBACK
+// ═══════════════════════════════════════════════════
+function abrirFeedback(){
+  document.getElementById("veu-feedback").classList.add("aberto");
+  document.getElementById("sheet-feedback").classList.add("aberto");
+  if(STATE.usuario?.nome) {}
+}
+function fecharFeedback(){
+  document.getElementById("veu-feedback").classList.remove("aberto");
+  document.getElementById("sheet-feedback").classList.remove("aberto");
+}
+async function enviarFeedback(){
+  const msg = document.getElementById("fb-mensagem").value.trim();
+  if(!msg){ toast("Escreve uma mensagem primeiro 🙂"); return; }
+  const tipo = document.querySelector('[name="fb-tipo"]:checked')?.value||"sugestão";
+  const feedback = {
+    nome: STATE.usuario?.nome||"Anônima",
+    email: STATE.usuario?.email||"",
+    mensagem: msg, tipo,
+    quando: new Date().toISOString(),
+    uid: STATE.uid||""
+  };
+  if(db) await fbSet("feedbacks","fb-"+Date.now(), feedback);
+  else { const fbs=lsGet("ovm_feedbacks",[]); fbs.push(feedback); lsSet("ovm_feedbacks",fbs); }
+  document.getElementById("fb-mensagem").value = "";
+  fecharFeedback();
+  toast("Feedback enviado! Obrigada 💛");
+}
+
+async function publicarLugar(){
+  const nome=document.getElementById("f-nome").value.trim();
+  const bairro=document.getElementById("f-bairro").value.trim();
+  if(!nome||!bairro){ toast("Nome e bairro são obrigatórios 🙂"); return; }
+  const tags=[...document.querySelectorAll("#tags-estrutura .tag-check.sel, #tags-categoria .tag-check.sel")].map(el=>el.getAttribute("data-v"));
+  const ideal=[...document.querySelectorAll("#add-p2 .ideal-sel.sel")].map(el=>el.getAttribute("data-v"));
+  const dica=document.getElementById("f-dica").value.trim();
+  const autor=document.getElementById("f-autor").value.trim()||STATE.usuario?.nome||"Anônima";
+  const fotoUrl=document.getElementById("f-foto-url").value||"";
+  const isEdicao = !!lugareEditandoId;
+  const id = isEdicao ? lugareEditandoId : uid();
+  const lugar={
+    id, nome, bairro,
+    hora:document.getElementById("f-hora").value.trim(),
+    dica, foto:fotoUrl||null, tags, ideal,
+    adicionadoPor:autor, criadoEm:new Date().toISOString(),
+    lat:pinTemp?.lat??null, lng:pinTemp?.lng??null,
+    tipo:(tags.includes("café")||tags.includes("brunch")||tags.includes("almoço"))?"cafe":"cafe",
+  };
+  if(isEdicao){
+    const idx=STATE.lugares.findIndex(l=>l.id===id);
+    if(idx>=0) STATE.lugares[idx]={...STATE.lugares[idx],...lugar};
+    else STATE.lugares.push(lugar);
+  } else {
+    STATE.lugares.push(lugar);
+  }
+  if(db) await fbSet("lugares",id,lugar);
+  else lsSet("ovm_lugares",STATE.lugares);
+  fecharAddLugar();
+  desenharPins();
+  renderNovidades();
+  toast(isEdicao?"Lugar atualizado ✅":"Lugar publicado! Obrigada ✨");
+  pinTemp=null;
+}
+
+// ═══════════════════════════════════════════════════
+// ADD EVENTO
+// ═══════════════════════════════════════════════════
+function abrirAddEvento(){
+  document.getElementById("veu-add-evento").classList.add("aberto");
+  document.getElementById("sheet-add-evento").classList.add("aberto");
+  // pre-fill autor
+  if(STATE.usuario?.nome) document.getElementById("ev-autor").value=STATE.usuario.nome;
+}
+function fecharAddEvento(){
+  document.getElementById("veu-add-evento").classList.remove("aberto");
+  document.getElementById("sheet-add-evento").classList.remove("aberto");
+}
+function toggleRecorrente(sim){
+  document.getElementById("ev-data-wrap").style.display = sim?"none":"block";
+  document.getElementById("ev-recorrencia-wrap").style.display = sim?"block":"none";
+  if(sim){
+    // seleciona semanal por padrão
+    const radSemanal = document.querySelector('[name="ev-freq"][value="semanal"]');
+    if(radSemanal && !document.querySelector('[name="ev-freq"]:checked')){ radSemanal.checked=true; trocarFreq("semanal"); }
+  }
+}
+function togglePago(sim){
+  document.getElementById("ev-preco-wrap").style.display=sim?"block":"none";
+}
+function trocarFreq(freq){
+  // esconde tudo
+  ["ev-dias-wrap","ev-semana-wrap","ev-mensal-wrap","ev-outro-wrap"].forEach(id=>document.getElementById(id).style.display="none");
+  // marca visual nas labels
+  document.querySelectorAll("#ev-freq-opcoes .tag-check").forEach(el=>{
+    const inp = el.querySelector("input");
+    el.classList.toggle("sel", inp && inp.value===freq);
+  });
+  if(freq==="semanal"){ document.getElementById("ev-dias-wrap").style.display="block"; }
+  else if(freq==="quinzenal"){ document.getElementById("ev-dias-wrap").style.display="block"; document.getElementById("ev-semana-wrap").style.display="block"; }
+  else if(freq==="mensal"){ document.getElementById("ev-mensal-wrap").style.display="block"; }
+  else if(freq==="outro"){ document.getElementById("ev-outro-wrap").style.display="block"; }
+  atualizarPreviewRecorrencia();
+}
+function toggleDia(el){ el.classList.toggle("sel"); atualizarPreviewRecorrencia(); }
+function toggleSemana(el){
+  document.querySelectorAll("[data-sem]").forEach(e=>e.classList.remove("sel"));
+  el.classList.add("sel");
+  atualizarPreviewRecorrencia();
+}
+function trocarMensalTipo(tipo){ atualizarPreviewRecorrencia(); }
+function gerarTextoRecorrencia(){
+  const freq = document.querySelector('[name="ev-freq"]:checked')?.value;
+  if(!freq) return "";
+  if(freq==="semanal"){
+    const dias = [...document.querySelectorAll("[data-dia].sel")].map(el=>el.getAttribute("data-dia"));
+    if(!dias.length) return "Semanal";
+    return dias.length===1 ? `Toda ${dias[0]}`:`Toda ${dias.slice(0,-1).join(", ")} e ${dias[dias.length-1]}`;
+  }
+  if(freq==="quinzenal"){
+    const dias = [...document.querySelectorAll("[data-dia].sel")].map(el=>el.getAttribute("data-dia"));
+    const sem = document.querySelector("[data-sem].sel")?.getAttribute("data-sem")||"";
+    const diaStr = dias.length?dias.join(" e "):"";
+    return ["Quinzenal", sem?`${sem} semana`:"", diaStr].filter(Boolean).join(" · ");
+  }
+  if(freq==="mensal"){
+    const tipo = document.querySelector('[name="ev-mensal-tipo"]:checked')?.value||"dia";
+    if(tipo==="dia"){
+      const dia = document.getElementById("ev-mensal-dia").value||"?";
+      return `Todo dia ${dia} do mês`;
+    } else {
+      const nth = document.getElementById("ev-mensal-nth").value;
+      const ds = document.getElementById("ev-mensal-diasem").value;
+      return `${nth} ${ds}-feira do mês`;
+    }
+  }
+  if(freq==="outro") return document.getElementById("ev-outro-texto").value||"Outro";
+  return "";
+}
+function atualizarPreviewRecorrencia(){
+  const txt = gerarTextoRecorrencia();
+  const prev = document.getElementById("ev-recorrencia-preview");
+  if(txt){ prev.style.display="block"; prev.textContent="🔄 "+txt; }
+  else { prev.style.display="none"; }
+}
+// listeners para preview em tempo real
+document.addEventListener("change", e=>{
+  if(e.target.name==="ev-mensal-tipo"||e.target.name==="ev-freq") atualizarPreviewRecorrencia();
+});
+document.addEventListener("input", e=>{
+  if(e.target.id==="ev-mensal-dia"||e.target.id==="ev-mensal-nth"||e.target.id==="ev-mensal-diasem"||e.target.id==="ev-outro-texto") atualizarPreviewRecorrencia();
+});
+
+async function publicarEvento(){
+  const titulo=document.getElementById("ev-titulo").value.trim();
+  if(!titulo){ toast("Coloca o nome do evento 🙂"); return; }
+  const recorrente=document.querySelector('[name="ev-recorrente"]:checked')?.value==="sim";
+  const pago=document.querySelector('[name="ev-pago"]:checked')?.value==="pago";
+  const recorrenciaTexto = recorrente ? gerarTextoRecorrencia() : "";
+  const enderecoVal = document.getElementById("ev-endereco").value.trim();
+  const evento={
+    id:uid(), titulo,
+    categoria:document.getElementById("ev-categoria").value||"outro",
+    faixaEtaria:document.getElementById("ev-etaria").value.trim(),
+    local:document.getElementById("ev-local").value.trim(),
+    endereco:enderecoVal,
+    bairro:enderecoVal.split(/[–-]/).pop()?.trim()||document.getElementById("ev-local").value.trim(),
+    recorrente,
+    recorrenciaTexto,
+    dataInicio:!recorrente?document.getElementById("ev-data").value:"",
+    hora:document.getElementById("ev-hora").value.trim(),
+    pago, preco:pago?document.getElementById("ev-preco").value.trim():"",
+    vagasLimitadas:document.getElementById("ev-vagas").checked,
+    contato:document.getElementById("ev-contato").value.trim(),
+    descricao:document.getElementById("ev-desc").value.trim(),
+    adicionadoPor:document.getElementById("ev-autor").value.trim()||STATE.usuario?.nome||"Anônima",
+    criadoEm:new Date().toISOString(),
+  };
+  STATE.eventos.push(evento);
+  if(db) await fbSet("eventos",evento.id,evento);
+  else lsSet("ovm_eventos",STATE.eventos);
+  fecharAddEvento();
+  renderHomeEventos();
+  if(STATE.telaAtiva==="agenda") renderAgenda();
+  toast("Evento publicado! 🎉");
+}
+
+// ═══════════════════════════════════════════════════
+// OVERLAYS
+// ═══════════════════════════════════════════════════
+function fecharOverlay(id){
+  document.getElementById(id).classList.remove("aberto");
+  history.pushState(null,"","#"+STATE.telaAtiva);
+}
+
+// ═══════════════════════════════════════════════════
+// MINI MENU
+// ═══════════════════════════════════════════════════
+function toggleMiniMenu(){
+  document.getElementById("mini-menu").classList.toggle("aberto");
+}
+function fecharMiniMenu(){
+  document.getElementById("mini-menu").classList.remove("aberto");
+}
+document.addEventListener("click",e=>{
+  if(!e.target.closest(".nav-fab")&&!e.target.closest("#mini-menu")) fecharMiniMenu();
+});
+
+// ═══════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════
+let _toastT;
+function toast(msg){
+  const t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show");
+  clearTimeout(_toastT); _toastT=setTimeout(()=>t.classList.remove("show"),2600);
+}
+
+// ═══════════════════════════════════════════════════
+// DEEP LINK
+// ═══════════════════════════════════════════════════
+function handleDeepLink(){
+  const hash=location.hash.slice(1);
+  if(!hash) return;
+  if(hash.startsWith("lugar/")){
+    const id=hash.slice(6);
+    const l=STATE.lugares.find(x=>x.id===id);
+    if(l) abrirDetalhe(id);
+  } else if(hash.startsWith("evento/")){
+    const id=hash.slice(7);
+    const e=STATE.eventos.find(x=>x.id===id);
+    if(e) abrirDetalheEvento(id);
+  } else if(["inicio","mapa","agenda","salvos"].includes(hash)){
+    setarTela(hash);
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════
+async function init(){
+  await initFirebase();
+  await seedSeNecessario();
+  await carregarDados();
+  checkOnboarding();
+  renderHome();
+  handleDeepLink();
+}
+
+init();
+</script>
+</body>
+</html>
