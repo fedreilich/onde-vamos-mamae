@@ -4,6 +4,26 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Onde Vamos, Mamãe?</title>
+
+<!-- OG / Social -->
+<meta property="og:title" content="Onde Vamos, Mamãe?">
+<meta property="og:description" content="Descubra cafés, parques e eventos baby-friendly no Rio de Janeiro 🍼">
+<meta property="og:image" content="https://res.cloudinary.com/onde-vamos-mamae/image/upload/v1781459303/onde_vamos_mamae_puoi8h.png">
+<meta property="og:url" content="https://fedreilich.github.io/onde-vamos-mamae/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Onde Vamos, Mamãe?">
+<meta name="twitter:description" content="Descubra cafés, parques e eventos baby-friendly no Rio de Janeiro 🍼">
+<meta name="twitter:image" content="https://res.cloudinary.com/onde-vamos-mamae/image/upload/v1781459303/onde_vamos_mamae_puoi8h.png">
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#FF7A4D">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Onde Vamos">
+<link rel="apple-touch-icon" href="https://res.cloudinary.com/onde-vamos-mamae/image/upload/v1781459303/onde_vamos_mamae_puoi8h.png">
+
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
 <style>
@@ -590,6 +610,13 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
         <div style="font-size:.82rem;font-weight:800;color:var(--navy);margin-bottom:12px;">Últimas usuárias</div>
         <div id="adm-stat-ultimas-users" style="font-size:.8rem;color:var(--suave);">Carregando...</div>
       </div>
+      <div style="background:var(--branco);border-radius:var(--radius);padding:16px;box-shadow:var(--sombra);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <div style="font-size:.82rem;font-weight:800;color:var(--navy);">⚠️ Reportes pendentes</div>
+          <span id="adm-reports-badge" style="background:var(--rosa);color:#fff;border-radius:99px;padding:2px 10px;font-size:.72rem;font-weight:800;display:none;">0</span>
+        </div>
+        <div id="adm-reports-lista" style="font-size:.8rem;color:var(--suave);">Carregando...</div>
+      </div>
     </div>
 
     <!-- tab lugares -->
@@ -799,7 +826,41 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
     <div class="det-acoes">
       <button class="btn-acao btn-acao-outline" id="det-btn-maps">🗺️ Como chegar</button>
       <button class="btn-acao btn-acao-primary" onclick="compartilharLugar()">📤 Compartilhar</button>
+      <button class="btn-acao btn-acao-outline" style="font-size:.78rem;color:var(--suave);border-color:var(--borda);" onclick="abrirReportar()">⚠️ Informação errada?</button>
     </div>
+  </div>
+</div>
+
+<!-- ══ SHEET REPORTAR ══ -->
+<div class="veu-sheet" id="veu-reportar" onclick="fecharReportar()"></div>
+<div class="modal-sheet" id="sheet-reportar">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <div class="sheet-titulo">⚠️ Informação errada?</div>
+    <button class="sheet-fechar" onclick="fecharReportar()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div class="sheet-body">
+    <p style="font-size:.85rem;color:var(--suave);margin-bottom:16px;">O que está errado neste local? Vamos verificar e corrigir!</p>
+    <input type="hidden" id="rep-lugar-id">
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;" id="rep-opcoes">
+      <label style="display:flex;align-items:center;gap:10px;padding:12px;border:1.5px solid var(--borda);border-radius:var(--radius-sm);cursor:pointer;font-size:.88rem;">
+        <input type="radio" name="rep-tipo" value="horario"> Horário de funcionamento
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;padding:12px;border:1.5px solid var(--borda);border-radius:var(--radius-sm);cursor:pointer;font-size:.88rem;">
+        <input type="radio" name="rep-tipo" value="fechado"> Local fechado ou não existe mais
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;padding:12px;border:1.5px solid var(--borda);border-radius:var(--radius-sm);cursor:pointer;font-size:.88rem;">
+        <input type="radio" name="rep-tipo" value="localizacao"> Localização no mapa errada
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;padding:12px;border:1.5px solid var(--borda);border-radius:var(--radius-sm);cursor:pointer;font-size:.88rem;">
+        <input type="radio" name="rep-tipo" value="outro"> Outro
+      </label>
+    </div>
+    <div class="campo">
+      <label>Detalhes (opcional)</label>
+      <textarea id="rep-detalhe" placeholder="Conte mais…" style="min-height:72px;resize:none;" maxlength="300"></textarea>
+    </div>
+    <button class="ob-btn" onclick="enviarReport()" style="margin-top:4px;">Enviar</button>
   </div>
 </div>
 
@@ -1923,7 +1984,9 @@ function abrirDetalhe(id){
   } else { btnMaps.disabled = true; }
   // deep link
   history.pushState(null,"","#lugar/"+l.id);
-  document.getElementById("overlay-lugar").classList.add("aberto");
+  const ovl = document.getElementById("overlay-lugar");
+  ovl.dataset.lugarId = l.id;
+  ovl.classList.add("aberto");
 }
 
 function renderEstrelasDet(id, media, total){
@@ -2280,6 +2343,39 @@ async function enviarFeedback(){
   toast("Feedback enviado! Obrigada 💛");
 }
 
+let _reportarLugarId = null;
+function abrirReportar(){
+  const overlay = document.getElementById("overlay-lugar");
+  _reportarLugarId = overlay?.dataset?.lugarId || null;
+  document.getElementById("rep-lugar-id").value = _reportarLugarId||"";
+  document.getElementById("rep-detalhe").value = "";
+  document.querySelectorAll('[name="rep-tipo"]').forEach(r=>r.checked=false);
+  document.getElementById("veu-reportar").style.display="block";
+  document.getElementById("sheet-reportar").classList.add("aberto");
+}
+function fecharReportar(){
+  document.getElementById("veu-reportar").style.display="none";
+  document.getElementById("sheet-reportar").classList.remove("aberto");
+}
+async function enviarReport(){
+  const tipo = document.querySelector('[name="rep-tipo"]:checked')?.value;
+  if(!tipo){ toast("Seleciona o que está errado 🙂"); return; }
+  const lugarId = document.getElementById("rep-lugar-id").value;
+  const lugar = STATE.lugares.find(l=>l.id===lugarId);
+  const report = {
+    tipo, lugarId,
+    lugarNome: lugar?.nome||"",
+    detalhe: document.getElementById("rep-detalhe").value.trim(),
+    quando: new Date().toISOString(),
+    uid: STATE.uid||"",
+    nome: STATE.usuario?.nome||"Anônima",
+    resolvido: false,
+  };
+  if(db) await fbSet("reports","rp-"+Date.now(), report);
+  fecharReportar();
+  toast("Obrigada! Vamos verificar 🔍");
+}
+
 async function publicarLugar(){
   const nome=document.getElementById("f-nome").value.trim();
   const bairro=document.getElementById("f-bairro").value.trim();
@@ -2599,21 +2695,51 @@ async function renderAdmin(){
 async function renderAdmGeral(){
   document.getElementById("adm-stat-lugares").textContent = STATE.lugares.length;
   document.getElementById("adm-stat-eventos").textContent = STATE.eventos.length;
-  let usuarios = [];
-  let feedbacks = [];
+  let usuarios = [], feedbacks = [], reports = [];
   if(db){
     try{ const s=await db.collection("usuarios").get(); usuarios=s.docs.map(d=>d.data()); }catch(e){}
     try{ const s=await db.collection("feedbacks").get(); feedbacks=s.docs.map(d=>d.data()); }catch(e){}
+    try{ const s=await db.collection("reports").get(); reports=s.docs.map(d=>({id:d.id,...d.data()})); }catch(e){}
   }
   document.getElementById("adm-stat-usuarios").textContent = usuarios.length;
   document.getElementById("adm-stat-feedbacks").textContent = feedbacks.length;
+
+  // últimas usuárias
   const ul = document.getElementById("adm-stat-ultimas-users");
-  if(!usuarios.length){ ul.textContent="Nenhuma usuária ainda."; return; }
-  ul.innerHTML = usuarios.slice(-5).reverse().map(u=>`
+  if(!usuarios.length){ ul.textContent="Nenhuma usuária ainda."; }
+  else { ul.innerHTML = usuarios.slice(-5).reverse().map(u=>`
     <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--borda);">
       <span style="font-weight:700;color:var(--texto);">${esc(u.nome||"—")}</span>
       <span style="color:var(--suave);font-size:.72rem;">${u.criadoEm?new Date(u.criadoEm).toLocaleDateString("pt-BR"):""}</span>
-    </div>`).join("");
+    </div>`).join(""); }
+
+  // reports
+  const pendentes = reports.filter(r=>!r.resolvido);
+  const badge = document.getElementById("adm-reports-badge");
+  const lista = document.getElementById("adm-reports-lista");
+  if(pendentes.length){
+    badge.style.display="inline"; badge.textContent=pendentes.length;
+    lista.innerHTML = pendentes.map(r=>`
+      <div style="padding:10px 0;border-bottom:1px solid var(--borda);">
+        <div style="font-weight:700;color:var(--texto);font-size:.82rem;">${esc(r.lugarNome||r.lugarId||"—")}
+          <span style="background:#FEF3C7;color:#92400E;border-radius:99px;padding:1px 8px;font-size:.68rem;font-weight:700;margin-left:6px;">${esc(r.tipo||"")}</span>
+        </div>
+        ${r.detalhe?`<div style="color:var(--suave);font-size:.76rem;margin-top:3px;">${esc(r.detalhe)}</div>`:""}
+        <div style="display:flex;gap:8px;margin-top:6px;align-items:center;">
+          <span style="color:var(--suave);font-size:.7rem;">${esc(r.nome||"Anônima")} · ${r.quando?new Date(r.quando).toLocaleDateString("pt-BR"):""}</span>
+          <button onclick="resolverReport('${esc(r.id)}')" style="margin-left:auto;background:var(--verde);color:#fff;border:none;border-radius:99px;padding:3px 12px;font-size:.7rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;">Resolver ✓</button>
+        </div>
+      </div>`).join("");
+  } else {
+    badge.style.display="none";
+    lista.textContent = "Nenhum reporte pendente.";
+  }
+}
+
+async function resolverReport(id){
+  if(db) try{ await db.collection("reports").doc(id).update({resolvido:true}); }catch(e){}
+  toast("Reporte marcado como resolvido!");
+  renderAdmGeral();
 }
 
 function renderAdmLugares(){
@@ -2934,6 +3060,12 @@ async function init(){
 }
 
 init();
+
+if("serviceWorker" in navigator){
+  window.addEventListener("load", ()=>{
+    navigator.serviceWorker.register("/onde-vamos-mamae/sw.js").catch(()=>{});
+  });
+}
 </script>
 </body>
 </html>
