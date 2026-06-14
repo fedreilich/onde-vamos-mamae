@@ -881,6 +881,14 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
       <label>Endereço / Bairro</label>
       <input id="ev-endereco" placeholder="Ex.: Rua X, 45 – Botafogo">
     </div>
+    <input type="hidden" id="ev-lat">
+    <input type="hidden" id="ev-lng">
+    <button type="button" id="btn-buscar-end-ev" onclick="buscarEnderecoEvento()"
+      style="width:100%;background:var(--navy);color:#fff;border:none;border-radius:var(--radius-sm);padding:12px;font-size:.85rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;margin-bottom:8px;">
+      Buscar localização pelo endereço
+    </button>
+    <div id="busca-end-ev-status" style="display:none;padding:10px 12px;border-radius:var(--radius-sm);font-size:.82rem;margin-bottom:8px;"></div>
+    <div id="busca-end-ev-opcoes" style="display:none;flex-direction:column;gap:8px;margin-bottom:8px;"></div>
     <!-- Recorrente -->
     <div class="campo">
       <label>Este evento é recorrente?</label>
@@ -994,6 +1002,17 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
     <div class="campo">
       <label>Descrição <span style="color:var(--suave);font-weight:400">(opcional)</span></label>
       <textarea id="ev-desc" placeholder="Conta mais sobre o evento…" maxlength="400"></textarea>
+    </div>
+    <div class="campo">
+      <label>Foto do evento <span style="color:var(--suave);font-weight:400">(opcional)</span></label>
+      <input type="hidden" id="ev-foto-url">
+      <input type="file" id="ev-foto-file" accept="image/*" style="display:none" onchange="uploadFotoEvento(this)">
+      <div class="foto-upload-area" onclick="document.getElementById('ev-foto-file').click()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        <p>Adicionar foto do evento</p>
+      </div>
+      <div id="ev-foto-status" style="font-size:.78rem;margin-top:6px;color:var(--suave);"></div>
+      <img id="ev-foto-preview" style="display:none;width:100%;border-radius:var(--radius-sm);margin-top:8px;max-height:160px;object-fit:cover;" alt="">
     </div>
     <div class="campo">
       <label>Seu nome</label>
@@ -1398,12 +1417,21 @@ function lugarPassaFiltros(l){
   return true;
 }
 
+function iconePinEvento(){
+  return L.divIcon({className:"",html:'<div class="pin-ovm pin-rosa"><span>★</span></div>',iconSize:[32,32],iconAnchor:[16,30],popupAnchor:[0,-28]});
+}
+
 function desenharPins(){
   if(!camadaPins) return;
   camadaPins.clearLayers();
   STATE.lugares.filter(l=>l.lat!=null && lugarPassaFiltros(l)).forEach(l=>{
     const m = L.marker([l.lat,l.lng],{icon:iconePin(l)});
-    m.on("click",()=>mostrarPreviewMapa(l.id));
+    m.on("click",()=>mostrarPreviewMapa(l.id,"lugar"));
+    camadaPins.addLayer(m);
+  });
+  STATE.eventos.filter(e=>e.lat!=null && e.lng!=null).forEach(e=>{
+    const m = L.marker([e.lat,e.lng],{icon:iconePinEvento()});
+    m.on("click",()=>mostrarPreviewMapa(e.id,"evento"));
     camadaPins.addLayer(m);
   });
 }
@@ -1438,20 +1466,28 @@ function focarLugarMapa(id){
   mostrarPreviewMapa(id);
 }
 
-function mostrarPreviewMapa(id){
-  const l = STATE.lugares.find(x=>x.id===id);
-  if(!l) return;
+function mostrarPreviewMapa(id, tipo="lugar"){
+  const item = tipo==="evento"
+    ? STATE.eventos.find(x=>x.id===id)
+    : STATE.lugares.find(x=>x.id===id);
+  if(!item) return;
   mapaPreviewId = id;
   document.getElementById("mapa-strip-wrap")?.classList.add("oculta");
   const prev = document.getElementById("mapa-preview");
-  const emoji = l.tipo==="praca"?"🌳":"☕";
+  prev.onclick = ()=> tipo==="evento" ? abrirDetalheEvento(id) : abrirDetalhe(id);
+  const emoji = tipo==="evento" ? "★" : (item.tipo==="praca"?"🌳":"☕");
   const fotoEl = document.getElementById("mapa-preview-foto");
-  if(l.foto){ fotoEl.innerHTML=`<img src="${esc(l.foto)}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;" onerror="this.parentElement.textContent='${emoji}'">`; }
+  const fotoUrl = item.foto || "";
+  if(fotoUrl){ fotoEl.innerHTML=`<img src="${esc(fotoUrl)}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;" onerror="this.parentElement.textContent='${emoji}'">`; }
   else { fotoEl.textContent = emoji; }
-  document.getElementById("mapa-preview-nome").textContent = l.nome;
-  document.getElementById("mapa-preview-bairro").textContent = l.bairro;
+  document.getElementById("mapa-preview-nome").textContent = item.titulo || item.nome;
+  document.getElementById("mapa-preview-bairro").textContent = item.bairro || item.local || "";
   const tagsEl = document.getElementById("mapa-preview-tags");
-  tagsEl.innerHTML = (l.tags||[]).slice(0,2).map(t=>`<span class="tag-pill">${esc(t)}</span>`).join("");
+  if(tipo==="evento"){
+    tagsEl.innerHTML = item.hora ? `<span class="tag-pill">${esc(item.hora)}</span>` : "";
+  } else {
+    tagsEl.innerHTML = (item.tags||[]).slice(0,2).map(t=>`<span class="tag-pill">${esc(t)}</span>`).join("");
+  }
   prev.classList.add("visivel");
 }
 
@@ -2077,8 +2113,15 @@ async function publicarLugar(){
 function abrirAddEvento(){
   document.getElementById("veu-add-evento").classList.add("aberto");
   document.getElementById("sheet-add-evento").classList.add("aberto");
-  // pre-fill autor
   if(STATE.usuario?.nome) document.getElementById("ev-autor").value=STATE.usuario.nome;
+  // reset localização e foto
+  document.getElementById("ev-lat").value="";
+  document.getElementById("ev-lng").value="";
+  document.getElementById("ev-foto-url").value="";
+  document.getElementById("ev-foto-preview").style.display="none";
+  document.getElementById("ev-foto-status").textContent="";
+  document.getElementById("busca-end-ev-status").style.display="none";
+  document.getElementById("busca-end-ev-opcoes").style.display="none";
 }
 function fecharAddEvento(){
   document.getElementById("veu-add-evento").classList.remove("aberto");
@@ -2159,6 +2202,71 @@ document.addEventListener("input", e=>{
   if(e.target.id==="ev-mensal-dia"||e.target.id==="ev-mensal-nth"||e.target.id==="ev-mensal-diasem"||e.target.id==="ev-outro-texto") atualizarPreviewRecorrencia();
 });
 
+async function uploadFotoEvento(input){
+  const file=input.files[0]; if(!file) return;
+  const status=document.getElementById("ev-foto-status");
+  const preview=document.getElementById("ev-foto-preview");
+  const reader=new FileReader();
+  reader.onload=e=>{preview.src=e.target.result;preview.style.display="block";};
+  reader.readAsDataURL(file);
+  status.textContent="Enviando foto...";
+  try{
+    const fd=new FormData();
+    fd.append("file",file); fd.append("upload_preset","onde_vamos_mamae"); fd.append("folder","onde-vamos-mamae/eventos");
+    const r=await fetch("https://api.cloudinary.com/v1_1/onde-vamos-mamae/image/upload",{method:"POST",body:fd});
+    const data=await r.json();
+    if(data.secure_url){ document.getElementById("ev-foto-url").value=data.secure_url; status.textContent="Foto enviada!"; }
+    else throw new Error(data.error?.message||"Erro");
+  }catch(e){ status.textContent="Erro ao enviar foto. Tente novamente."; console.error(e); }
+}
+
+async function buscarEnderecoEvento(){
+  const local = document.getElementById("ev-local").value.trim();
+  const endereco = document.getElementById("ev-endereco").value.trim();
+  const q_str = local || endereco;
+  if(!q_str){ toast("Preenche o local ou endereço primeiro 🙂"); return; }
+  const btn = document.getElementById("btn-buscar-end-ev");
+  const status = document.getElementById("busca-end-ev-status");
+  const opcoes = document.getElementById("busca-end-ev-opcoes");
+  btn.textContent = "Buscando..."; btn.disabled = true;
+  status.style.display="block"; status.style.background="#FFF9C4"; status.style.color="#B45309";
+  status.textContent = `Buscando "${q_str}"...`;
+  opcoes.innerHTML=""; opcoes.style.display="none";
+  try{
+    const q = encodeURIComponent(`${q_str}, Rio de Janeiro, Brasil`);
+    const r = await fetch(`https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=4&countrycodes=br`,
+      {headers:{"Accept-Language":"pt-BR","User-Agent":"OndeVamosMamae/1.0"}});
+    const results = await r.json();
+    if(!results.length){
+      status.style.background="#FFF1F2"; status.style.color="#BE123C";
+      status.textContent="Não encontrei. Tente um endereço mais específico.";
+    } else {
+      status.style.background="#F0FDF4"; status.style.color="#15803D";
+      status.textContent="Confirme o endereço correto:";
+      opcoes.style.display="flex"; opcoes.style.flexDirection="column"; opcoes.style.gap="8px"; opcoes.style.marginTop="8px";
+      opcoes.innerHTML = results.map(res=>`
+        <button onclick="confirmarEnderecoEvento(${res.lat},${res.lon},'${(res.display_name||"").replace(/'/g,"").substring(0,60)}')"
+          style="background:#fff;border:1.5px solid var(--borda);border-radius:var(--radius-sm);padding:10px 14px;text-align:left;cursor:pointer;font-family:'Nunito',sans-serif;font-size:.82rem;">
+          <strong style="display:block;color:var(--navy);">📍 ${esc((res.display_name||"").split(",").slice(0,2).join(", "))}</strong>
+          <span style="color:var(--suave);font-size:.75rem;">${esc((res.display_name||"").split(",").slice(2,4).join(", "))}</span>
+        </button>`).join("");
+    }
+  }catch(e){
+    status.style.background="#FFF1F2"; status.style.color="#BE123C";
+    status.textContent="Erro na busca. Tente novamente.";
+  }
+  btn.textContent="Buscar localização pelo endereço"; btn.disabled=false;
+}
+
+function confirmarEnderecoEvento(lat,lng,label){
+  document.getElementById("ev-lat").value=lat;
+  document.getElementById("ev-lng").value=lng;
+  document.getElementById("busca-end-ev-status").style.background="#F0FDF4";
+  document.getElementById("busca-end-ev-status").style.color="#15803D";
+  document.getElementById("busca-end-ev-status").textContent="Localização confirmada!";
+  document.getElementById("busca-end-ev-opcoes").style.display="none";
+}
+
 async function publicarEvento(){
   const titulo=document.getElementById("ev-titulo").value.trim();
   if(!titulo){ toast("Coloca o nome do evento 🙂"); return; }
@@ -2173,6 +2281,9 @@ async function publicarEvento(){
     local:document.getElementById("ev-local").value.trim(),
     endereco:enderecoVal,
     bairro:enderecoVal.split(/[–-]/).pop()?.trim()||document.getElementById("ev-local").value.trim(),
+    lat:parseFloat(document.getElementById("ev-lat").value)||null,
+    lng:parseFloat(document.getElementById("ev-lng").value)||null,
+    foto:document.getElementById("ev-foto-url").value||"",
     recorrente,
     recorrenciaTexto,
     dataInicio:!recorrente?document.getElementById("ev-data").value:"",
