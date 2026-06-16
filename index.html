@@ -3337,7 +3337,14 @@ init();
 
 if("serviceWorker" in navigator){
   window.addEventListener("load", ()=>{
-    navigator.serviceWorker.register("/onde-vamos-mamae/sw.js").catch(()=>{});
+    navigator.serviceWorker.register("/onde-vamos-mamae/sw.js").then(reg=>{
+      reg.addEventListener("updatefound",()=>{
+        const novo = reg.installing;
+        novo.addEventListener("statechange",()=>{
+          if(novo.state==="activated") window.location.reload();
+        });
+      });
+    }).catch(()=>{});
   });
 }
 </script>
