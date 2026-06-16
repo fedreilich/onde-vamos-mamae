@@ -530,6 +530,9 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
         Desenvolvido por <strong style="color:var(--navy);">Fernanda Coelho</strong><br>
         Powered by <strong style="color:var(--laranja);">Claude</strong> · Feito para mães do Rio
       </div>
+      <div style="font-size:.68rem;color:var(--suave);line-height:1.6;margin-top:10px;max-width:300px;margin-left:auto;margin-right:auto;">
+        Esta plataforma é colaborativa. As informações sobre lugares e eventos são adicionadas pela comunidade. A desenvolvedora não se responsabiliza pela precisão, disponibilidade ou conteúdo dos registros.
+      </div>
     </div>
     <div style="height:calc(var(--nav) + 12px);"></div>
   </div>
@@ -2566,7 +2569,8 @@ function abrirAddLugar(){
   document.getElementById("add-lugar-titulo").textContent="Adicionar lugar";
   mostrarPasso(1);
   // reset
-  ["f-nome","f-bairro","f-hora","f-dica","f-autor","f-foto-url"].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=""; });
+  ["f-nome","f-bairro","f-hora","f-dica","f-foto-url"].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=""; });
+  const fAutor = document.getElementById("f-autor"); if(fAutor) fAutor.value = STATE.usuario?.nome||"";
   const fp=document.getElementById("f-foto-preview"); if(fp){fp.style.display="none";fp.src="";}
   document.getElementById("f-foto-status").textContent="";
   document.getElementById("btn-pin-mapa").className="btn-pin-mapa";
@@ -2762,7 +2766,7 @@ async function publicarLugar(){
     id, nome, bairro,
     hora:document.getElementById("f-hora").value.trim(),
     dica, foto:fotoUrl||null, tags, ideal,
-    adicionadoPor:autor, criadoEm:new Date().toISOString(),
+    adicionadoPor:autor, uid:STATE.uid||"", criadoEm:new Date().toISOString(),
     lat:pinTemp?.lat??null, lng:pinTemp?.lng??null,
     tipo:(tags.includes("café")||tags.includes("brunch")||tags.includes("almoço"))?"cafe":"cafe",
   };
@@ -2995,6 +2999,7 @@ async function publicarEvento(){
     contato:document.getElementById("ev-contato").value.trim(),
     descricao:document.getElementById("ev-desc").value.trim(),
     adicionadoPor:document.getElementById("ev-autor").value.trim()||STATE.usuario?.nome||"Anônima",
+    uid:STATE.uid||"",
     criadoEm:new Date().toISOString(),
   };
   STATE.eventos.push(evento);
