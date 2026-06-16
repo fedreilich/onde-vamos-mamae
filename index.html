@@ -203,6 +203,25 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 .adm-card-actions{display:flex;gap:8px;margin-top:10px;}
 .adm-btn-del{border:1.5px solid #FCA5A5;background:#FFF1F2;color:#BE123C;border-radius:8px;padding:7px 14px;font-size:.78rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;}
 .adm-btn-edit{border:1.5px solid var(--borda);background:var(--cinza);color:var(--texto);border-radius:8px;padding:7px 14px;font-size:.78rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;}
+.melh-filtro{border:1.5px solid var(--borda);background:var(--branco);border-radius:99px;padding:6px 14px;font-size:.78rem;font-weight:700;cursor:pointer;color:var(--suave);font-family:'Nunito',sans-serif;}
+.melh-filtro.ativo{background:var(--navy);border-color:var(--navy);color:#fff;}
+.melh-status-filtro{border:1.5px solid var(--borda);background:var(--branco);border-radius:99px;padding:4px 12px;font-size:.72rem;font-weight:700;cursor:pointer;color:var(--suave);font-family:'Nunito',sans-serif;}
+.melh-status-filtro.ativo{background:var(--laranja);border-color:var(--laranja);color:#fff;}
+.melh-card{background:var(--branco);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;box-shadow:var(--sombra);border-left:4px solid var(--borda);}
+.melh-card.feito{opacity:.55;border-left-color:var(--verde);}
+.melh-card.em_progresso{border-left-color:var(--amarelo);}
+.melh-card-titulo{font-size:.9rem;font-weight:800;color:var(--texto);margin-bottom:4px;}
+.melh-card-desc{font-size:.78rem;color:var(--suave);line-height:1.5;margin-bottom:8px;}
+.melh-card-meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+.melh-badge-cat{font-size:.68rem;font-weight:800;padding:3px 10px;border-radius:99px;}
+.melh-badge-cat.UX{background:#EEF2FF;color:#3730A3;}
+.melh-badge-cat.Produto{background:#FFF7ED;color:#C2410C;}
+.melh-badge-cat.Funcionalidade{background:#F0FDF4;color:#15803D;}
+.melh-badge-esforco{font-size:.68rem;font-weight:700;padding:3px 9px;border-radius:99px;background:var(--cinza);color:var(--suave);}
+.melh-badge-impacto-Alto{font-size:.68rem;font-weight:700;padding:3px 9px;border-radius:99px;background:#FFF1F2;color:#BE123C;}
+.melh-badge-impacto-Médio{font-size:.68rem;font-weight:700;padding:3px 9px;border-radius:99px;background:#FFFBEB;color:#B45309;}
+.melh-badge-impacto-Baixo{font-size:.68rem;font-weight:700;padding:3px 9px;border-radius:99px;background:var(--cinza);color:var(--suave);}
+.melh-card-actions{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;}
 .adm-empty{text-align:center;padding:40px 20px;color:var(--suave);font-size:.85rem;}
 .adm-senha-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:16px;padding:32px;}
 .adm-senha-wrap input{width:100%;max-width:280px;border:1.5px solid var(--borda);border-radius:var(--radius-sm);padding:12px 16px;font-size:1rem;font-family:'Nunito',sans-serif;text-align:center;letter-spacing:4px;}
@@ -630,6 +649,7 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
       <button class="adm-tab" onclick="trocarTabAdmin(this,'lugares')">Lugares</button>
       <button class="adm-tab" onclick="trocarTabAdmin(this,'eventos')">Eventos</button>
       <button class="adm-tab" onclick="trocarTabAdmin(this,'usuarios')">Usuárias</button>
+      <button class="adm-tab" onclick="trocarTabAdmin(this,'melhorias')">Melhorias</button>
     </div>
 
     <!-- tab visão geral -->
@@ -797,6 +817,60 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
     <!-- tab usuárias -->
     <div class="adm-section" id="adm-tab-usuarios" style="display:none;">
       <div id="adm-lista-usuarios"></div>
+    </div>
+
+    <!-- tab melhorias -->
+    <div class="adm-section" id="adm-tab-melhorias" style="display:none;">
+      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center;">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;flex:1;">
+          <button class="melh-filtro ativo" data-mf="todos" onclick="filtrarMelhorias(this,'todos')">Todos</button>
+          <button class="melh-filtro" data-mf="UX" onclick="filtrarMelhorias(this,'UX')">UX</button>
+          <button class="melh-filtro" data-mf="Produto" onclick="filtrarMelhorias(this,'Produto')">Produto</button>
+          <button class="melh-filtro" data-mf="Funcionalidade" onclick="filtrarMelhorias(this,'Funcionalidade')">Funcionalidade</button>
+        </div>
+        <button class="adm-add-btn" style="margin:0;padding:8px 14px;font-size:.78rem;" onclick="admAbrirFormMelhoria()">+ Nova</button>
+      </div>
+      <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;">
+        <button class="melh-status-filtro ativo" data-ms="todos" onclick="filtrarMelhoriaStatus(this,'todos')">Todas</button>
+        <button class="melh-status-filtro" data-ms="pendente" onclick="filtrarMelhoriaStatus(this,'pendente')">Pendentes</button>
+        <button class="melh-status-filtro" data-ms="em_progresso" onclick="filtrarMelhoriaStatus(this,'em_progresso')">Em progresso</button>
+        <button class="melh-status-filtro" data-ms="feito" onclick="filtrarMelhoriaStatus(this,'feito')">Feitas</button>
+      </div>
+      <div id="adm-form-melhoria" style="display:none;background:var(--branco);border-radius:var(--radius);padding:16px;box-shadow:var(--sombra);margin-bottom:16px;">
+        <input type="hidden" id="af-melh-id">
+        <div style="font-weight:800;color:var(--navy);margin-bottom:12px;" id="af-melh-titulo-form">Nova melhoria</div>
+        <div class="campo"><label>Título *</label><input id="af-melh-titulo" placeholder="Ex.: Busca por tags"></div>
+        <div class="campo"><label>Descrição</label><textarea id="af-melh-desc" style="height:72px;resize:none;" maxlength="400" placeholder="Problema e solução em 1-2 frases…"></textarea></div>
+        <div class="campo"><label>Categoria</label>
+          <select id="af-melh-cat">
+            <option value="UX">UX / Experiência</option>
+            <option value="Produto">Produto</option>
+            <option value="Funcionalidade">Nova Funcionalidade</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:10px;">
+          <div class="campo" style="flex:1;"><label>Esforço</label>
+            <select id="af-melh-esforco">
+              <option value="Baixo">Baixo</option>
+              <option value="Médio">Médio</option>
+              <option value="Alto">Alto</option>
+            </select>
+          </div>
+          <div class="campo" style="flex:1;"><label>Impacto</label>
+            <select id="af-melh-impacto">
+              <option value="Baixo">Baixo</option>
+              <option value="Médio">Médio</option>
+              <option value="Alto">Alto</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:4px;">
+          <button onclick="admFecharFormMelhoria()" style="flex:1;border:1.5px solid var(--borda);background:none;border-radius:var(--radius-sm);padding:10px;font-size:.82rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;">Cancelar</button>
+          <button onclick="admSalvarMelhoria()" style="flex:2;background:var(--laranja);color:#fff;border:none;border-radius:var(--radius-sm);padding:10px;font-size:.82rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;">Salvar</button>
+        </div>
+      </div>
+      <div id="adm-melh-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;"></div>
+      <div id="adm-lista-melhorias"></div>
     </div>
   </div>
 </div>
@@ -1894,6 +1968,7 @@ function navMes(dir){
   calMes += dir;
   if(calMes>11){calMes=0;calAno++;}
   if(calMes<0){calMes=11;calAno--;}
+  calDiaSel = null;
   renderCalendario();
 }
 
@@ -1902,7 +1977,6 @@ function renderCalendario(){
   const label = new Date(calAno,calMes,1).toLocaleDateString("pt-BR",{month:"long",year:"numeric"});
   document.getElementById("cal-mes-label").textContent = label.charAt(0).toUpperCase()+label.slice(1);
 
-  // dias com evento pontual neste mês
   const diasComEvento = new Set();
   STATE.eventos.filter(e=>!e.recorrente && e.dataInicio).forEach(e=>{
     const d = new Date(e.dataInicio+"T12:00:00");
@@ -1914,56 +1988,32 @@ function renderCalendario(){
   const diasMesAnt = new Date(calAno,calMes,0).getDate();
 
   let html="";
-  // dias do mês anterior
   for(let i=primeiroDia-1;i>=0;i--){
     html+=`<div class="cal-dia outro-mes">${diasMesAnt-i}</div>`;
   }
-  // dias deste mês
   for(let d=1;d<=diasNoMes;d++){
     const ehHoje = d===hoje.getDate()&&calMes===hoje.getMonth()&&calAno===hoje.getFullYear();
-    const selecionado = calDiaSel && d===calDiaSel.dia&&calMes===calDiaSel.mes&&calAno===calDiaSel.ano;
+    const selecionado = calDiaSel && d===calDiaSel.dia;
     const temEvento = diasComEvento.has(d);
     const cls=["cal-dia",ehHoje?"hoje":"",selecionado?"selecionado":"",temEvento?"tem-evento":""].filter(Boolean).join(" ");
     html+=`<div class="${cls}" onclick="selecionarDiaCal(${d})">${d}</div>`;
   }
-  // completar última semana
   const total = primeiroDia+diasNoMes;
   const resto = total%7===0?0:7-(total%7);
   for(let i=1;i<=resto;i++) html+=`<div class="cal-dia outro-mes">${i}</div>`;
-
   document.getElementById("cal-grid-body").innerHTML=html;
 
-  // se nenhum dia selecionado, seleciona o próximo com evento (ou hoje)
-  if(!calDiaSel){
-    const hoje2 = new Date();
-    const prox = STATE.eventos.filter(e=>!e.recorrente&&e.dataInicio).map(e=>new Date(e.dataInicio+"T12:00:00"))
-      .filter(d=>d>=hoje2&&d.getFullYear()===calAno&&d.getMonth()===calMes)
-      .sort((a,b)=>a-b)[0];
-    if(prox) selecionarDiaCal(prox.getDate());
-    else renderEventosDia(null);
-  } else {
-    renderEventosDia(calDiaSel);
-  }
+  if(calDiaSel) renderListaAbaixo("dia");
+  else renderListaAbaixo("mes");
 }
 
 function selecionarDiaCal(dia){
   calDiaSel = {dia, mes:calMes, ano:calAno};
   renderCalendario();
-  renderEventosDia(calDiaSel);
 }
 
-function renderEventosDia(sel){
+function renderListaAbaixo(modo){
   const cont = document.getElementById("agenda-lista");
-  const tit = document.getElementById("cal-dia-titulo");
-  if(!sel){
-    cont.innerHTML=`<div class="agenda-vazia"><p>Selecione um dia no calendário.</p></div>`;
-    return;
-  }
-  const data = new Date(sel.ano, sel.mes, sel.dia);
-  const dataStr = `${sel.ano}-${String(sel.mes+1).padStart(2,"0")}-${String(sel.dia).padStart(2,"0")}`;
-  const label = data.toLocaleDateString("pt-BR",{weekday:"long",day:"2-digit",month:"long"});
-
-  // injeta título antes da lista
   let tituloEl = document.getElementById("cal-dia-titulo");
   if(!tituloEl){
     tituloEl = document.createElement("div");
@@ -1971,18 +2021,35 @@ function renderEventosDia(sel){
     tituloEl.className="cal-dia-titulo";
     cont.parentNode.insertBefore(tituloEl, cont);
   }
-  tituloEl.textContent = label.toUpperCase();
 
-  const lista = STATE.eventos.filter(e=>!e.recorrente && e.dataInicio===dataStr);
-  if(!lista.length){
-    cont.innerHTML=`<div class="agenda-vazia"><p>Nenhum evento neste dia.</p></div>`;
-    return;
+  if(modo==="mes"){
+    const nomeMes = new Date(calAno,calMes,1).toLocaleDateString("pt-BR",{month:"long"});
+    tituloEl.textContent = ("Eventos em "+nomeMes).toUpperCase();
+    const lista = STATE.eventos
+      .filter(e=>!e.recorrente && e.dataInicio && e.dataInicio.startsWith(`${calAno}-${String(calMes+1).padStart(2,"0")}`))
+      .sort((a,b)=>a.dataInicio.localeCompare(b.dataInicio));
+    if(!lista.length){
+      cont.innerHTML=`<div class="agenda-vazia"><p>Nenhum evento este mês.<br>Toque em um dia para ver mais.</p></div>`;
+    } else {
+      cont.innerHTML = lista.map(e=>renderCardEvento(e)).join("");
+    }
+  } else {
+    const sel = calDiaSel;
+    const data = new Date(sel.ano, sel.mes, sel.dia);
+    const label = data.toLocaleDateString("pt-BR",{weekday:"long",day:"2-digit",month:"long"});
+    tituloEl.textContent = label.toUpperCase();
+    const dataStr = `${sel.ano}-${String(sel.mes+1).padStart(2,"0")}-${String(sel.dia).padStart(2,"0")}`;
+    const lista = STATE.eventos.filter(e=>!e.recorrente && e.dataInicio===dataStr)
+      .sort((a,b)=>(a.hora||"").localeCompare(b.hora||""));
+    if(!lista.length){
+      cont.innerHTML=`<div class="agenda-vazia"><p>Nenhum evento neste dia.</p></div>`;
+    } else {
+      cont.innerHTML = lista.map(e=>renderCardEvento(e)).join("");
+    }
   }
-  cont.innerHTML = lista.sort((a,b)=>(a.hora||"").localeCompare(b.hora||"")).map(e=>renderCardEvento(e)).join("");
 }
 
 function renderAgenda(){
-  // agora só inicializa o calendário com o mês atual
   calAno = new Date().getFullYear();
   calMes = new Date().getMonth();
   calDiaSel = null;
@@ -2864,10 +2931,11 @@ function sairAdmin(){
 function trocarTabAdmin(el, tab){
   document.querySelectorAll(".adm-tab").forEach(t=>t.classList.remove("ativo"));
   el.classList.add("ativo");
-  ["geral","lugares","eventos","usuarios"].forEach(t=>{
+  ["geral","lugares","eventos","usuarios","melhorias"].forEach(t=>{
     document.getElementById("adm-tab-"+t).style.display = t===tab?"block":"none";
   });
   admTabAtiva = tab;
+  if(tab==="melhorias") renderAdmMelhorias();
 }
 
 async function renderAdmin(){
@@ -2933,6 +3001,202 @@ async function resolverReport(id){
   if(db) try{ await db.collection("reports").doc(id).update({resolvido:true}); }catch(e){}
   toast("Reporte marcado como resolvido!");
   renderAdmGeral();
+}
+
+// ══ MELHORIAS ══
+const MELHORIAS_SEED = [
+  {titulo:"Skeleton loaders no carregamento",desc:"Não há indicadores visuais enquanto dados do Firebase carregam. Implementar skeleton loaders nas telas Home, Mapa e Agenda.",categoria:"UX",esforco:"Médio",impacto:"Médio"},
+  {titulo:"Feedback visual ao salvar lugar/evento",desc:"Toast desaparece rápido e usuária pode não ter certeza se salvou. Adicionar animação no coração com cor persistente + opção de desfazer.",categoria:"UX",esforco:"Médio",impacto:"Médio"},
+  {titulo:"Botão 'Localizar-me' visível no mapa",desc:"Mapa faz zoom automático se GPS autorizado, mas sem feedback visual claro. Adicionar botão 'Localizar-me' no header do mapa + ponto azul com círculo de precisão.",categoria:"UX",esforco:"Médio",impacto:"Alto"},
+  {titulo:"Botão 'Limpar filtros' com contador",desc:"Filtros ativos não têm botão rápido para resetar. Adicionar badge mostrando quantos filtros estão ativos e botão para limpar tudo.",categoria:"UX",esforco:"Baixo",impacto:"Médio"},
+  {titulo:"Placeholders de foto mais ricos por categoria",desc:"Placeholders genéricos (☕, 🌳) fazem o app parecer inacabado sem imagens. Usar padrão de cor + ícone por categoria.",categoria:"UX",esforco:"Baixo",impacto:"Médio"},
+  {titulo:"Confirmação ao deletar no admin",desc:"Botão Excluir não pede confirmação, risco de deleção acidental. Adicionar modal 'Tem certeza? Esta ação não pode ser desfeita'.",categoria:"UX",esforco:"Baixo",impacto:"Alto"},
+  {titulo:"Banner de modo offline",desc:"Quando Firebase está offline, app usa localStorage silenciosamente. Mostrar banner 'Você está offline' para que usuária saiba.",categoria:"UX",esforco:"Médio",impacto:"Alto"},
+  {titulo:"Limitar comentários visíveis + 'Ver todos'",desc:"Muitos comentários deixam o overlay muito longo. Mostrar os 3 últimos com opção de expandir.",categoria:"UX",esforco:"Médio",impacto:"Baixo"},
+  {titulo:"Horário de funcionamento estruturado",desc:"Campo aceita texto livre causando inconsistência. Oferecer seletor por dia da semana + horário de abertura/fechamento.",categoria:"UX",esforco:"Médio",impacto:"Médio"},
+  {titulo:"Scroll infinito / Carregar mais na Home",desc:"Home mostra apenas 6 novidades. Usuária precisa ir ao Mapa para ver mais. Adicionar 'Carregar mais' na seção Novidades.",categoria:"UX",esforco:"Médio",impacto:"Médio"},
+  {titulo:"Busca avançada por tags",desc:"Busca atual só encontra por nome e bairro. Expandir para buscar por tags ('silencioso', 'com trocador') com autocomplete.",categoria:"Produto",esforco:"Médio",impacto:"Alto"},
+  {titulo:"Filtro 'Aberto agora'",desc:"Sem como filtrar lugares abertos no momento. Estruturar horários no banco e adicionar filtro 'Aberto agora' com indicação visual no card.",categoria:"Produto",esforco:"Alto",impacto:"Alto"},
+  {titulo:"Tags de amenidades mais granulares",desc:"Tags atuais são básicas. Adicionar: WiFi grátis, acesso para cadeira de rodas, área externa coberta, aceita animais, trocador.",categoria:"Produto",esforco:"Médio",impacto:"Alto"},
+  {titulo:"Personalização por idade do filho",desc:"Sem personalização de experiência. Permitir selecionar a idade do filho na onboarding e filtrar/sugerir eventos relevantes.",categoria:"Produto",esforco:"Médio",impacto:"Alto"},
+  {titulo:"Escolha de app de navegação",desc:"Botão 'Como chegar' abre só Google Maps. Detectar apps instalados e permitir escolher entre Google Maps, Waze e Apple Maps.",categoria:"Produto",esforco:"Médio",impacto:"Médio"},
+  {titulo:"Categorias de eventos mais específicas",desc:"Apenas 8 categorias de eventos. Adicionar: natação, pós-parto, terapia, educação financeira para mães, brincadeiras ao ar livre.",categoria:"Produto",esforco:"Baixo",impacto:"Médio"},
+  {titulo:"Notificações push de novos eventos",desc:"Usuária não é avisada de eventos novos na área. Adicionar permissão de push notification com alerta quando evento é criado no bairro favorito.",categoria:"Produto",esforco:"Alto",impacto:"Alto"},
+  {titulo:"Comentários com fotos",desc:"Comentários são só texto. Permitir upload de foto no comentário com thumbnail no card e lightbox ao clicar.",categoria:"Produto",esforco:"Médio",impacto:"Médio"},
+  {titulo:"Moderação de comentários no admin",desc:"Sem sistema de moderação — qualquer conteúdo pode ser postado. Admin pode deletar e marcar como spam.",categoria:"Produto",esforco:"Médio",impacto:"Alto"},
+  {titulo:"Histórico de lugares visitados",desc:"Sem histórico — difícil voltar a um lugar visitado. Guardar últimos 10 lugares abertos e exibir seção 'Visto recentemente' na Home.",categoria:"Produto",esforco:"Baixo",impacto:"Médio"},
+  {titulo:"Integração com WhatsApp (grupos de bairro)",desc:"Seção de alertas mencionada na onboarding mas não implementada. Botão 'Entrar no grupo de [bairro]' abrindo WhatsApp com link do grupo.",categoria:"Produto",esforco:"Médio",impacto:"Alto"},
+  {titulo:"Avaliações por critério",desc:"Rating geral de 5 estrelas é superficial. Separar em: Limpeza, Espaço kids, Atendimento e Facilidade de acesso.",categoria:"Produto",esforco:"Alto",impacto:"Alto"},
+  {titulo:"Exportar evento para calendário pessoal",desc:"Evento salvo fica só no app. Adicionar botão 'Adicionar ao meu calendário' exportando como .ics ou integrando com Google Calendar.",categoria:"Produto",esforco:"Médio",impacto:"Médio"},
+  {titulo:"Notificação de vagas em eventos",desc:"Evento mostra 'vagas limitadas' mas sem indicador de quantas restam. Mostrar 'X/Y vagas' e avisar ao chegar em 90%.",categoria:"Produto",esforco:"Médio",impacto:"Médio"},
+  {titulo:"Seção Escolas",desc:"App é só lazer/eventos. Mãe precisa encontrar creche e pré-escola. Nova aba 'Escolas' com filtros por tipo, localização, faixa etária e mensalidade.",categoria:"Funcionalidade",esforco:"Alto",impacto:"Alto"},
+  {titulo:"Diretório de profissionais",desc:"Mãe precisa googlar pediatra perto de casa sem recomendação da comunidade. Aba 'Profissionais' para encontrar e avaliar pediatras, doulas e nutricionistas.",categoria:"Funcionalidade",esforco:"Alto",impacto:"Alto"},
+  {titulo:"Grupos de mães por bairro",desc:"Usuária não conhece outras mães próximas. Feed de comunidade por bairro com grupos de interesse ('Mães 0-3 meses Botafogo').",categoria:"Funcionalidade",esforco:"Alto",impacto:"Alto"},
+  {titulo:"Planejador de dia (Itinerários)",desc:"Difícil planejar roteiro do dia. Permitir criar 'Dia tipo': café → parque → almoço, exibindo no mapa com estimativa de tempo.",categoria:"Funcionalidade",esforco:"Alto",impacto:"Alto"},
+  {titulo:"Perfil de usuária completo",desc:"Sem customização de experiência. Perfil com foto, bio, filhos (idades), bairro favorito e preferências relevantes (amamentação, alergias).",categoria:"Funcionalidade",esforco:"Médio",impacto:"Alto"},
+  {titulo:"Mapa de amenidades públicas",desc:"Mãe precisa de fraldário urgente sem saber onde encontrar. Layer no mapa mostrando fraldários, banheiros públicos e postos de saúde.",categoria:"Funcionalidade",esforco:"Médio",impacto:"Alto"},
+  {titulo:"Marketplace de itens usados",desc:"Berço, carrinho e roupas de bebê são caros. Mini marketplace de itens usados por bairro com integração WhatsApp para negociação.",categoria:"Funcionalidade",esforco:"Alto",impacto:"Médio"},
+  {titulo:"Dicas de mãe (conteúdo criado pela comunidade)",desc:"Sem artigos ou guias. Seção onde mães publicam dicas ('Como amamentar em público', 'Levar bebê ao supermercado').",categoria:"Funcionalidade",esforco:"Médio",impacto:"Médio"},
+  {titulo:"Notificação 'Lugar perto de você'",desc:"App não sugere lugares próximos em tempo real. Push quando há café ou evento novo a menos de 500m da usuária.",categoria:"Funcionalidade",esforco:"Médio",impacto:"Alto"},
+  {titulo:"Cupons e promoções por lugar",desc:"Comerciante não tem incentivo para ser listado. Permitir que o local ofereça desconto exclusivo para usuárias do app.",categoria:"Funcionalidade",esforco:"Alto",impacto:"Médio"},
+  {titulo:"Calendário: mostrar todos os eventos do mês por padrão",desc:"Ao abrir a aba Agenda, exibir todos os eventos do mês em vez de forçar a seleção de um dia. Navegar para outro mês limpa a seleção.",categoria:"UX",esforco:"Baixo",impacto:"Médio"},
+];
+
+let STATE_melhorias = [];
+let melh_filtro_cat = "todos";
+let melh_filtro_status = "todos";
+
+async function renderAdmMelhorias(){
+  if(db){
+    try{
+      const docs = await db.collection("melhorias").get();
+      STATE_melhorias = docs.docs.map(d=>({id:d.id,...d.data()}));
+    }catch(e){ STATE_melhorias=[]; }
+    // seed se vazio
+    if(!STATE_melhorias.length){
+      for(const m of MELHORIAS_SEED){
+        const id = "melh-"+uid();
+        const doc = {...m, id, status:"pendente", criadoEm:new Date().toISOString()};
+        await fbSet("melhorias", id, doc);
+        STATE_melhorias.push(doc);
+      }
+    }
+  } else {
+    if(!STATE_melhorias.length) STATE_melhorias = MELHORIAS_SEED.map((m,i)=>({...m,id:"melh-"+i,status:"pendente",criadoEm:new Date().toISOString()}));
+  }
+  renderListaMelhorias();
+}
+
+function renderListaMelhorias(){
+  // stats
+  const total = STATE_melhorias.length;
+  const feitas = STATE_melhorias.filter(m=>m.status==="feito").length;
+  const progresso = STATE_melhorias.filter(m=>m.status==="em_progresso").length;
+  document.getElementById("adm-melh-stats").innerHTML=`
+    <div style="background:var(--branco);border-radius:var(--radius-sm);padding:10px;box-shadow:var(--sombra);text-align:center;">
+      <div style="font-size:1.5rem;font-weight:900;color:var(--navy);">${total}</div>
+      <div style="font-size:.65rem;color:var(--suave);font-weight:700;">Total</div>
+    </div>
+    <div style="background:var(--branco);border-radius:var(--radius-sm);padding:10px;box-shadow:var(--sombra);text-align:center;">
+      <div style="font-size:1.5rem;font-weight:900;color:var(--amarelo);">${progresso}</div>
+      <div style="font-size:.65rem;color:var(--suave);font-weight:700;">Em progresso</div>
+    </div>
+    <div style="background:var(--branco);border-radius:var(--radius-sm);padding:10px;box-shadow:var(--sombra);text-align:center;">
+      <div style="font-size:1.5rem;font-weight:900;color:var(--verde);">${feitas}</div>
+      <div style="font-size:.65rem;color:var(--suave);font-weight:700;">Feitas</div>
+    </div>`;
+
+  let lista = [...STATE_melhorias];
+  if(melh_filtro_cat!=="todos") lista=lista.filter(m=>m.categoria===melh_filtro_cat);
+  if(melh_filtro_status!=="todos") lista=lista.filter(m=>m.status===melh_filtro_status);
+  // ordena: em_progresso → pendente → feito
+  const ordem = {em_progresso:0,pendente:1,feito:2};
+  lista.sort((a,b)=>(ordem[a.status]??1)-(ordem[b.status]??1));
+
+  const cont = document.getElementById("adm-lista-melhorias");
+  if(!lista.length){ cont.innerHTML=`<p style="color:var(--suave);text-align:center;padding:24px 0;font-size:.85rem;">Nenhuma melhoria neste filtro.</p>`; return; }
+  cont.innerHTML = lista.map(m=>{
+    const statusLabel = {pendente:"Pendente",em_progresso:"Em progresso",feito:"✓ Feita"}[m.status]||"Pendente";
+    const statusCor = {pendente:"var(--suave)",em_progresso:"var(--amarelo)",feito:"var(--verde)"}[m.status];
+    return `<div class="melh-card ${m.status}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+        <div class="melh-card-titulo">${esc(m.titulo)}</div>
+        <span style="font-size:.65rem;font-weight:800;color:${statusCor};white-space:nowrap;">${statusLabel}</span>
+      </div>
+      <div class="melh-card-desc">${esc(m.desc||"")}</div>
+      <div class="melh-card-meta">
+        <span class="melh-badge-cat ${m.categoria}">${esc(m.categoria)}</span>
+        <span class="melh-badge-esforco">Esforço ${esc(m.esforco||"—")}</span>
+        <span class="melh-badge-impacto-${m.impacto}">Impacto ${esc(m.impacto||"—")}</span>
+      </div>
+      <div class="melh-card-actions">
+        ${m.status!=="em_progresso"?`<button class="adm-btn-edit" onclick="mudarStatusMelhoria('${esc(m.id)}','em_progresso')" style="font-size:.72rem;padding:5px 10px;">Em progresso</button>`:""}
+        ${m.status!=="feito"?`<button class="adm-btn-edit" onclick="mudarStatusMelhoria('${esc(m.id)}','feito')" style="font-size:.72rem;padding:5px 10px;background:#F0FDF4;border-color:#86EFAC;color:#15803D;">Marcar feita ✓</button>`:""}
+        ${m.status==="feito"?`<button class="adm-btn-edit" onclick="mudarStatusMelhoria('${esc(m.id)}','pendente')" style="font-size:.72rem;padding:5px 10px;">Reabrir</button>`:""}
+        <button class="adm-btn-edit" onclick="admEditarMelhoria('${esc(m.id)}')" style="font-size:.72rem;padding:5px 10px;">Editar</button>
+        <button class="adm-btn-del" onclick="deletarMelhoria('${esc(m.id)}')" style="font-size:.72rem;padding:5px 10px;">Excluir</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function filtrarMelhorias(el, cat){
+  document.querySelectorAll(".melh-filtro").forEach(b=>b.classList.remove("ativo"));
+  el.classList.add("ativo");
+  melh_filtro_cat = cat;
+  renderListaMelhorias();
+}
+
+function filtrarMelhoriaStatus(el, status){
+  document.querySelectorAll(".melh-status-filtro").forEach(b=>b.classList.remove("ativo"));
+  el.classList.add("ativo");
+  melh_filtro_status = status;
+  renderListaMelhorias();
+}
+
+async function mudarStatusMelhoria(id, status){
+  const idx = STATE_melhorias.findIndex(m=>m.id===id);
+  if(idx<0) return;
+  STATE_melhorias[idx].status = status;
+  if(db) try{ await db.collection("melhorias").doc(id).update({status}); }catch(e){}
+  renderListaMelhorias();
+}
+
+function admAbrirFormMelhoria(id){
+  const form = document.getElementById("adm-form-melhoria");
+  form.style.display="block";
+  document.getElementById("af-melh-titulo-form").textContent = id?"Editar melhoria":"Nova melhoria";
+  if(id){
+    const m = STATE_melhorias.find(x=>x.id===id);
+    if(!m) return;
+    document.getElementById("af-melh-id").value=m.id;
+    document.getElementById("af-melh-titulo").value=m.titulo||"";
+    document.getElementById("af-melh-desc").value=m.desc||"";
+    document.getElementById("af-melh-cat").value=m.categoria||"UX";
+    document.getElementById("af-melh-esforco").value=m.esforco||"Médio";
+    document.getElementById("af-melh-impacto").value=m.impacto||"Médio";
+  } else {
+    ["af-melh-id","af-melh-titulo","af-melh-desc"].forEach(i=>document.getElementById(i).value="");
+    document.getElementById("af-melh-cat").value="UX";
+    document.getElementById("af-melh-esforco").value="Médio";
+    document.getElementById("af-melh-impacto").value="Médio";
+  }
+  form.scrollIntoView({behavior:"smooth"});
+}
+
+function admFecharFormMelhoria(){
+  document.getElementById("adm-form-melhoria").style.display="none";
+}
+
+function admEditarMelhoria(id){ admAbrirFormMelhoria(id); }
+
+async function admSalvarMelhoria(){
+  const titulo = document.getElementById("af-melh-titulo").value.trim();
+  if(!titulo){ toast("Título é obrigatório"); return; }
+  const existingId = document.getElementById("af-melh-id").value;
+  const id = existingId||("melh-"+uid());
+  const m = {
+    id, titulo,
+    desc: document.getElementById("af-melh-desc").value.trim(),
+    categoria: document.getElementById("af-melh-cat").value,
+    esforco: document.getElementById("af-melh-esforco").value,
+    impacto: document.getElementById("af-melh-impacto").value,
+    status: existingId?(STATE_melhorias.find(x=>x.id===existingId)?.status||"pendente"):"pendente",
+    criadoEm: existingId?(STATE_melhorias.find(x=>x.id===existingId)?.criadoEm||new Date().toISOString()):new Date().toISOString(),
+  };
+  const idx = STATE_melhorias.findIndex(x=>x.id===id);
+  if(idx>=0) STATE_melhorias[idx]=m; else STATE_melhorias.push(m);
+  if(db) await fbSet("melhorias",id,m);
+  admFecharFormMelhoria();
+  renderListaMelhorias();
+  toast("Melhoria salva!");
+}
+
+async function deletarMelhoria(id){
+  if(!confirm("Excluir esta melhoria?")) return;
+  STATE_melhorias = STATE_melhorias.filter(m=>m.id!==id);
+  if(db) try{ await db.collection("melhorias").doc(id).delete(); }catch(e){}
+  renderListaMelhorias();
 }
 
 function renderAdmLugares(){
