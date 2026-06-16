@@ -212,10 +212,37 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 /* ── AGENDA ── */
 .agenda-header{padding:52px 20px 16px;background:var(--branco);}
 .agenda-titulo{font-size:1.4rem;font-weight:900;color:var(--texto);}
-.agenda-filtros{display:flex;gap:8px;margin-top:12px;}
-.agenda-filtro{border:1.5px solid var(--borda);background:var(--branco);border-radius:999px;padding:7px 16px;font-size:.8rem;font-weight:700;cursor:pointer;color:var(--suave);font-family:'Nunito',sans-serif;}
-.agenda-filtro.ativo{background:var(--navy);border-color:var(--navy);color:#fff;}
+.agenda-tabs{display:flex;gap:0;margin-top:14px;background:var(--cinza);border-radius:12px;padding:3px;}
+.agenda-tab{flex:1;border:none;background:none;border-radius:10px;padding:8px 0;font-size:.82rem;font-weight:800;cursor:pointer;color:var(--suave);font-family:'Nunito',sans-serif;transition:all .15s;}
+.agenda-tab.ativo{background:var(--branco);color:var(--navy);box-shadow:0 1px 4px rgba(0,0,0,.1);}
 .agenda-lista{padding:16px 20px;}
+
+/* calendário */
+.cal-box{padding:14px 20px 10px;}
+.cal-nav-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.cal-mes-label{font-size:.95rem;font-weight:900;color:var(--navy);}
+.cal-seta{background:none;border:1.5px solid var(--borda);border-radius:8px;width:32px;height:32px;font-size:1.2rem;cursor:pointer;color:var(--navy);display:flex;align-items:center;justify-content:center;font-family:'Nunito',sans-serif;line-height:1;}
+.cal-grid-head{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;margin-bottom:4px;}
+.cal-grid-head span{font-size:.7rem;font-weight:800;color:var(--suave);padding:2px 0;}
+.cal-grid-body{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;}
+.cal-dia{font-size:.82rem;padding:6px 0;border-radius:8px;font-weight:600;color:var(--texto);cursor:pointer;position:relative;transition:background .12s;}
+.cal-dia:hover{background:var(--borda);}
+.cal-dia.outro-mes{color:#C8C4BE;}
+.cal-dia.tem-evento::after{content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--laranja);}
+.cal-dia.selecionado{background:var(--navy);color:#fff;font-weight:800;}
+.cal-dia.selecionado::after{background:#fff;}
+.cal-dia.hoje{color:var(--laranja);font-weight:900;}
+.cal-dia.hoje.selecionado{color:#fff;}
+.cal-divider{height:1px;background:var(--borda);margin:0 20px 4px;}
+.cal-dia-titulo{padding:10px 20px 4px;font-size:.72rem;font-weight:800;color:var(--suave);letter-spacing:.05em;}
+
+/* card evento recorrente */
+.card-rec{display:flex;gap:12px;align-items:center;background:var(--branco);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;box-shadow:var(--sombra);}
+.card-rec-emoji{font-size:1.5rem;width:42px;height:42px;background:var(--cream);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.card-rec-info{flex:1;}
+.card-rec-titulo{font-size:.9rem;font-weight:800;color:var(--texto);}
+.card-rec-quando{font-size:.78rem;color:var(--suave);margin-top:2px;}
+.rec-freq-titulo{font-size:.72rem;font-weight:800;color:var(--suave);letter-spacing:.05em;padding:14px 20px 6px;}
 .agenda-vazia{text-align:center;padding:60px 20px;color:var(--suave);}
 .agenda-vazia p{font-size:.9rem;margin-top:8px;}
 
@@ -524,16 +551,35 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
   <!-- TELA: AGENDA -->
   <div class="tela" id="tela-agenda">
     <div class="agenda-header">
-      <div style="font-size:1.4rem;font-weight:900;color:var(--texto);">Agenda</div>
-      <p style="font-size:.82rem;color:var(--suave);margin-top:4px;">Eventos e atividades para vocês dois</p>
-      <div class="agenda-filtros">
-        <button class="agenda-filtro ativo" data-af="todos" onclick="filtrarAgenda(this,'todos')">Todos</button>
-        <button class="agenda-filtro" data-af="semana" onclick="filtrarAgenda(this,'semana')">Esta semana</button>
-        <button class="agenda-filtro" data-af="fds" onclick="filtrarAgenda(this,'fds')">Fim de semana</button>
-        <button class="agenda-filtro" data-af="gratis" onclick="filtrarAgenda(this,'gratis')">Gratuitos</button>
+      <div style="font-size:1.4rem;font-weight:900;color:var(--texto);">Eventos</div>
+      <p style="font-size:.82rem;color:var(--suave);margin-top:4px;">Agenda e atividades para vocês dois</p>
+      <div class="agenda-tabs">
+        <button class="agenda-tab ativo" id="atab-agenda" onclick="trocarTabAgenda('agenda')">Agenda</button>
+        <button class="agenda-tab" id="atab-recorrentes" onclick="trocarTabAgenda('recorrentes')">Sempre acontece</button>
       </div>
     </div>
-    <div class="agenda-lista pb-nav" id="agenda-lista"></div>
+
+    <!-- sub-tela: calendário -->
+    <div id="agenda-sub-agenda">
+      <div class="cal-box">
+        <div class="cal-nav-row">
+          <button class="cal-seta" onclick="navMes(-1)">&#8249;</button>
+          <div class="cal-mes-label" id="cal-mes-label">—</div>
+          <button class="cal-seta" onclick="navMes(1)">&#8250;</button>
+        </div>
+        <div class="cal-grid-head">
+          <span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span>
+        </div>
+        <div class="cal-grid-body" id="cal-grid-body"></div>
+      </div>
+      <div class="cal-divider"></div>
+      <div class="agenda-lista pb-nav" id="agenda-lista"></div>
+    </div>
+
+    <!-- sub-tela: recorrentes -->
+    <div id="agenda-sub-recorrentes" style="display:none;">
+      <div class="agenda-lista pb-nav" id="recorrentes-lista"></div>
+    </div>
   </div>
 
   <!-- TELA: SALVOS -->
@@ -1832,56 +1878,156 @@ function filtrarMapa(q){
 // ═══════════════════════════════════════════════════
 // AGENDA
 // ═══════════════════════════════════════════════════
-function filtrarAgenda(el,f){
-  document.querySelectorAll(".agenda-filtro").forEach(b=>b.classList.remove("ativo"));
-  el.classList.add("ativo");
-  STATE.filtroAgenda = f;
-  renderAgenda();
+let calAno = new Date().getFullYear();
+let calMes = new Date().getMonth();
+let calDiaSel = null;
+
+function trocarTabAgenda(tab){
+  document.getElementById("atab-agenda").classList.toggle("ativo", tab==="agenda");
+  document.getElementById("atab-recorrentes").classList.toggle("ativo", tab==="recorrentes");
+  document.getElementById("agenda-sub-agenda").style.display = tab==="agenda"?"block":"none";
+  document.getElementById("agenda-sub-recorrentes").style.display = tab==="recorrentes"?"block":"none";
+  if(tab==="recorrentes") renderRecorrentes();
+}
+
+function navMes(dir){
+  calMes += dir;
+  if(calMes>11){calMes=0;calAno++;}
+  if(calMes<0){calMes=11;calAno--;}
+  renderCalendario();
+}
+
+function renderCalendario(){
+  const hoje = new Date();
+  const label = new Date(calAno,calMes,1).toLocaleDateString("pt-BR",{month:"long",year:"numeric"});
+  document.getElementById("cal-mes-label").textContent = label.charAt(0).toUpperCase()+label.slice(1);
+
+  // dias com evento pontual neste mês
+  const diasComEvento = new Set();
+  STATE.eventos.filter(e=>!e.recorrente && e.dataInicio).forEach(e=>{
+    const d = new Date(e.dataInicio+"T12:00:00");
+    if(d.getFullYear()===calAno && d.getMonth()===calMes) diasComEvento.add(d.getDate());
+  });
+
+  const primeiroDia = new Date(calAno,calMes,1).getDay();
+  const diasNoMes = new Date(calAno,calMes+1,0).getDate();
+  const diasMesAnt = new Date(calAno,calMes,0).getDate();
+
+  let html="";
+  // dias do mês anterior
+  for(let i=primeiroDia-1;i>=0;i--){
+    html+=`<div class="cal-dia outro-mes">${diasMesAnt-i}</div>`;
+  }
+  // dias deste mês
+  for(let d=1;d<=diasNoMes;d++){
+    const ehHoje = d===hoje.getDate()&&calMes===hoje.getMonth()&&calAno===hoje.getFullYear();
+    const selecionado = calDiaSel && d===calDiaSel.dia&&calMes===calDiaSel.mes&&calAno===calDiaSel.ano;
+    const temEvento = diasComEvento.has(d);
+    const cls=["cal-dia",ehHoje?"hoje":"",selecionado?"selecionado":"",temEvento?"tem-evento":""].filter(Boolean).join(" ");
+    html+=`<div class="${cls}" onclick="selecionarDiaCal(${d})">${d}</div>`;
+  }
+  // completar última semana
+  const total = primeiroDia+diasNoMes;
+  const resto = total%7===0?0:7-(total%7);
+  for(let i=1;i<=resto;i++) html+=`<div class="cal-dia outro-mes">${i}</div>`;
+
+  document.getElementById("cal-grid-body").innerHTML=html;
+
+  // se nenhum dia selecionado, seleciona o próximo com evento (ou hoje)
+  if(!calDiaSel){
+    const hoje2 = new Date();
+    const prox = STATE.eventos.filter(e=>!e.recorrente&&e.dataInicio).map(e=>new Date(e.dataInicio+"T12:00:00"))
+      .filter(d=>d>=hoje2&&d.getFullYear()===calAno&&d.getMonth()===calMes)
+      .sort((a,b)=>a-b)[0];
+    if(prox) selecionarDiaCal(prox.getDate());
+    else renderEventosDia(null);
+  } else {
+    renderEventosDia(calDiaSel);
+  }
+}
+
+function selecionarDiaCal(dia){
+  calDiaSel = {dia, mes:calMes, ano:calAno};
+  renderCalendario();
+  renderEventosDia(calDiaSel);
+}
+
+function renderEventosDia(sel){
+  const cont = document.getElementById("agenda-lista");
+  const tit = document.getElementById("cal-dia-titulo");
+  if(!sel){
+    cont.innerHTML=`<div class="agenda-vazia"><p>Selecione um dia no calendário.</p></div>`;
+    return;
+  }
+  const data = new Date(sel.ano, sel.mes, sel.dia);
+  const dataStr = `${sel.ano}-${String(sel.mes+1).padStart(2,"0")}-${String(sel.dia).padStart(2,"0")}`;
+  const label = data.toLocaleDateString("pt-BR",{weekday:"long",day:"2-digit",month:"long"});
+
+  // injeta título antes da lista
+  let tituloEl = document.getElementById("cal-dia-titulo");
+  if(!tituloEl){
+    tituloEl = document.createElement("div");
+    tituloEl.id="cal-dia-titulo";
+    tituloEl.className="cal-dia-titulo";
+    cont.parentNode.insertBefore(tituloEl, cont);
+  }
+  tituloEl.textContent = label.toUpperCase();
+
+  const lista = STATE.eventos.filter(e=>!e.recorrente && e.dataInicio===dataStr);
+  if(!lista.length){
+    cont.innerHTML=`<div class="agenda-vazia"><p>Nenhum evento neste dia.</p></div>`;
+    return;
+  }
+  cont.innerHTML = lista.sort((a,b)=>(a.hora||"").localeCompare(b.hora||"")).map(e=>renderCardEvento(e)).join("");
 }
 
 function renderAgenda(){
-  const f = STATE.filtroAgenda;
-  const agora = new Date();
-  const dom = agora.getDay();
-  let lista = [...STATE.eventos];
-  if(f==="semana"){
-    lista = lista.filter(e=>{
-      if(e.recorrente) return true;
-      if(!e.dataInicio) return true;
-      const d=new Date(e.dataInicio);
-      return d>=agora && (d-agora)<7*24*3600*1000;
-    });
-  } else if(f==="fds"){
-    lista = lista.filter(e=>{
-      if(e.recorrente && e.recorrenciaTexto&&(e.recorrenciaTexto.toLowerCase().includes("sáb")||e.recorrenciaTexto.toLowerCase().includes("dom")||e.recorrenciaTexto.toLowerCase().includes("fim"))) return true;
-      if(!e.dataInicio) return e.recorrente;
-      const d=new Date(e.dataInicio); return d.getDay()===0||d.getDay()===6;
-    });
-  } else if(f==="gratis"){
-    lista = lista.filter(e=>!e.pago);
-  }
-  const cont = document.getElementById("agenda-lista");
+  // agora só inicializa o calendário com o mês atual
+  calAno = new Date().getFullYear();
+  calMes = new Date().getMonth();
+  calDiaSel = null;
+  renderCalendario();
+}
+
+function renderRecorrentes(){
+  const cont = document.getElementById("recorrentes-lista");
+  const lista = STATE.eventos.filter(e=>e.recorrente);
   if(!lista.length){
-    cont.innerHTML=`<div class="agenda-vazia">
-      <svg width="120" height="100" viewBox="0 0 120 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <ellipse cx="60" cy="88" rx="40" ry="7" fill="#2BA56B" opacity=".15"/>
-        <rect x="22" y="20" width="64" height="58" rx="10" fill="#FFF7F0" stroke="#0F2D52" stroke-width="1.5"/>
-        <rect x="22" y="20" width="64" height="18" rx="10" fill="#0F2D52"/>
-        <rect x="33" y="38" width="0" height="0" rx="5" fill="#0F2D52"/>
-        <circle cx="38" cy="14" r="5" fill="#FF7A4D"/>
-        <circle cx="80" cy="14" r="5" fill="#FF7A4D"/>
-        <rect x="32" y="46" width="16" height="14" rx="4" fill="#FF7A4D" opacity=".25"/>
-        <rect x="52" y="46" width="16" height="14" rx="4" fill="#FFCB45" opacity=".4"/>
-        <rect x="72" y="46" width="16" height="14" rx="4" fill="#2BA56B" opacity=".25"/>
-        <rect x="32" y="64" width="16" height="8" rx="3" fill="#F15B93" opacity=".3"/>
-        <rect x="52" y="64" width="16" height="8" rx="3" fill="#FF7A4D" opacity=".2"/>
-        <line x1="22" y1="38" x2="86" y2="38" stroke="#0F2D52" stroke-width="1" opacity=".15"/>
-      </svg>
-      <p>Nenhum evento aqui ainda.<br>Que tal sugerir o primeiro?</p>
-    </div>`;
+    cont.innerHTML=`<div class="agenda-vazia"><p>Nenhuma atividade recorrente ainda.</p></div>`;
     return;
   }
-  cont.innerHTML = lista.map(e=>renderCardEvento(e)).join("");
+  // agrupa por tipo de frequência detectada no texto
+  const grupos = {"TODA SEMANA":[], "TODO MÊS":[], "OUTROS":[]};
+  lista.forEach(e=>{
+    const t=(e.recorrenciaTexto||"").toLowerCase();
+    if(t.includes("semana")||t.includes("seg")||t.includes("ter")||t.includes("qua")||t.includes("qui")||t.includes("sex")||t.includes("sáb")||t.includes("dom")){
+      grupos["TODA SEMANA"].push(e);
+    } else if(t.includes("mês")||t.includes("mes")||t.includes("mensal")){
+      grupos["TODO MÊS"].push(e);
+    } else {
+      grupos["OUTROS"].push(e);
+    }
+  });
+  let html="";
+  Object.entries(grupos).forEach(([grupo,evs])=>{
+    if(!evs.length) return;
+    html+=`<div class="rec-freq-titulo">${grupo}</div>`;
+    html+=evs.map(e=>{
+      const emoji=CAT_EMOJI[e.categoria]||"⭐";
+      return `<div class="card-rec" onclick="abrirDetalheEvento('${esc(e.id)}')">
+        <div class="card-rec-emoji">${emoji}</div>
+        <div class="card-rec-info">
+          <div class="card-rec-titulo">${esc(e.titulo)}</div>
+          <div class="card-rec-quando">${esc(e.recorrenciaTexto||"Recorrente")}${e.hora?" · "+esc(e.hora):""}</div>
+          <div style="margin-top:4px;display:flex;gap:6px;flex-wrap:wrap;">
+            ${e.faixaEtaria?`<span class="badge badge-azul">👶 ${esc(e.faixaEtaria)}</span>`:""}
+            ${e.pago?`<span class="badge badge-amarelo">💰 ${esc(e.preco||"Pago")}</span>`:`<span class="badge badge-verde">✅ Gratuito</span>`}
+          </div>
+        </div>
+      </div>`;
+    }).join("");
+  });
+  cont.innerHTML=html;
 }
 
 const CAT_EMOJI = {musicalização:"🎵",yoga:"🧘",contação:"📚",arte:"🎨",feira:"🛍️",natureza:"🌿",dança:"💃",outro:"⭐"};
