@@ -1,4 +1,4 @@
-const CACHE = "ovm-v1";
+const CACHE = "ovm-v2";
 const PRECACHE = [
   "/onde-vamos-mamae/",
   "/onde-vamos-mamae/index.html",
