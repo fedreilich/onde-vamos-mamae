@@ -2056,14 +2056,31 @@ function renderAgenda(){
   renderCalendario();
 }
 
+let recBairroSel = null;
+
 function renderRecorrentes(){
   const cont = document.getElementById("recorrentes-lista");
-  const lista = STATE.eventos.filter(e=>e.recorrente);
-  if(!lista.length){
+  const todos = STATE.eventos.filter(e=>e.recorrente);
+  if(!todos.length){
     cont.innerHTML=`<div class="agenda-vazia"><p>Nenhuma atividade recorrente ainda.</p></div>`;
     return;
   }
-  // agrupa por tipo de frequência detectada no texto
+
+  // bairros com recorrentes (ordenados alfabeticamente, sem vazios)
+  const bairros = [...new Set(todos.map(e=>e.bairro||e.local||"").filter(Boolean))].sort();
+
+  // chips de bairro
+  const chipsHtml = `<div style="display:flex;gap:6px;flex-wrap:wrap;padding:12px 20px 0;">
+    <button class="agenda-filtro${!recBairroSel?" ativo":""}" onclick="filtrarRecBairro(null)">Todos</button>
+    ${bairros.map(b=>`<button class="agenda-filtro${recBairroSel===b?" ativo":""}" onclick="filtrarRecBairro('${b.replace(/'/g,"\\'")}')">
+      ${esc(b)}
+    </button>`).join("")}
+  </div>`;
+
+  // aplica filtro
+  const lista = recBairroSel ? todos.filter(e=>(e.bairro||e.local||"")===recBairroSel) : todos;
+
+  // agrupa por frequência
   const grupos = {"TODA SEMANA":[], "TODO MÊS":[], "OUTROS":[]};
   lista.forEach(e=>{
     const t=(e.recorrenciaTexto||"").toLowerCase();
@@ -2075,16 +2092,21 @@ function renderRecorrentes(){
       grupos["OUTROS"].push(e);
     }
   });
-  let html="";
+
+  let cardsHtml="";
   Object.entries(grupos).forEach(([grupo,evs])=>{
     if(!evs.length) return;
-    html+=`<div class="rec-freq-titulo">${grupo}</div>`;
-    html+=evs.map(e=>{
+    cardsHtml+=`<div class="rec-freq-titulo">${grupo}</div>`;
+    cardsHtml+=evs.map(e=>{
       const emoji=CAT_EMOJI[e.categoria]||"⭐";
+      const bairro = e.bairro||e.local||"";
       return `<div class="card-rec" onclick="abrirDetalheEvento('${esc(e.id)}')">
         <div class="card-rec-emoji">${emoji}</div>
         <div class="card-rec-info">
-          <div class="card-rec-titulo">${esc(e.titulo)}</div>
+          <div style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;">
+            <div class="card-rec-titulo">${esc(e.titulo)}</div>
+            ${bairro?`<span style="font-size:.7rem;font-weight:700;color:var(--laranja);">📍 ${esc(bairro)}</span>`:""}
+          </div>
           <div class="card-rec-quando">${esc(e.recorrenciaTexto||"Recorrente")}${e.hora?" · "+esc(e.hora):""}</div>
           <div style="margin-top:4px;display:flex;gap:6px;flex-wrap:wrap;">
             ${e.faixaEtaria?`<span class="badge badge-azul">👶 ${esc(e.faixaEtaria)}</span>`:""}
@@ -2094,7 +2116,13 @@ function renderRecorrentes(){
       </div>`;
     }).join("");
   });
-  cont.innerHTML=html;
+
+  cont.innerHTML = chipsHtml + `<div style="padding:0 20px 80px;">${cardsHtml}</div>`;
+}
+
+function filtrarRecBairro(bairro){
+  recBairroSel = bairro;
+  renderRecorrentes();
 }
 
 const CAT_EMOJI = {musicalização:"🎵",yoga:"🧘",contação:"📚",arte:"🎨",feira:"🛍️",natureza:"🌿",dança:"💃",outro:"⭐"};
