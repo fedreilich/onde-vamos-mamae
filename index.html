@@ -836,6 +836,85 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 
 </div><!-- #app -->
 
+<!-- ══ SHEET: INDICAR ESCOLA ══ -->
+<div class="veu-sheet" id="veu-add-escola" onclick="fecharIndicarEscola()"></div>
+<div class="modal-sheet" id="sheet-add-escola">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <div class="sheet-titulo">Indicar escola ou creche</div>
+    <button class="sheet-fechar" onclick="fecharIndicarEscola()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div class="sheet-body">
+    <div class="campo"><label>Nome da escola *</label><input id="ie-nome" placeholder="Ex.: Escola Girassol"></div>
+    <div class="campo"><label>Bairro *</label><input id="ie-bairro" placeholder="Ex.: Botafogo"></div>
+    <div class="campo"><label>Modalidade</label>
+      <select id="ie-modalidade">
+        <option value="">Selecione...</option>
+        <option>Creche</option>
+        <option>Educacao Infantil</option>
+        <option>Creche e Educacao Infantil</option>
+      </select>
+    </div>
+    <div class="campo"><label>Metodologia</label>
+      <select id="ie-metodologia">
+        <option value="">Selecione...</option>
+        <option>Montessori</option>
+        <option>Waldorf</option>
+        <option>Construtivista</option>
+        <option>Sociointeracionista</option>
+        <option>Tradicional</option>
+        <option>Outra</option>
+      </select>
+    </div>
+    <div class="campo"><label>Faixa etaria</label><input id="ie-faixa" placeholder="Ex.: 4 meses a 5 anos"></div>
+    <div class="campo"><label>Mensalidade aproximada</label><input id="ie-mensalidade" placeholder="Ex.: R$ 1.800 - 2.500"></div>
+    <div class="campo"><label>Por que voce recomenda?</label><textarea id="ie-obs" placeholder="Conte o que faz essa escola especial para voce..." style="height:80px;resize:none;" maxlength="400"></textarea></div>
+    <div class="campo"><label>Seu nome</label><input id="ie-autor" placeholder="Como quer ser identificada"></div>
+    <div style="display:flex;gap:8px;margin-top:4px;">
+      <button onclick="fecharIndicarEscola()" style="flex:1;border:1.5px solid var(--borda);background:none;border-radius:var(--radius-sm);padding:12px;font-size:.85rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;">Cancelar</button>
+      <button onclick="salvarIndicacaoEscola()" style="flex:2;background:var(--laranja);color:#fff;border:none;border-radius:var(--radius-sm);padding:12px;font-size:.85rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;">Enviar indicacao</button>
+    </div>
+    <div style="height:16px;"></div>
+  </div>
+</div>
+
+<!-- ══ SHEET: INDICAR PROFISSIONAL ══ -->
+<div class="veu-sheet" id="veu-add-prof" onclick="fecharIndicarProfissional()"></div>
+<div class="modal-sheet" id="sheet-add-prof">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <div class="sheet-titulo">Indicar profissional</div>
+    <button class="sheet-fechar" onclick="fecharIndicarProfissional()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div class="sheet-body">
+    <div class="campo"><label>Nome do profissional *</label><input id="ip-nome" placeholder="Ex.: Dra. Ana Silva"></div>
+    <div class="campo"><label>Especialidade *</label>
+      <select id="ip-esp" onchange="document.getElementById('ip-esp-outro-wrap').style.display=this.value==='Outro'?'block':'none'">
+        <option value="">Selecione...</option>
+        <option>Pediatra</option>
+        <option>Doula</option>
+        <option>Nutricionista</option>
+        <option>Consultora do sono</option>
+        <option>Fisioterapeuta pelvica</option>
+        <option>Psicologa</option>
+        <option>Consultora de amamentacao</option>
+        <option>Outro</option>
+      </select>
+    </div>
+    <div class="campo" id="ip-esp-outro-wrap" style="display:none;"><label>Qual especialidade?</label><input id="ip-esp-outro" placeholder="Ex.: Homeopata"></div>
+    <div class="campo"><label>Bairro</label><input id="ip-bairro" placeholder="Ex.: Tijuca"></div>
+    <div class="campo"><label>Instagram ou contato</label><input id="ip-contato" placeholder="@perfil ou (21) 99999-9999"></div>
+    <div class="campo"><label>Valor da consulta aproximado</label><input id="ip-preco" placeholder="Ex.: R$ 300"></div>
+    <div class="campo"><label>Por que voce recomenda?</label><textarea id="ip-obs" placeholder="Conte o que faz esse profissional especial..." style="height:80px;resize:none;" maxlength="400"></textarea></div>
+    <div class="campo"><label>Seu nome</label><input id="ip-autor" placeholder="Como quer ser identificada"></div>
+    <div style="display:flex;gap:8px;margin-top:4px;">
+      <button onclick="fecharIndicarProfissional()" style="flex:1;border:1.5px solid var(--borda);background:none;border-radius:var(--radius-sm);padding:12px;font-size:.85rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;">Cancelar</button>
+      <button onclick="salvarIndicacaoProfissional()" style="flex:2;background:var(--laranja);color:#fff;border:none;border-radius:var(--radius-sm);padding:12px;font-size:.85rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;">Enviar indicacao</button>
+    </div>
+    <div style="height:16px;"></div>
+  </div>
+</div>
+
 <!-- ══ TELA ADMIN ══ -->
 <div id="tela-admin">
   <!-- senha gate -->
@@ -4355,7 +4434,7 @@ function abrirDetalheEscola(id){
     ? `<div class="detalhe-secao"><div class="detalhe-secao-titulo">Palavra da escola</div>
         <div class="palavra-box"><div class="palavra-texto">"${e.palavra}"</div><div class="palavra-autor">${e.palavraAutor} — verificado pelo Onde Vamos</div></div></div>`
     : `<div class="detalhe-secao"><div class="detalhe-secao-titulo">Palavra da escola</div>
-        <div style="font-size:.85rem;color:var(--suave);line-height:1.5;">Esta escola ainda nao enviou uma apresentacao. <a href="https://docs.google.com/forms" target="_blank" style="color:var(--laranja);font-weight:700;">Representa esta escola? Fale com a gente.</a></div></div>`;
+        <div style="font-size:.85rem;color:var(--suave);line-height:1.5;">Esta escola ainda nao enviou uma apresentacao. <a href="https://forms.gle/47Kd6cWrtWxeHoXJ6" target="_blank" style="color:var(--laranja);font-weight:700;">Representa esta escola? Fale com a gente.</a></div></div>`;
   const html = `<div class="detalhe-back" onclick="fecharDetalheEscola()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
       <span>Escolas</span></div>
@@ -4410,7 +4489,7 @@ function abrirDetalheProf(id){
     ? `<div class="detalhe-secao"><div class="detalhe-secao-titulo">Palavra da profissional</div>
         <div class="palavra-box"><div class="palavra-texto">"${p.palavra}"</div><div class="palavra-autor">${p.palavraAutor} — verificado pelo Onde Vamos</div></div></div>`
     : `<div class="detalhe-secao"><div class="detalhe-secao-titulo">Palavra da profissional</div>
-        <div style="font-size:.85rem;color:var(--suave);line-height:1.5;">Esta profissional ainda nao enviou uma apresentacao. <a href="https://docs.google.com/forms" target="_blank" style="color:var(--laranja);font-weight:700;">E esta profissional? Fale com a gente.</a></div></div>`;
+        <div style="font-size:.85rem;color:var(--suave);line-height:1.5;">Esta profissional ainda nao enviou uma apresentacao. <a href="https://forms.gle/47Kd6cWrtWxeHoXJ6" target="_blank" style="color:var(--laranja);font-weight:700;">E esta profissional? Fale com a gente.</a></div></div>`;
   const tagsHtml = p.tags.map((t,i)=>{
     const votado = VOTOS_PROF[id].has(i);
     const confiavel = t.v>=8;
@@ -4485,14 +4564,80 @@ function votarTag(profId, idx, el){
 }
 
 // ═══════════════════════════════════════════════════
-// INDICAR ESCOLA / PROFISSIONAL
+// INDICAR ESCOLA
 // ═══════════════════════════════════════════════════
-const FORM_URL = "https://forms.gle/47Kd6cWrtWxeHoXJ6";
+const FORM_PALAVRA_URL = "https://forms.gle/47Kd6cWrtWxeHoXJ6";
+
 function abrirIndicarEscola(){
-  window.open(FORM_URL+"?tipo=Escola","_blank");
+  ["ie-nome","ie-bairro","ie-faixa","ie-mensalidade","ie-obs"].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=""; });
+  ["ie-modalidade","ie-metodologia"].forEach(id=>{ const el=document.getElementById(id); if(el) el.selectedIndex=0; });
+  const autor = document.getElementById("ie-autor"); if(autor) autor.value = STATE.usuario?.nome||"";
+  document.getElementById("veu-add-escola").classList.add("aberto");
+  document.getElementById("sheet-add-escola").classList.add("aberto");
 }
+function fecharIndicarEscola(){
+  document.getElementById("veu-add-escola").classList.remove("aberto");
+  document.getElementById("sheet-add-escola").classList.remove("aberto");
+}
+async function salvarIndicacaoEscola(){
+  const nome = document.getElementById("ie-nome").value.trim();
+  const bairro = document.getElementById("ie-bairro").value.trim();
+  if(!nome||!bairro){ toast("Preenche pelo menos nome e bairro"); return; }
+  const dados = {
+    nome, bairro,
+    modalidade: document.getElementById("ie-modalidade").value,
+    metodologia: document.getElementById("ie-metodologia").value,
+    faixa: document.getElementById("ie-faixa").value.trim(),
+    mensalidade: document.getElementById("ie-mensalidade").value.trim(),
+    obs: document.getElementById("ie-obs").value.trim(),
+    autor: document.getElementById("ie-autor").value.trim() || STATE.usuario?.nome || "Anonima",
+    uid: STATE.uid||"",
+    criadoEm: new Date().toISOString(),
+    status: "pendente"
+  };
+  try{
+    if(db) await fbSet("escolas_sugeridas", Date.now()+"_"+Math.random().toString(36).slice(2,7), dados);
+    fecharIndicarEscola();
+    toast("Obrigada pela indicacao!");
+  }catch(e){ toast("Erro ao enviar. Tente novamente."); console.error(e); }
+}
+
+// ═══════════════════════════════════════════════════
+// INDICAR PROFISSIONAL
+// ═══════════════════════════════════════════════════
 function abrirIndicarProfissional(){
-  window.open(FORM_URL+"?tipo=Profissional","_blank");
+  ["ip-nome","ip-bairro","ip-contato","ip-preco","ip-obs","ip-esp-outro"].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=""; });
+  const espEl = document.getElementById("ip-esp"); if(espEl) espEl.selectedIndex=0;
+  document.getElementById("ip-esp-outro-wrap").style.display="none";
+  const autor = document.getElementById("ip-autor"); if(autor) autor.value = STATE.usuario?.nome||"";
+  document.getElementById("veu-add-prof").classList.add("aberto");
+  document.getElementById("sheet-add-prof").classList.add("aberto");
+}
+function fecharIndicarProfissional(){
+  document.getElementById("veu-add-prof").classList.remove("aberto");
+  document.getElementById("sheet-add-prof").classList.remove("aberto");
+}
+async function salvarIndicacaoProfissional(){
+  const nome = document.getElementById("ip-nome").value.trim();
+  let esp = document.getElementById("ip-esp").value;
+  if(esp==="Outro") esp = document.getElementById("ip-esp-outro").value.trim()||"Outro";
+  if(!nome||!esp){ toast("Preenche pelo menos nome e especialidade"); return; }
+  const dados = {
+    nome, esp,
+    bairro: document.getElementById("ip-bairro").value.trim(),
+    contato: document.getElementById("ip-contato").value.trim(),
+    preco: document.getElementById("ip-preco").value.trim(),
+    obs: document.getElementById("ip-obs").value.trim(),
+    autor: document.getElementById("ip-autor").value.trim() || STATE.usuario?.nome || "Anonima",
+    uid: STATE.uid||"",
+    criadoEm: new Date().toISOString(),
+    status: "pendente"
+  };
+  try{
+    if(db) await fbSet("profissionais_sugeridos", Date.now()+"_"+Math.random().toString(36).slice(2,7), dados);
+    fecharIndicarProfissional();
+    toast("Obrigada pela indicacao!");
+  }catch(e){ toast("Erro ao enviar. Tente novamente."); console.error(e); }
 }
 
 if("serviceWorker" in navigator){
