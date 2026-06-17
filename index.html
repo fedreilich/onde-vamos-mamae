@@ -498,6 +498,14 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 .destaque-box .valor{font-size:1.1rem;font-weight:900;color:var(--laranja);}
 .destaque-box .nome{font-size:.68rem;color:var(--suave);margin-top:2px;font-weight:700;}
 
+/* ── ESTRELAS INPUT ── */
+.campo-estrelas{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--cinza);}
+.campo-estrelas:last-child{border-bottom:none;}
+.campo-estrelas label{font-size:.85rem;font-weight:700;color:var(--texto);}
+.estrelas-input{display:flex;gap:4px;}
+.estrela-btn{font-size:1.5rem;color:#ddd;cursor:pointer;background:none;border:none;padding:0;line-height:1;transition:color .1s;}
+.estrela-btn.ativa{color:var(--amarelo);}
+
 /* TOAST ── */
 .toast{position:fixed;bottom:calc(var(--nav) + 16px);left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:12px 24px;border-radius:999px;font-size:.85rem;font-weight:600;z-index:9000;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;box-shadow:var(--sombra-forte);}
 .toast.show{opacity:1;}
@@ -841,40 +849,96 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 <div class="modal-sheet" id="sheet-add-escola">
   <div class="sheet-handle"></div>
   <div class="sheet-header">
-    <div class="sheet-titulo">Indicar escola ou creche</div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <button id="ie-btn-voltar" onclick="ieMostrarPasso(iePassoAtual-1)" style="display:none;background:rgba(0,0,0,.07);border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;display:none;align-items:center;justify-content:center;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      <div class="sheet-titulo" id="ie-titulo">Indicar escola — 1 de 3</div>
+    </div>
     <button class="sheet-fechar" onclick="fecharIndicarEscola()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
   </div>
   <div class="sheet-body">
-    <div class="campo"><label>Nome da escola *</label><input id="ie-nome" placeholder="Ex.: Escola Girassol"></div>
-    <div class="campo"><label>Bairro *</label><input id="ie-bairro" placeholder="Ex.: Botafogo"></div>
-    <div class="campo"><label>Modalidade</label>
-      <select id="ie-modalidade">
-        <option value="">Selecione...</option>
-        <option>Creche</option>
-        <option>Educacao Infantil</option>
-        <option>Creche e Educacao Infantil</option>
-      </select>
+    <div class="sheet-passos" style="margin-bottom:20px;">
+      <div class="passo-dot ativo" id="ie-pd1"></div>
+      <div class="passo-dot" id="ie-pd2"></div>
+      <div class="passo-dot" id="ie-pd3"></div>
     </div>
-    <div class="campo"><label>Metodologia</label>
-      <select id="ie-metodologia">
-        <option value="">Selecione...</option>
-        <option>Montessori</option>
-        <option>Waldorf</option>
-        <option>Construtivista</option>
-        <option>Sociointeracionista</option>
-        <option>Tradicional</option>
-        <option>Outra</option>
-      </select>
+
+    <!-- PASSO 1: info básica -->
+    <div id="ie-p1">
+      <div class="campo"><label>Nome da escola *</label><input id="ie-nome" placeholder="Ex.: Escola Girassol"></div>
+      <div class="campo"><label>Endereco</label><input id="ie-endereco" placeholder="Ex.: Rua das Flores, 45"></div>
+      <div class="campo"><label>Bairro *</label><input id="ie-bairro" placeholder="Ex.: Botafogo"></div>
+      <button type="button" onclick="ieGeocode()" id="ie-btn-geo" style="width:100%;background:var(--navy);color:#fff;border:none;border-radius:var(--radius-sm);padding:11px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;margin-bottom:6px;">Buscar localizacao no mapa</button>
+      <div id="ie-geo-status" style="display:none;font-size:.78rem;padding:8px 12px;border-radius:var(--radius-sm);margin-bottom:8px;"></div>
+      <button type="button" id="ie-btn-pin" onclick="ieIniciarPin()" style="display:none;width:100%;background:var(--cream);color:var(--laranja);border:1.5px solid var(--laranja);border-radius:var(--radius-sm);padding:10px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;margin-bottom:8px;">Marcar no mapa manualmente</button>
+      <input type="hidden" id="ie-lat"><input type="hidden" id="ie-lng">
+      <div class="campo"><label>Telefone / WhatsApp</label><input id="ie-tel" placeholder="(21) 99999-9999"></div>
+      <div class="campo"><label>Instagram</label><input id="ie-instagram" placeholder="@escola"></div>
+      <div class="campo"><label>Site</label><input id="ie-site" placeholder="www.escola.com.br"></div>
+      <div class="campo">
+        <label>Niveis de ensino <span style="color:var(--suave);font-weight:400">(selecione todos que se aplicam)</span></label>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">
+          <div class="tag-check" data-nivel="Bercario" onclick="toggleTagCheck(this)">Bercario</div>
+          <div class="tag-check" data-nivel="Educacao Infantil" onclick="toggleTagCheck(this)">Educacao Infantil</div>
+          <div class="tag-check" data-nivel="Fundamental 1" onclick="toggleTagCheck(this)">Fundamental 1</div>
+          <div class="tag-check" data-nivel="Fundamental 2" onclick="toggleTagCheck(this)">Fundamental 2</div>
+          <div class="tag-check" data-nivel="Ensino Medio" onclick="toggleTagCheck(this)">Ensino Medio</div>
+        </div>
+      </div>
+      <div class="campo"><label>Modalidade</label>
+        <select id="ie-modalidade">
+          <option value="">Selecione...</option>
+          <option>Creche</option>
+          <option>Educacao Infantil</option>
+          <option>Creche e Educacao Infantil</option>
+          <option>Escola regular</option>
+        </select>
+      </div>
+      <div class="campo"><label>Metodologia</label>
+        <select id="ie-metodologia">
+          <option value="">Selecione...</option>
+          <option>Montessori</option>
+          <option>Waldorf</option>
+          <option>Construtivista</option>
+          <option>Sociointeracionista</option>
+          <option>Tradicional</option>
+          <option>Outra</option>
+        </select>
+      </div>
+      <div class="campo"><label>Mensalidade aproximada</label><input id="ie-mensalidade" placeholder="Ex.: R$ 1.800 - 2.500"></div>
+      <button onclick="ieMostrarPasso(2)" style="width:100%;background:var(--laranja);color:#fff;border:none;border-radius:var(--radius-sm);padding:13px;font-size:.9rem;font-weight:800;font-family:'Nunito',sans-serif;cursor:pointer;margin-top:8px;">Continuar</button>
+      <div style="height:16px;"></div>
     </div>
-    <div class="campo"><label>Faixa etaria</label><input id="ie-faixa" placeholder="Ex.: 4 meses a 5 anos"></div>
-    <div class="campo"><label>Mensalidade aproximada</label><input id="ie-mensalidade" placeholder="Ex.: R$ 1.800 - 2.500"></div>
-    <div class="campo"><label>Por que voce recomenda?</label><textarea id="ie-obs" placeholder="Conte o que faz essa escola especial para voce..." style="height:80px;resize:none;" maxlength="400"></textarea></div>
-    <div class="campo"><label>Seu nome</label><input id="ie-autor" placeholder="Como quer ser identificada"></div>
-    <div style="display:flex;gap:8px;margin-top:4px;">
-      <button onclick="fecharIndicarEscola()" style="flex:1;border:1.5px solid var(--borda);background:none;border-radius:var(--radius-sm);padding:12px;font-size:.85rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;">Cancelar</button>
-      <button onclick="salvarIndicacaoEscola()" style="flex:2;background:var(--laranja);color:#fff;border:none;border-radius:var(--radius-sm);padding:12px;font-size:.85rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;">Enviar indicacao</button>
+
+    <!-- PASSO 2: avaliacao -->
+    <div id="ie-p2" style="display:none;">
+      <div style="font-size:.85rem;color:var(--suave);margin-bottom:16px;">Avalie nos criterios abaixo. Outras maes poderao tambem dar suas notas depois.</div>
+      <div id="ie-estrelas-wrap">
+        <div class="campo-estrelas" data-cat="acolhimento"><label>Acolhimento</label><div class="estrelas-input" data-cat="acolhimento"></div></div>
+        <div class="campo-estrelas" data-cat="professores"><label>Professores</label><div class="estrelas-input" data-cat="professores"></div></div>
+        <div class="campo-estrelas" data-cat="comunicacao"><label>Comunicacao</label><div class="estrelas-input" data-cat="comunicacao"></div></div>
+        <div class="campo-estrelas" data-cat="estrutura"><label>Estrutura</label><div class="estrelas-input" data-cat="estrutura"></div></div>
+        <div class="campo-estrelas" data-cat="alimentacao"><label>Alimentacao</label><div class="estrelas-input" data-cat="alimentacao"></div></div>
+      </div>
+      <div class="campo" style="margin-top:16px;"><label>Por que voce recomenda?</label><textarea id="ie-obs" placeholder="Conte o que faz essa escola especial para voce..." style="height:90px;resize:none;" maxlength="500"></textarea></div>
+      <div class="campo"><label>Seu nome</label><input id="ie-autor" placeholder="Como quer ser identificada"></div>
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <button onclick="ieMostrarPasso(1)" style="flex:1;border:1.5px solid var(--borda);background:none;border-radius:var(--radius-sm);padding:12px;font-size:.85rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;">Voltar</button>
+        <button onclick="ieMostrarPasso(3)" style="flex:2;background:var(--laranja);color:#fff;border:none;border-radius:var(--radius-sm);padding:12px;font-size:.85rem;font-weight:800;font-family:'Nunito',sans-serif;cursor:pointer;">Continuar</button>
+      </div>
+      <div style="height:16px;"></div>
     </div>
-    <div style="height:16px;"></div>
+
+    <!-- PASSO 3: confirmacao -->
+    <div id="ie-p3" style="display:none;">
+      <div id="ie-resumo" style="background:var(--cinza);border-radius:var(--radius-sm);padding:14px;margin-bottom:16px;font-size:.85rem;line-height:1.8;color:var(--texto);"></div>
+      <div style="display:flex;gap:8px;">
+        <button onclick="ieMostrarPasso(2)" style="flex:1;border:1.5px solid var(--borda);background:none;border-radius:var(--radius-sm);padding:12px;font-size:.85rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;">Voltar</button>
+        <button onclick="salvarIndicacaoEscola()" style="flex:2;background:var(--laranja);color:#fff;border:none;border-radius:var(--radius-sm);padding:12px;font-size:.85rem;font-weight:800;font-family:'Nunito',sans-serif;cursor:pointer;">Enviar indicacao</button>
+      </div>
+      <div style="height:16px;"></div>
+    </div>
   </div>
 </div>
 
@@ -883,35 +947,62 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 <div class="modal-sheet" id="sheet-add-prof">
   <div class="sheet-handle"></div>
   <div class="sheet-header">
-    <div class="sheet-titulo">Indicar profissional</div>
+    <div class="sheet-titulo" id="ip-titulo">Indicar profissional — 1 de 2</div>
     <button class="sheet-fechar" onclick="fecharIndicarProfissional()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
   </div>
   <div class="sheet-body">
-    <div class="campo"><label>Nome do profissional *</label><input id="ip-nome" placeholder="Ex.: Dra. Ana Silva"></div>
-    <div class="campo"><label>Especialidade *</label>
-      <select id="ip-esp" onchange="document.getElementById('ip-esp-outro-wrap').style.display=this.value==='Outro'?'block':'none'">
-        <option value="">Selecione...</option>
-        <option>Pediatra</option>
-        <option>Doula</option>
-        <option>Nutricionista</option>
-        <option>Consultora do sono</option>
-        <option>Fisioterapeuta pelvica</option>
-        <option>Psicologa</option>
-        <option>Consultora de amamentacao</option>
-        <option>Outro</option>
-      </select>
+    <div class="sheet-passos" style="margin-bottom:20px;">
+      <div class="passo-dot ativo" id="ip-pd1"></div>
+      <div class="passo-dot" id="ip-pd2"></div>
     </div>
-    <div class="campo" id="ip-esp-outro-wrap" style="display:none;"><label>Qual especialidade?</label><input id="ip-esp-outro" placeholder="Ex.: Homeopata"></div>
-    <div class="campo"><label>Bairro</label><input id="ip-bairro" placeholder="Ex.: Tijuca"></div>
-    <div class="campo"><label>Instagram ou contato</label><input id="ip-contato" placeholder="@perfil ou (21) 99999-9999"></div>
-    <div class="campo"><label>Valor da consulta aproximado</label><input id="ip-preco" placeholder="Ex.: R$ 300"></div>
-    <div class="campo"><label>Por que voce recomenda?</label><textarea id="ip-obs" placeholder="Conte o que faz esse profissional especial..." style="height:80px;resize:none;" maxlength="400"></textarea></div>
-    <div class="campo"><label>Seu nome</label><input id="ip-autor" placeholder="Como quer ser identificada"></div>
-    <div style="display:flex;gap:8px;margin-top:4px;">
-      <button onclick="fecharIndicarProfissional()" style="flex:1;border:1.5px solid var(--borda);background:none;border-radius:var(--radius-sm);padding:12px;font-size:.85rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;">Cancelar</button>
-      <button onclick="salvarIndicacaoProfissional()" style="flex:2;background:var(--laranja);color:#fff;border:none;border-radius:var(--radius-sm);padding:12px;font-size:.85rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;">Enviar indicacao</button>
+
+    <!-- PASSO 1: info basica -->
+    <div id="ip-p1">
+      <div class="campo"><label>Nome *</label><input id="ip-nome" placeholder="Ex.: Dra. Ana Silva"></div>
+      <div class="campo"><label>Especialidade *</label>
+        <select id="ip-esp" onchange="document.getElementById('ip-esp-outro-wrap').style.display=this.value==='Outro'?'block':'none'">
+          <option value="">Selecione...</option>
+          <option>Pediatra</option>
+          <option>Doula</option>
+          <option>Nutricionista</option>
+          <option>Consultora do sono</option>
+          <option>Fisioterapeuta pelvica</option>
+          <option>Psicologa</option>
+          <option>Consultora de amamentacao</option>
+          <option>Outro</option>
+        </select>
+      </div>
+      <div class="campo" id="ip-esp-outro-wrap" style="display:none;"><label>Qual especialidade?</label><input id="ip-esp-outro" placeholder="Ex.: Homeopata"></div>
+      <div class="campo"><label>Endereco / consultorio</label><input id="ip-endereco" placeholder="Ex.: Rua X, 100 — Tijuca"></div>
+      <div class="campo"><label>Bairro</label><input id="ip-bairro" placeholder="Ex.: Tijuca"></div>
+      <div class="campo"><label>WhatsApp ou telefone</label><input id="ip-whatsapp" placeholder="(21) 99999-9999"></div>
+      <div class="campo"><label>Instagram</label><input id="ip-instagram" placeholder="@profissional"></div>
+      <div class="campo"><label>Valor da consulta</label><input id="ip-preco" placeholder="Ex.: R$ 300"></div>
+      <div class="campo"><label>Convenio aceito</label><input id="ip-convenio" placeholder="Ex.: Bradesco, Amil ou Particular"></div>
+      <div class="campo"><label>Atendimento</label>
+        <select id="ip-atendimento">
+          <option value="">Selecione...</option>
+          <option>Presencial</option>
+          <option>Telemedicina</option>
+          <option>Presencial e Telemedicina</option>
+        </select>
+      </div>
+      <button onclick="ipMostrarPasso(2)" style="width:100%;background:var(--laranja);color:#fff;border:none;border-radius:var(--radius-sm);padding:13px;font-size:.9rem;font-weight:800;font-family:'Nunito',sans-serif;cursor:pointer;margin-top:8px;">Continuar</button>
+      <div style="height:16px;"></div>
     </div>
-    <div style="height:16px;"></div>
+
+    <!-- PASSO 2: avaliacao -->
+    <div id="ip-p2" style="display:none;">
+      <div style="font-size:.85rem;color:var(--suave);margin-bottom:14px;">Marque o que voce ja vivenciou com este profissional:</div>
+      <div id="ip-tags-form" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;"></div>
+      <div class="campo"><label>Seu comentario</label><textarea id="ip-obs" placeholder="Conte o que te fez confiar nesse profissional..." style="height:90px;resize:none;" maxlength="500"></textarea></div>
+      <div class="campo"><label>Seu nome</label><input id="ip-autor" placeholder="Como quer ser identificada"></div>
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <button onclick="ipMostrarPasso(1)" style="flex:1;border:1.5px solid var(--borda);background:none;border-radius:var(--radius-sm);padding:12px;font-size:.85rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;">Voltar</button>
+        <button onclick="salvarIndicacaoProfissional()" style="flex:2;background:var(--laranja);color:#fff;border:none;border-radius:var(--radius-sm);padding:12px;font-size:.85rem;font-weight:800;font-family:'Nunito',sans-serif;cursor:pointer;">Enviar indicacao</button>
+      </div>
+      <div style="height:16px;"></div>
+    </div>
   </div>
 </div>
 
@@ -4571,14 +4662,74 @@ function votarTag(profId, idx, el){
 }
 
 // ═══════════════════════════════════════════════════
-// INDICAR ESCOLA
+// INDICAR ESCOLA — multi-step
 // ═══════════════════════════════════════════════════
 const FORM_PALAVRA_URL = "https://forms.gle/47Kd6cWrtWxeHoXJ6";
+let iePassoAtual = 1;
+const IE_NOTAS = {acolhimento:0, professores:0, comunicacao:0, estrutura:0, alimentacao:0};
+
+function ieIniciarEstrelas(){
+  document.querySelectorAll(".estrelas-input").forEach(wrap=>{
+    const cat = wrap.dataset.cat;
+    wrap.innerHTML = [1,2,3,4,5].map(n=>
+      `<button type="button" class="estrela-btn${IE_NOTAS[cat]>=n?" ativa":""}" data-n="${n}" data-cat="${cat}" onclick="ieSetNota('${cat}',${n})">★</button>`
+    ).join("");
+  });
+}
+function ieSetNota(cat, n){
+  IE_NOTAS[cat] = n;
+  document.querySelectorAll(`.estrela-btn[data-cat="${cat}"]`).forEach(b=>{
+    b.classList.toggle("ativa", parseInt(b.dataset.n)<=n);
+  });
+}
+
+function ieMostrarPasso(n){
+  if(n<1||n>3) return;
+  if(n===2){
+    const nome = document.getElementById("ie-nome").value.trim();
+    const bairro = document.getElementById("ie-bairro").value.trim();
+    if(!nome||!bairro){ toast("Preenche pelo menos nome e bairro"); return; }
+  }
+  if(n===3){ iePreencherResumo(); }
+  [1,2,3].forEach(i=>{
+    document.getElementById("ie-p"+i).style.display = i===n?"block":"none";
+    const dot = document.getElementById("ie-pd"+i);
+    if(dot) dot.className = "passo-dot"+(i===n?" ativo":i<n?" done":"");
+  });
+  document.getElementById("ie-titulo").textContent = `Indicar escola — ${n} de 3`;
+  document.getElementById("sheet-add-escola").scrollTop = 0;
+  iePassoAtual = n;
+}
+
+function iePreencherResumo(){
+  const nome = document.getElementById("ie-nome").value.trim();
+  const bairro = document.getElementById("ie-bairro").value.trim();
+  const end = document.getElementById("ie-endereco").value.trim();
+  const mod = document.getElementById("ie-modalidade").value;
+  const met = document.getElementById("ie-metodologia").value;
+  const mens = document.getElementById("ie-mensalidade").value.trim();
+  const obs = document.getElementById("ie-obs").value.trim();
+  const niveis = [...document.querySelectorAll("#ie-p1 .tag-check.sel")].map(t=>t.dataset.nivel).join(", ");
+  const notasStr = Object.entries(IE_NOTAS).filter(([,v])=>v>0).map(([k,v])=>`${k}: ${"★".repeat(v)}`).join("  ·  ");
+  document.getElementById("ie-resumo").innerHTML =
+    `<strong>${nome}</strong><br>${bairro}${end?" · "+end:""}`+
+    `${mod?"<br>"+mod:""}${met?" · "+met:""}${mens?"<br>Mensalidade: "+mens:""}${niveis?"<br>Niveis: "+niveis:""}`+
+    `${notasStr?"<br><br>"+notasStr:""}${obs?"<br><br><em>\""+obs+"\"</em>":""}`;
+}
 
 function abrirIndicarEscola(){
-  ["ie-nome","ie-bairro","ie-faixa","ie-mensalidade","ie-obs"].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=""; });
+  ["ie-nome","ie-endereco","ie-bairro","ie-tel","ie-instagram","ie-site","ie-mensalidade","ie-obs"].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value="";
+  });
   ["ie-modalidade","ie-metodologia"].forEach(id=>{ const el=document.getElementById(id); if(el) el.selectedIndex=0; });
+  document.querySelectorAll("#ie-p1 .tag-check").forEach(t=>t.classList.remove("sel"));
+  Object.keys(IE_NOTAS).forEach(k=>IE_NOTAS[k]=0);
   const autor = document.getElementById("ie-autor"); if(autor) autor.value = STATE.usuario?.nome||"";
+  document.getElementById("ie-lat").value=""; document.getElementById("ie-lng").value="";
+  document.getElementById("ie-geo-status").style.display="none";
+  document.getElementById("ie-btn-pin").style.display="none";
+  ieMostrarPasso(1);
+  ieIniciarEstrelas();
   document.getElementById("veu-add-escola").classList.add("aberto");
   document.getElementById("sheet-add-escola").classList.add("aberto");
 }
@@ -4586,16 +4737,68 @@ function fecharIndicarEscola(){
   document.getElementById("veu-add-escola").classList.remove("aberto");
   document.getElementById("sheet-add-escola").classList.remove("aberto");
 }
+
+async function ieGeocode(){
+  const nome = document.getElementById("ie-nome").value.trim();
+  const end = document.getElementById("ie-endereco").value.trim();
+  const bairro = document.getElementById("ie-bairro").value.trim();
+  const query = [nome, end, bairro, "Rio de Janeiro"].filter(Boolean).join(", ");
+  const status = document.getElementById("ie-geo-status");
+  const btnPin = document.getElementById("ie-btn-pin");
+  status.style.display="block";
+  status.style.background="#FFF9E0"; status.style.color="#7A5C00";
+  status.textContent="Buscando localizacao...";
+  btnPin.style.display="none";
+  try{
+    const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`,{headers:{"Accept-Language":"pt-BR"}});
+    const data = await r.json();
+    if(data.length){
+      document.getElementById("ie-lat").value = data[0].lat;
+      document.getElementById("ie-lng").value = data[0].lon;
+      status.style.background="#E8F8EE"; status.style.color="#1A6B3C";
+      status.textContent="Localizacao encontrada!";
+    } else {
+      status.style.background="#FEE8F2"; status.style.color="#8B0040";
+      status.textContent="Nao encontramos automaticamente.";
+      btnPin.style.display="block";
+    }
+  }catch(e){
+    status.style.background="#FEE8F2"; status.style.color="#8B0040";
+    status.textContent="Erro de conexao. Tente marcar no mapa.";
+    btnPin.style.display="block";
+  }
+}
+
+function ieIniciarPin(){
+  fecharIndicarEscola();
+  setarTela("mapa");
+  setTimeout(()=>{
+    modoPin=true;
+    window._pinParaEscola = true;
+    document.getElementById("leaflet-map").style.cursor="crosshair";
+    document.getElementById("aviso-pin-mapa").style.display="block";
+    document.getElementById("aviso-pin-mapa").textContent="📍 Toque no mapa onde fica a escola";
+  },300);
+}
+
 async function salvarIndicacaoEscola(){
   const nome = document.getElementById("ie-nome").value.trim();
   const bairro = document.getElementById("ie-bairro").value.trim();
   if(!nome||!bairro){ toast("Preenche pelo menos nome e bairro"); return; }
+  const niveis = [...document.querySelectorAll("#ie-p1 .tag-check.sel")].map(t=>t.dataset.nivel);
   const dados = {
     nome, bairro,
+    endereco: document.getElementById("ie-endereco").value.trim(),
+    tel: document.getElementById("ie-tel").value.trim(),
+    instagram: document.getElementById("ie-instagram").value.trim(),
+    site: document.getElementById("ie-site").value.trim(),
+    lat: document.getElementById("ie-lat").value||null,
+    lng: document.getElementById("ie-lng").value||null,
+    niveis,
     modalidade: document.getElementById("ie-modalidade").value,
     metodologia: document.getElementById("ie-metodologia").value,
-    faixa: document.getElementById("ie-faixa").value.trim(),
     mensalidade: document.getElementById("ie-mensalidade").value.trim(),
+    notas: {...IE_NOTAS},
     obs: document.getElementById("ie-obs").value.trim(),
     autor: document.getElementById("ie-autor").value.trim() || STATE.usuario?.nome || "Anonima",
     uid: STATE.uid||"",
@@ -4610,13 +4813,50 @@ async function salvarIndicacaoEscola(){
 }
 
 // ═══════════════════════════════════════════════════
-// INDICAR PROFISSIONAL
+// INDICAR PROFISSIONAL — multi-step
 // ═══════════════════════════════════════════════════
+let ipPassoAtual = 1;
+const IP_TAGS_FORM = new Set();
+const IP_TAGS_LIST = ["Nao medicaliza","Responde no WhatsApp","Excelente com recem-nascidos","Explica com calma","Pontual","Aceita convenio","Acolhedora","Atende amamentacao"];
+
+function ipMostrarPasso(n){
+  if(n<1||n>2) return;
+  if(n===2){
+    const nome = document.getElementById("ip-nome").value.trim();
+    const esp = document.getElementById("ip-esp").value;
+    if(!nome||!esp){ toast("Preenche nome e especialidade"); return; }
+    ipRenderTagsForm();
+  }
+  [1,2].forEach(i=>{
+    document.getElementById("ip-p"+i).style.display = i===n?"block":"none";
+    const dot = document.getElementById("ip-pd"+i);
+    if(dot) dot.className = "passo-dot"+(i===n?" ativo":i<n?" done":"");
+  });
+  document.getElementById("ip-titulo").textContent = `Indicar profissional — ${n} de 2`;
+  document.getElementById("sheet-add-prof").scrollTop = 0;
+  ipPassoAtual = n;
+}
+
+function ipRenderTagsForm(){
+  const wrap = document.getElementById("ip-tags-form");
+  wrap.innerHTML = IP_TAGS_LIST.map(t=>
+    `<span class="votavel-tag${IP_TAGS_FORM.has(t)?" votado":""}" onclick="ipToggleTag(this,'${t}')">${t}</span>`
+  ).join("");
+}
+function ipToggleTag(el, t){
+  if(IP_TAGS_FORM.has(t)){ IP_TAGS_FORM.delete(t); el.classList.remove("votado"); }
+  else { IP_TAGS_FORM.add(t); el.classList.add("votado"); }
+}
+
 function abrirIndicarProfissional(){
-  ["ip-nome","ip-bairro","ip-contato","ip-preco","ip-obs","ip-esp-outro"].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=""; });
-  const espEl = document.getElementById("ip-esp"); if(espEl) espEl.selectedIndex=0;
+  ["ip-nome","ip-endereco","ip-bairro","ip-whatsapp","ip-instagram","ip-preco","ip-convenio","ip-obs","ip-esp-outro"].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value="";
+  });
+  ["ip-esp","ip-atendimento"].forEach(id=>{ const el=document.getElementById(id); if(el) el.selectedIndex=0; });
   document.getElementById("ip-esp-outro-wrap").style.display="none";
+  IP_TAGS_FORM.clear();
   const autor = document.getElementById("ip-autor"); if(autor) autor.value = STATE.usuario?.nome||"";
+  ipMostrarPasso(1);
   document.getElementById("veu-add-prof").classList.add("aberto");
   document.getElementById("sheet-add-prof").classList.add("aberto");
 }
@@ -4624,6 +4864,7 @@ function fecharIndicarProfissional(){
   document.getElementById("veu-add-prof").classList.remove("aberto");
   document.getElementById("sheet-add-prof").classList.remove("aberto");
 }
+
 async function salvarIndicacaoProfissional(){
   const nome = document.getElementById("ip-nome").value.trim();
   let esp = document.getElementById("ip-esp").value;
@@ -4631,9 +4872,14 @@ async function salvarIndicacaoProfissional(){
   if(!nome||!esp){ toast("Preenche pelo menos nome e especialidade"); return; }
   const dados = {
     nome, esp,
+    endereco: document.getElementById("ip-endereco").value.trim(),
     bairro: document.getElementById("ip-bairro").value.trim(),
-    contato: document.getElementById("ip-contato").value.trim(),
+    whatsapp: document.getElementById("ip-whatsapp").value.trim(),
+    instagram: document.getElementById("ip-instagram").value.trim(),
     preco: document.getElementById("ip-preco").value.trim(),
+    convenio: document.getElementById("ip-convenio").value.trim(),
+    atendimento: document.getElementById("ip-atendimento").value,
+    tags: [...IP_TAGS_FORM],
     obs: document.getElementById("ip-obs").value.trim(),
     autor: document.getElementById("ip-autor").value.trim() || STATE.usuario?.nome || "Anonima",
     uid: STATE.uid||"",
