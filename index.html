@@ -426,7 +426,79 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 .mini-menu-item:hover{background:var(--cinza);}
 .mini-menu-item svg{width:20px;height:20px;color:var(--laranja);}
 
-/* ── TOAST ── */
+/* ── MAIS ── */
+.mais-item{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--borda);cursor:pointer;}
+.mais-item:last-child{border-bottom:none;}
+.mais-icone{width:40px;height:40px;border-radius:12px;background:var(--cream);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.mais-icone svg{width:20px;height:20px;color:var(--laranja);}
+.mais-info{flex:1;}
+.mais-label{font-size:.95rem;font-weight:800;color:var(--texto);}
+.mais-sub{font-size:.75rem;color:var(--suave);margin-top:2px;}
+
+/* ── ESCOLAS / PROFISSIONAIS ── */
+.escola-filtros-scroll{display:flex;gap:8px;padding:10px 16px;overflow-x:auto;background:var(--branco);scrollbar-width:none;}
+.escola-filtros-scroll::-webkit-scrollbar{display:none;}
+.escola-chip{background:var(--cinza);border:1.5px solid var(--borda);border-radius:999px;padding:6px 14px;font-size:.78rem;font-weight:700;color:var(--texto);white-space:nowrap;cursor:pointer;transition:all .15s;}
+.escola-chip.ativo{background:var(--navy);border-color:var(--navy);color:#fff;}
+
+/* card escola */
+.card-escola{background:var(--branco);border-radius:var(--radius);margin-bottom:12px;box-shadow:var(--sombra);overflow:hidden;cursor:pointer;}
+.card-escola-foto{width:100%;height:110px;object-fit:cover;background:linear-gradient(135deg,var(--cream),var(--borda));display:flex;align-items:center;justify-content:center;font-size:2.5rem;}
+.card-escola-body{padding:12px 14px;}
+.card-escola-nome{font-size:1rem;font-weight:800;color:var(--texto);margin-bottom:4px;}
+.card-escola-meta{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
+.card-escola-meta span{font-size:.75rem;color:var(--suave);}
+.card-escola-rating{display:flex;align-items:center;gap:5px;margin-bottom:8px;}
+.card-escola-rating .nota{font-size:.9rem;font-weight:800;color:var(--texto);}
+.card-escola-rating .avals{font-size:.72rem;color:var(--suave);}
+.card-escola-destaques{display:flex;gap:6px;flex-wrap:wrap;}
+.destaque-tag{background:var(--cream);border-radius:999px;padding:3px 10px;font-size:.7rem;font-weight:700;color:var(--laranja);}
+.badge-recomendada{display:inline-block;background:#E8F8EE;color:var(--verde);font-size:.65rem;font-weight:700;border-radius:999px;padding:3px 10px;margin-bottom:6px;}
+
+/* card profissional */
+.card-prof{background:var(--branco);border-radius:var(--radius);margin-bottom:12px;box-shadow:var(--sombra);padding:14px;display:flex;gap:12px;cursor:pointer;}
+.card-prof-avatar{width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,var(--cream),var(--borda));display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:900;color:var(--laranja);flex-shrink:0;}
+.card-prof-info{flex:1;min-width:0;}
+.card-prof-nome{font-size:.95rem;font-weight:800;color:var(--texto);}
+.card-prof-esp{font-size:.78rem;font-weight:700;color:var(--laranja);margin-bottom:3px;}
+.card-prof-meta{font-size:.72rem;color:var(--suave);margin-bottom:6px;}
+.card-prof-tags{display:flex;gap:5px;flex-wrap:wrap;}
+.prof-tag{background:var(--cinza);border-radius:999px;padding:2px 9px;font-size:.68rem;font-weight:600;color:var(--suave);}
+
+/* detalhe profissional / escola */
+.detalhe-tela{position:fixed;inset:0;background:var(--cinza);z-index:700;display:none;overflow-y:auto;}
+.detalhe-tela.aberto{display:block;}
+.detalhe-back{display:flex;align-items:center;gap:8px;padding:52px 16px 12px;background:var(--branco);cursor:pointer;}
+.detalhe-back svg{width:20px;height:20px;color:var(--suave);}
+.detalhe-back span{font-size:.9rem;font-weight:700;color:var(--suave);}
+.detalhe-secao{background:var(--branco);margin-bottom:8px;padding:16px;}
+.detalhe-secao-titulo{font-size:.7rem;font-weight:800;color:var(--suave);letter-spacing:.05em;text-transform:uppercase;margin-bottom:12px;}
+.info-linha{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--cinza);font-size:.85rem;}
+.info-linha:last-child{border-bottom:none;}
+.info-linha .label{color:var(--suave);}
+.info-linha .valor{font-weight:700;color:var(--texto);}
+.contato-btn{flex:1;background:var(--cinza);border-radius:var(--radius-sm);padding:11px 8px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;border:none;}
+.contato-btn svg{width:22px;height:22px;color:var(--laranja);}
+.contato-btn span{font-size:.68rem;font-weight:700;color:var(--suave);}
+.palavra-box{background:var(--cream);border-radius:var(--radius-sm);padding:14px;border-left:3px solid var(--laranja);}
+.palavra-texto{font-size:.85rem;color:var(--navy);line-height:1.6;font-style:italic;}
+.palavra-autor{font-size:.72rem;color:var(--laranja);font-weight:700;margin-top:8px;}
+
+/* tags votaveis */
+.votavel-tag{display:inline-flex;align-items:center;gap:6px;background:var(--cinza);border:1.5px solid var(--borda);border-radius:999px;padding:7px 14px;font-size:.8rem;font-weight:700;color:var(--texto);cursor:pointer;transition:all .15s;margin:4px;}
+.votavel-tag.votado{background:var(--cream);border-color:var(--laranja);color:var(--laranja);}
+.votavel-tag .contagem{font-size:.72rem;font-weight:800;color:var(--suave);}
+.votavel-tag.votado .contagem{color:var(--laranja);}
+.votavel-tag.confiavel{border-color:var(--verde);}
+.votavel-tag.confiavel .contagem{color:var(--verde);}
+
+/* destaques grid escola */
+.destaques-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.destaque-box{background:var(--cream);border-radius:var(--radius-sm);padding:10px 6px;text-align:center;}
+.destaque-box .valor{font-size:1.1rem;font-weight:900;color:var(--laranja);}
+.destaque-box .nome{font-size:.68rem;color:var(--suave);margin-top:2px;font-weight:700;}
+
+/* TOAST ── */
 .toast{position:fixed;bottom:calc(var(--nav) + 16px);left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:12px 24px;border-radius:999px;font-size:.85rem;font-weight:600;z-index:9000;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;box-shadow:var(--sombra-forte);}
 .toast.show{opacity:1;}
 
@@ -645,6 +717,121 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
       </div>
     </div>
     <div class="salvos-lista pb-nav" id="salvos-lista"></div>
+  </div>
+
+  <!-- TELA: MAIS -->
+  <div class="tela" id="tela-mais">
+    <div class="app-header" style="padding-bottom:8px;">
+      <div style="font-size:1.4rem;font-weight:900;color:var(--texto);">Mais</div>
+    </div>
+    <div style="padding:8px 16px 4px;">
+      <div class="mais-item" onclick="setarTela('escolas')">
+        <div class="mais-icone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M9 22V12h6v10"/></svg></div>
+        <div class="mais-info">
+          <div class="mais-label">Escolas e Creches</div>
+          <div class="mais-sub">Avaliadas por maes da comunidade</div>
+        </div>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;color:var(--suave);flex-shrink:0;"><path d="m9 18 6-6-6-6"/></svg>
+      </div>
+      <div class="mais-item" onclick="setarTela('profissionais')">
+        <div class="mais-icone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+        <div class="mais-info">
+          <div class="mais-label">Profissionais</div>
+          <div class="mais-sub">Pediatras, doulas, nutricionistas e mais</div>
+        </div>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;color:var(--suave);flex-shrink:0;"><path d="m9 18 6-6-6-6"/></svg>
+      </div>
+      <div class="mais-item" onclick="setarTela('salvos')">
+        <div class="mais-icone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg></div>
+        <div class="mais-info">
+          <div class="mais-label">Favoritos</div>
+          <div class="mais-sub">Lugares e eventos salvos</div>
+        </div>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;color:var(--suave);flex-shrink:0;"><path d="m9 18 6-6-6-6"/></svg>
+      </div>
+      <div style="height:1px;background:var(--borda);margin:8px 0;"></div>
+      <div class="mais-item" onclick="abrirFeedback()">
+        <div class="mais-icone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
+        <div class="mais-info">
+          <div class="mais-label">Enviar feedback</div>
+          <div class="mais-sub">Sugestoes e melhorias</div>
+        </div>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;color:var(--suave);flex-shrink:0;"><path d="m9 18 6-6-6-6"/></svg>
+      </div>
+    </div>
+    <div style="height:calc(var(--nav) + 16px);"></div>
+  </div>
+
+  <!-- TELA: ESCOLAS -->
+  <div class="tela" id="tela-escolas">
+    <div class="app-header" style="padding-bottom:12px;">
+      <div style="font-size:1.4rem;font-weight:900;color:var(--texto);margin-bottom:12px;">Escolas e Creches</div>
+      <div class="busca-container" style="margin:0;">
+        <span class="busca-icone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span>
+        <input class="busca-input" placeholder="Buscar escolas e creches..." id="busca-escolas" oninput="filtrarEscolas()">
+      </div>
+    </div>
+    <!-- filtros principais -->
+    <div class="escola-filtros-scroll">
+      <div class="escola-chip ativo" data-ef="bairro" onclick="abrirFiltroEscola('bairro',this)">Bairro</div>
+      <div class="escola-chip" data-ef="faixa" onclick="abrirFiltroEscola('faixa',this)">Faixa etaria</div>
+      <div class="escola-chip" data-ef="modalidade" onclick="abrirFiltroEscola('modalidade',this)">Modalidade</div>
+      <div class="escola-chip" data-ef="metodologia" onclick="abrirFiltroEscola('metodologia',this)">Metodologia</div>
+      <div class="escola-chip" data-ef="mensalidade" onclick="abrirFiltroEscola('mensalidade',this)">Mensalidade</div>
+      <div class="escola-chip" data-ef="nota" onclick="abrirFiltroEscola('nota',this)">Avaliacao</div>
+    </div>
+    <!-- diferenciais -->
+    <div style="padding:8px 16px 10px;background:var(--branco);border-bottom:1px solid var(--borda);">
+      <div style="font-size:.72rem;font-weight:700;color:var(--suave);margin-bottom:6px;">DIFERENCIAIS</div>
+      <div class="escola-filtros-scroll" style="padding:0;">
+        <div class="escola-chip" data-dif="bilingue" onclick="toggleDiferencial(this,'bilingue')">Bilingue</div>
+        <div class="escola-chip" data-dif="maker" onclick="toggleDiferencial(this,'maker')">Espaco maker</div>
+        <div class="escola-chip" data-dif="quadra" onclick="toggleDiferencial(this,'quadra')">Quadra</div>
+        <div class="escola-chip" data-dif="integral" onclick="toggleDiferencial(this,'integral')">Periodo integral</div>
+        <div class="escola-chip" data-dif="externo" onclick="toggleDiferencial(this,'externo')">Area externa</div>
+      </div>
+    </div>
+    <div style="padding:12px 16px 4px;font-size:.78rem;font-weight:700;color:var(--suave);" id="escolas-count">0 escolas</div>
+    <div id="escolas-lista" style="padding:0 16px;"></div>
+    <div style="padding:12px 16px 8px;">
+      <button id="btn-indicar-escola" onclick="abrirIndicarEscola()" style="width:100%;background:var(--cream);border:1.5px solid var(--laranja);border-radius:var(--radius-sm);padding:13px;font-size:.9rem;font-weight:800;color:var(--laranja);cursor:pointer;font-family:'Nunito',sans-serif;">+ Indicar escola</button>
+    </div>
+    <div style="height:calc(var(--nav) + 8px);"></div>
+  </div>
+
+  <!-- TELA: PROFISSIONAIS -->
+  <div class="tela" id="tela-profissionais">
+    <div class="app-header" style="padding-bottom:12px;">
+      <div style="font-size:1.4rem;font-weight:900;color:var(--texto);margin-bottom:12px;">Profissionais</div>
+      <div class="busca-container" style="margin:0;">
+        <span class="busca-icone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span>
+        <input class="busca-input" placeholder="Ex.: pediatra na Tijuca..." id="busca-profissionais" oninput="filtrarProfissionais()">
+      </div>
+    </div>
+    <!-- especialidades -->
+    <div class="escola-filtros-scroll" style="border-bottom:1px solid var(--borda);">
+      <div class="escola-chip ativo" data-esp="Todos" onclick="setEspecialidade(this,'Todos')">Todos</div>
+      <div class="escola-chip" data-esp="Pediatra" onclick="setEspecialidade(this,'Pediatra')">Pediatra</div>
+      <div class="escola-chip" data-esp="Doula" onclick="setEspecialidade(this,'Doula')">Doula</div>
+      <div class="escola-chip" data-esp="Nutricionista" onclick="setEspecialidade(this,'Nutricionista')">Nutricionista</div>
+      <div class="escola-chip" data-esp="Consultora do sono" onclick="setEspecialidade(this,'Consultora do sono')">Consultora do sono</div>
+      <div class="escola-chip" data-esp="Fisioterapeuta pelvica" onclick="setEspecialidade(this,'Fisioterapeuta pelvica')">Fisio pelvica</div>
+      <div class="escola-chip" data-esp="Psicologa" onclick="setEspecialidade(this,'Psicologa')">Psicologa</div>
+      <div class="escola-chip" data-esp="Consultora de amamentacao" onclick="setEspecialidade(this,'Consultora de amamentacao')">Amamentacao</div>
+    </div>
+    <!-- filtros secundarios -->
+    <div class="escola-filtros-scroll">
+      <div class="escola-chip" data-pf="bairro" onclick="abrirFiltroProfissional('bairro',this)">Bairro</div>
+      <div class="escola-chip" data-pf="atendimento" onclick="abrirFiltroProfissional('atendimento',this)">Atendimento</div>
+      <div class="escola-chip" data-pf="preco" onclick="abrirFiltroProfissional('preco',this)">Preco</div>
+      <div class="escola-chip" data-pf="convenio" onclick="abrirFiltroProfissional('convenio',this)">Convenio</div>
+    </div>
+    <div style="padding:12px 16px 4px;font-size:.78rem;font-weight:700;color:var(--suave);" id="profissionais-count">0 profissionais</div>
+    <div id="profissionais-lista" style="padding:0 16px;"></div>
+    <div style="padding:12px 16px 8px;">
+      <button id="btn-indicar-prof" onclick="abrirIndicarProfissional()" style="width:100%;background:var(--cream);border:1.5px solid var(--laranja);border-radius:var(--radius-sm);padding:13px;font-size:.9rem;font-weight:800;color:var(--laranja);cursor:pointer;font-family:'Nunito',sans-serif;">+ Indicar profissional</button>
+    </div>
+    <div style="height:calc(var(--nav) + 8px);"></div>
   </div>
 
 </div><!-- #app -->
@@ -943,15 +1130,23 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
   </div>
 </div>
 
+<!-- ══ TOOLTIP FAB ══ -->
+<div id="fab-tooltip" style="display:none;position:fixed;bottom:calc(var(--nav) + 18px);left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;border-radius:var(--radius);padding:14px 18px;width:260px;font-size:.82rem;line-height:1.5;z-index:510;text-align:center;box-shadow:var(--sombra-forte);">
+  <div style="font-weight:800;margin-bottom:4px;">Voce sabia?</div>
+  <div>Este app e feito pelas maes, para as maes. Toque no + para indicar um lugar, evento, escola ou profissional da sua confianca!</div>
+  <button onclick="dispensarTooltipFab()" style="margin-top:10px;background:var(--laranja);color:#fff;border:none;border-radius:999px;padding:6px 18px;font-size:.78rem;font-weight:800;font-family:'Nunito',sans-serif;cursor:pointer;">Entendi!</button>
+  <div style="position:absolute;bottom:-7px;left:50%;transform:translateX(-50%);width:14px;height:14px;background:var(--navy);clip-path:polygon(0 0,100% 0,50% 100%);"></div>
+</div>
+
 <!-- ══ BOTTOM NAV ══ -->
 <nav id="bottom-nav" style="display:none;">
   <button class="nav-btn ativo" data-tela="inicio" onclick="setarTela('inicio')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-    Início
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    Descobrir
   </button>
   <button class="nav-btn" data-tela="mapa" onclick="setarTela('mapa')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
-    Mapa
+    Lugares
   </button>
   <button class="nav-fab" onclick="toggleMiniMenu()">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -960,9 +1155,9 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
     Agenda
   </button>
-  <button class="nav-btn" data-tela="salvos" onclick="setarTela('salvos')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
-    Salvos
+  <button class="nav-btn" data-tela="mais" onclick="setarTela('mais')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="12" cy="19" r="1" fill="currentColor"/></svg>
+    Mais
   </button>
 </nav>
 
@@ -970,11 +1165,19 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 <div class="mini-menu" id="mini-menu">
   <div class="mini-menu-item" onclick="abrirAddLugar();fecharMiniMenu()">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-    Adicionar lugar
+    Indicar lugar
   </div>
   <div class="mini-menu-item" onclick="abrirAddEvento();fecharMiniMenu()">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="12" y1="14" x2="12" y2="18"/><line x1="10" y1="16" x2="14" y2="16"/></svg>
-    Sugerir evento
+    Indicar evento
+  </div>
+  <div class="mini-menu-item" onclick="setarTela('escolas');fecharMiniMenu();setTimeout(()=>document.getElementById('btn-indicar-escola').scrollIntoView({behavior:'smooth'}),300)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M9 22V12h6v10"/></svg>
+    Indicar escola
+  </div>
+  <div class="mini-menu-item" onclick="setarTela('profissionais');fecharMiniMenu();setTimeout(()=>document.getElementById('btn-indicar-prof').scrollIntoView({behavior:'smooth'}),300)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    Indicar profissional
   </div>
   <div style="height:1px;background:var(--cinza);margin:4px 0;"></div>
   <div class="mini-menu-item" onclick="abrirFeedback();fecharMiniMenu()" style="color:var(--suave);">
@@ -1788,11 +1991,18 @@ function setarTela(tela){
   document.querySelectorAll(".nav-btn[data-tela]").forEach(b=>b.classList.remove("ativo"));
   const nb = document.querySelector(`.nav-btn[data-tela="${tela}"]`);
   if(nb) nb.classList.add("ativo");
+  // telas filhas do "Mais" mantêm o botão Mais ativo
+  if(["escolas","profissionais","salvos"].includes(tela)){
+    const mais = document.querySelector('.nav-btn[data-tela="mais"]');
+    if(mais) mais.classList.add("ativo");
+  }
   STATE.telaAtiva = tela;
   fecharMiniMenu();
   if(tela==="mapa"){ iniciarMapa(); setTimeout(()=>{if(map)map.invalidateSize();},200); }
   if(tela==="agenda") renderAgenda();
   if(tela==="salvos") renderSalvos();
+  if(tela==="escolas") renderEscolas();
+  if(tela==="profissionais") renderProfissionais();
   // deep link
   history.pushState(null,"","#"+tela);
 }
@@ -3977,9 +4187,313 @@ async function init(){
   checkOnboarding();
   renderHome();
   handleDeepLink();
+  mostrarTooltipFabSeNecessario();
 }
 
 init();
+
+// ═══════════════════════════════════════════════════
+// TOOLTIP FAB
+// ═══════════════════════════════════════════════════
+function dispensarTooltipFab(){
+  document.getElementById("fab-tooltip").style.display="none";
+  localStorage.setItem("ovm_fab_tooltip","1");
+}
+function mostrarTooltipFabSeNecessario(){
+  if(!localStorage.getItem("ovm_fab_tooltip")){
+    setTimeout(()=>{
+      const el = document.getElementById("fab-tooltip");
+      if(el) el.style.display="block";
+    }, 2000);
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// DADOS MOCK — ESCOLAS
+// ═══════════════════════════════════════════════════
+const ESCOLAS_MOCK = [
+  {id:"e1", nome:"Escola Pequenos Passos", bairro:"Tijuca", modalidade:"Creche", metodologia:"Sociointeracionista", faixaMin:0, faixaMax:5, mensMin:1800, mensMax:2500, nota:4.6, avaliacoes:87, diferenciais:["bilingue","integral"], destaques:{acolhimento:4.8,professores:4.6,comunicacao:4.5,estrutura:4.4,alimentacao:4.2}, recomendada:true, foto:"", exemplo:true, palavra:"Nossa proposta e acolher cada crianca em seu ritmo, com uma equipe dedicada e comunicacao proxima com as familias.", palavraAutor:"Coordenacao pedagogica"},
+  {id:"e2", nome:"Escola Raizes do Amanha", bairro:"Botafogo", modalidade:"Educacao Infantil", metodologia:"Construtivista", faixaMin:2, faixaMax:6, mensMin:2000, mensMax:2800, nota:4.4, avaliacoes:63, diferenciais:["externo","integral"], destaques:{acolhimento:4.5,professores:4.3,comunicacao:4.2,estrutura:4.6,alimentacao:4.7}, recomendada:false, foto:"", exemplo:true, palavra:"", palavraAutor:""},
+];
+
+const PROF_MOCK = [
+  {id:"p1", nome:"Dra. Ana Beatriz", esp:"Pediatra", bairro:"Tijuca", preco:350, convenios:["Bradesco","Amil","SulAmerica"], atendimento:"Presencial", idadeAtendida:"0 a 18 anos", nota:4.9, avaliacoes:56, foto:"", instagram:"@dra.anabeatriz", whatsapp:"", crm:"CRM 52.12345-RJ", sobre:"Pediatra com foco em cuidado integral, desde o recem-nascido ate a adolescencia.", tags:[{t:"Nao medicaliza",v:31},{t:"Responde no WhatsApp",v:28},{t:"Excelente com recem-nascidos",v:24},{t:"Explica com calma",v:19},{t:"Pontual",v:15},{t:"Aceita convenio",v:12},{t:"Acolhedora",v:9},{t:"Atende amamentacao",v:7}], exemplo:true, palavra:"Acredito em uma pediatria humanizada, que escuta a mae tanto quanto o bebe.", palavraAutor:"Dra. Ana Beatriz"},
+  {id:"p2", nome:"Juliana Castro", esp:"Doula", bairro:"Botafogo", preco:250, convenios:[], atendimento:"Presencial", idadeAtendida:"Gestantes", nota:4.8, avaliacoes:38, foto:"", instagram:"@julianacastro.doula", whatsapp:"", crm:"", sobre:"Doula e consultora de amamentacao com 8 anos de experiencia.", tags:[{t:"Suporte emocional",v:22},{t:"Presente no parto",v:19},{t:"Boa comunicacao com equipe",v:14},{t:"Acolhedora",v:11},{t:"Responde no WhatsApp",v:9},{t:"Pontual",v:7}], exemplo:true, palavra:"", palavraAutor:""},
+];
+
+// ═══════════════════════════════════════════════════
+// ESTADO FILTROS
+// ═══════════════════════════════════════════════════
+const FILTROS_ESCOLAS = {bairro:"", faixa:"", modalidade:"", metodologia:"", mensalidade:"", nota:0, diferenciais:new Set()};
+const FILTROS_PROF = {esp:"Todos", bairro:"", atendimento:"", preco:0, convenio:""};
+
+// ═══════════════════════════════════════════════════
+// RENDER ESCOLAS
+// ═══════════════════════════════════════════════════
+function renderEscolas(){
+  const busca = (document.getElementById("busca-escolas")||{value:""}).value.toLowerCase();
+  let lista = ESCOLAS_MOCK.filter(e=>{
+    if(busca && !e.nome.toLowerCase().includes(busca) && !e.bairro.toLowerCase().includes(busca)) return false;
+    if(FILTROS_ESCOLAS.bairro && e.bairro!==FILTROS_ESCOLAS.bairro) return false;
+    if(FILTROS_ESCOLAS.modalidade && e.modalidade!==FILTROS_ESCOLAS.modalidade) return false;
+    if(FILTROS_ESCOLAS.metodologia && e.metodologia!==FILTROS_ESCOLAS.metodologia) return false;
+    if(FILTROS_ESCOLAS.nota && e.nota<FILTROS_ESCOLAS.nota) return false;
+    if(FILTROS_ESCOLAS.diferenciais.size>0){
+      for(const d of FILTROS_ESCOLAS.diferenciais){
+        if(!(e.diferenciais||[]).includes(d)) return false;
+      }
+    }
+    return true;
+  });
+  const cont = document.getElementById("escolas-lista");
+  const count = document.getElementById("escolas-count");
+  if(!cont) return;
+  count.textContent = lista.length+" escola"+(lista.length!==1?"s":"")+" encontrada"+(lista.length!==1?"s":"");
+  const aviso = lista.some(e=>e.exemplo) ? `<div style="background:#FFF9E0;border-radius:var(--radius-sm);padding:10px 14px;font-size:.78rem;color:#7A5C00;font-weight:600;margin-bottom:12px;">Estes sao exemplos ilustrativos. Indique as escolas da sua confianca!</div>` : "";
+  cont.innerHTML = aviso + lista.map(e=>cardEscola(e)).join("");
+}
+
+function cardEscola(e){
+  const faixaStr = e.faixaMin===0 ? `${e.faixaMax>0?e.faixaMax+" anos":"recém-nascido"}` : `${e.faixaMin} a ${e.faixaMax} anos`;
+  const faixaLabel = e.faixaMin===0 ? `0 a ${e.faixaMax} anos` : `${e.faixaMin} a ${e.faixaMax} anos`;
+  const top3 = Object.entries(e.destaques).sort((a,b)=>b[1]-a[1]).slice(0,3);
+  const estrelas = Math.round(e.nota);
+  return `<div class="card-escola" onclick="abrirDetalheEscola('${e.id}')">
+    <div class="card-escola-foto">${e.foto?`<img src="${e.foto}" style="width:100%;height:100%;object-fit:cover;">`:""}</div>
+    <div class="card-escola-body">
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px;">
+        ${e.recomendada?`<div class="badge-recomendada">Muito recomendada</div>`:""}
+        ${e.exemplo?`<div style="display:inline-block;background:#F0F0F0;color:#888;font-size:.62rem;font-weight:700;border-radius:999px;padding:3px 10px;">Exemplo ilustrativo</div>`:""}
+      </div>
+      <div class="card-escola-nome">${e.nome}</div>
+      <div class="card-escola-meta">
+        <span>📍 ${e.bairro}</span>
+        <span>· ${faixaLabel}</span>
+        <span>· R$ ${e.mensMin.toLocaleString()} - ${e.mensMax.toLocaleString()}</span>
+      </div>
+      <div class="card-escola-rating">
+        <span style="color:var(--amarelo);font-size:.85rem;">${"★".repeat(estrelas)}${"☆".repeat(5-estrelas)}</span>
+        <span class="nota">${e.nota}</span>
+        <span class="avals">${e.avaliacoes} avaliacoes</span>
+      </div>
+      <div class="card-escola-destaques">
+        ${top3.map(([k])=>`<span class="destaque-tag">${k.charAt(0).toUpperCase()+k.slice(1)}</span>`).join("")}
+      </div>
+    </div>
+  </div>`;
+}
+
+function filtrarEscolas(){ renderEscolas(); }
+function toggleDiferencial(el, dif){
+  if(FILTROS_ESCOLAS.diferenciais.has(dif)){ FILTROS_ESCOLAS.diferenciais.delete(dif); el.classList.remove("ativo"); }
+  else { FILTROS_ESCOLAS.diferenciais.add(dif); el.classList.add("ativo"); }
+  renderEscolas();
+}
+function abrirFiltroEscola(tipo, el){ /* expansão futura */ }
+function abrirFiltroProfissional(tipo, el){ /* expansão futura */ }
+
+// ═══════════════════════════════════════════════════
+// RENDER PROFISSIONAIS
+// ═══════════════════════════════════════════════════
+function renderProfissionais(){
+  const busca = (document.getElementById("busca-profissionais")||{value:""}).value.toLowerCase();
+  let lista = PROF_MOCK.filter(p=>{
+    if(FILTROS_PROF.esp!=="Todos" && p.esp!==FILTROS_PROF.esp) return false;
+    if(FILTROS_PROF.bairro && p.bairro!==FILTROS_PROF.bairro) return false;
+    if(busca){
+      const hit = p.nome.toLowerCase().includes(busca)||p.esp.toLowerCase().includes(busca)||p.bairro.toLowerCase().includes(busca);
+      if(!hit) return false;
+    }
+    return true;
+  });
+  const cont = document.getElementById("profissionais-lista");
+  const count = document.getElementById("profissionais-count");
+  if(!cont) return;
+  count.textContent = lista.length+" profissional"+(lista.length!==1?"is":"")+" encontrado"+(lista.length!==1?"s":"");
+  const aviso = lista.some(p=>p.exemplo) ? `<div style="background:#FFF9E0;border-radius:var(--radius-sm);padding:10px 14px;font-size:.78rem;color:#7A5C00;font-weight:600;margin-bottom:12px;">Estes sao exemplos ilustrativos. Indique os seus profissionais favoritos!</div>` : "";
+  cont.innerHTML = aviso + lista.map(p=>cardProf(p)).join("");
+}
+
+function cardProf(p){
+  const iniciais = p.nome.replace("Dra.","").replace("Dr.","").trim().split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase();
+  const top2 = p.tags.slice(0,2);
+  return `<div class="card-prof" onclick="abrirDetalheProf('${p.id}')">
+    <div class="card-prof-avatar">${iniciais}</div>
+    <div class="card-prof-info">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div>
+          <div class="card-prof-nome">${p.nome}</div>
+          <div class="card-prof-esp">${p.esp}</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:.85rem;font-weight:800;color:var(--texto);">★ ${p.nota}</div>
+          <div style="font-size:.68rem;color:var(--suave);">${p.avaliacoes} aval.</div>
+        </div>
+      </div>
+      <div class="card-prof-meta">${p.bairro} · R$ ${p.preco}</div>
+      <div class="card-prof-tags">${top2.map(t=>`<span class="prof-tag">${t.t}</span>`).join("")}</div>
+    </div>
+  </div>`;
+}
+
+function filtrarProfissionais(){ renderProfissionais(); }
+function setEspecialidade(el, esp){
+  document.querySelectorAll(".escola-chip[data-esp]").forEach(c=>c.classList.remove("ativo"));
+  el.classList.add("ativo");
+  FILTROS_PROF.esp = esp;
+  renderProfissionais();
+}
+
+// ═══════════════════════════════════════════════════
+// DETALHE ESCOLA
+// ═══════════════════════════════════════════════════
+function abrirDetalheEscola(id){
+  const e = ESCOLAS_MOCK.find(x=>x.id===id);
+  if(!e) return;
+  const top5 = Object.entries(e.destaques).sort((a,b)=>b[1]-a[1]);
+  const palavraHtml = e.palavra
+    ? `<div class="detalhe-secao"><div class="detalhe-secao-titulo">Palavra da escola</div>
+        <div class="palavra-box"><div class="palavra-texto">"${e.palavra}"</div><div class="palavra-autor">${e.palavraAutor} — verificado pelo Onde Vamos</div></div></div>`
+    : `<div class="detalhe-secao"><div class="detalhe-secao-titulo">Palavra da escola</div>
+        <div style="font-size:.85rem;color:var(--suave);line-height:1.5;">Esta escola ainda nao enviou uma apresentacao. <a href="https://docs.google.com/forms" target="_blank" style="color:var(--laranja);font-weight:700;">Representa esta escola? Fale com a gente.</a></div></div>`;
+  const html = `<div class="detalhe-back" onclick="fecharDetalheEscola()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+      <span>Escolas</span></div>
+    <div style="background:var(--branco);padding:14px 16px 12px;border-bottom:1px solid var(--borda);">
+      ${e.recomendada?`<div class="badge-recomendada">Muito recomendada</div>`:""}
+      <div style="font-size:1.3rem;font-weight:900;color:var(--texto);margin-bottom:6px;">${e.nome}</div>
+      <div style="font-size:.8rem;color:var(--suave);">📍 ${e.bairro} · ${e.faixaMin} a ${e.faixaMax} anos · R$ ${e.mensMin.toLocaleString()}–${e.mensMax.toLocaleString()}</div>
+      <div style="margin-top:8px;font-size:.9rem;font-weight:800;">★ ${e.nota} <span style="font-size:.75rem;font-weight:600;color:var(--suave);">${e.avaliacoes} avaliacoes</span></div>
+    </div>
+    <div class="detalhe-secao">
+      <div class="detalhe-secao-titulo">Destaques da comunidade</div>
+      <div class="destaques-grid">${top5.map(([k,v])=>`<div class="destaque-box"><div class="valor">${v}</div><div class="nome">${k.charAt(0).toUpperCase()+k.slice(1)}</div></div>`).join("")}</div>
+    </div>
+    ${palavraHtml}
+    <div class="detalhe-secao">
+      <div class="detalhe-secao-titulo">Informacoes</div>
+      <div class="info-linha"><span class="label">Modalidade</span><span class="valor">${e.modalidade}</span></div>
+      <div class="info-linha"><span class="label">Metodologia</span><span class="valor">${e.metodologia}</span></div>
+      <div class="info-linha"><span class="label">Faixa etaria</span><span class="valor">${e.faixaMin} a ${e.faixaMax} anos</span></div>
+      <div class="info-linha"><span class="label">Mensalidade</span><span class="valor">R$ ${e.mensMin.toLocaleString()} – ${e.mensMax.toLocaleString()}</span></div>
+    </div>
+    <div style="display:flex;gap:10px;padding:14px 16px 24px;background:var(--branco);margin-top:8px;">
+      <button style="flex:1;background:var(--cinza);border:none;border-radius:var(--radius-sm);padding:13px;font-size:.85rem;font-weight:800;color:var(--suave);cursor:pointer;font-family:'Nunito',sans-serif;" onclick="fecharDetalheEscola()">Voltar</button>
+      <button style="flex:2;background:var(--laranja);border:none;border-radius:var(--radius-sm);padding:13px;font-size:.85rem;font-weight:800;color:#fff;cursor:pointer;font-family:'Nunito',sans-serif;">Indicar escola</button>
+    </div>
+    <div style="height:20px;"></div>`;
+  let el = document.getElementById("detalhe-escola-tela");
+  if(!el){
+    el = document.createElement("div");
+    el.id = "detalhe-escola-tela";
+    el.className = "detalhe-tela";
+    document.body.appendChild(el);
+  }
+  el.innerHTML = html;
+  el.classList.add("aberto");
+}
+function fecharDetalheEscola(){
+  const el = document.getElementById("detalhe-escola-tela");
+  if(el) el.classList.remove("aberto");
+}
+
+// ═══════════════════════════════════════════════════
+// DETALHE PROFISSIONAL
+// ═══════════════════════════════════════════════════
+const VOTOS_PROF = {};
+function abrirDetalheProf(id){
+  const p = PROF_MOCK.find(x=>x.id===id);
+  if(!p) return;
+  if(!VOTOS_PROF[id]) VOTOS_PROF[id] = new Set();
+  const iniciais = p.nome.replace("Dra.","").replace("Dr.","").trim().split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase();
+  const palavraHtml = p.palavra
+    ? `<div class="detalhe-secao"><div class="detalhe-secao-titulo">Palavra da profissional</div>
+        <div class="palavra-box"><div class="palavra-texto">"${p.palavra}"</div><div class="palavra-autor">${p.palavraAutor} — verificado pelo Onde Vamos</div></div></div>`
+    : `<div class="detalhe-secao"><div class="detalhe-secao-titulo">Palavra da profissional</div>
+        <div style="font-size:.85rem;color:var(--suave);line-height:1.5;">Esta profissional ainda nao enviou uma apresentacao. <a href="https://docs.google.com/forms" target="_blank" style="color:var(--laranja);font-weight:700;">E esta profissional? Fale com a gente.</a></div></div>`;
+  const tagsHtml = p.tags.map((t,i)=>{
+    const votado = VOTOS_PROF[id].has(i);
+    const confiavel = t.v>=8;
+    return `<span class="votavel-tag ${votado?"votado":""} ${confiavel?"confiavel":""}" onclick="votarTag('${id}',${i},this)">
+      ${t.t} <span class="contagem">${t.v} maes confirmaram</span>
+    </span>`;
+  }).join("");
+  const html = `<div class="detalhe-back" onclick="fecharDetalheProf()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+      <span>Profissionais</span></div>
+    <div style="background:var(--branco);padding:14px 16px 12px;border-bottom:1px solid var(--borda);display:flex;gap:14px;align-items:flex-start;">
+      <div class="card-prof-avatar" style="width:60px;height:60px;font-size:1.3rem;">${iniciais}</div>
+      <div>
+        <div style="font-size:1.2rem;font-weight:900;color:var(--texto);">${p.nome}</div>
+        <div style="font-size:.85rem;font-weight:700;color:var(--laranja);">${p.esp}</div>
+        <div style="font-size:.8rem;color:var(--suave);margin-top:3px;">📍 ${p.bairro} · ★ ${p.nota} (${p.avaliacoes} aval.)</div>
+      </div>
+    </div>
+    <div class="detalhe-secao">
+      <div class="detalhe-secao-titulo">Contato</div>
+      <div style="display:flex;gap:8px;">
+        ${p.whatsapp?`<button class="contato-btn" onclick="window.open('https://wa.me/55${p.whatsapp}','_blank')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg><span>WhatsApp</span></button>`:""}
+        ${p.instagram?`<button class="contato-btn" onclick="window.open('https://instagram.com/${p.instagram.replace('@','')}','_blank')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg><span>Instagram</span></button>`:""}
+      </div>
+    </div>
+    ${p.sobre?`<div class="detalhe-secao"><div class="detalhe-secao-titulo">Sobre</div><div style="font-size:.85rem;color:var(--texto);line-height:1.6;">${p.sobre}</div></div>`:""}
+    <div class="detalhe-secao">
+      <div class="detalhe-secao-titulo">O que as maes dizem</div>
+      <div style="display:flex;flex-wrap:wrap;gap:2px;" id="tags-prof-${id}">${tagsHtml}</div>
+      <div style="font-size:.72rem;color:var(--suave);margin-top:10px;">Toque para confirmar o que voce tambem vivenciou</div>
+    </div>
+    <div class="detalhe-secao">
+      <div class="detalhe-secao-titulo">Informacoes</div>
+      <div class="info-linha"><span class="label">Consulta</span><span class="valor">R$ ${p.preco}</span></div>
+      ${p.convenios.length?`<div class="info-linha"><span class="label">Convenios</span><span class="valor">${p.convenios.join(", ")}</span></div>`:""}
+      <div class="info-linha"><span class="label">Atendimento</span><span class="valor">${p.atendimento}</span></div>
+      <div class="info-linha"><span class="label">Idade atendida</span><span class="valor">${p.idadeAtendida}</span></div>
+      ${p.crm?`<div class="info-linha"><span class="label">Registro</span><span class="valor">${p.crm}</span></div>`:""}
+    </div>
+    ${palavraHtml}
+    <div style="height:calc(var(--nav) + 20px);"></div>`;
+  let el = document.getElementById("detalhe-prof-tela");
+  if(!el){
+    el = document.createElement("div");
+    el.id = "detalhe-prof-tela";
+    el.className = "detalhe-tela";
+    document.body.appendChild(el);
+  }
+  el.innerHTML = html;
+  el.classList.add("aberto");
+}
+function fecharDetalheProf(){
+  const el = document.getElementById("detalhe-prof-tela");
+  if(el) el.classList.remove("aberto");
+}
+function votarTag(profId, idx, el){
+  if(!VOTOS_PROF[profId]) VOTOS_PROF[profId] = new Set();
+  const p = PROF_MOCK.find(x=>x.id===profId);
+  if(!p) return;
+  if(VOTOS_PROF[profId].has(idx)){
+    VOTOS_PROF[profId].delete(idx);
+    p.tags[idx].v = Math.max(0, p.tags[idx].v-1);
+    el.classList.remove("votado");
+  } else {
+    VOTOS_PROF[profId].add(idx);
+    p.tags[idx].v++;
+    el.classList.add("votado");
+    toast("Obrigada por confirmar!");
+  }
+  el.querySelector(".contagem").textContent = p.tags[idx].v+" maes confirmaram";
+  if(p.tags[idx].v>=8) el.classList.add("confiavel"); else el.classList.remove("confiavel");
+}
+
+// ═══════════════════════════════════════════════════
+// INDICAR ESCOLA / PROFISSIONAL
+// ═══════════════════════════════════════════════════
+const FORM_URL = "https://forms.gle/47Kd6cWrtWxeHoXJ6";
+function abrirIndicarEscola(){
+  window.open(FORM_URL+"?tipo=Escola","_blank");
+}
+function abrirIndicarProfissional(){
+  window.open(FORM_URL+"?tipo=Profissional","_blank");
+}
 
 if("serviceWorker" in navigator){
   window.addEventListener("load", ()=>{
