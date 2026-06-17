@@ -2139,12 +2139,14 @@ function renderHomeEventos(){
   const cont = document.getElementById("home-eventos");
   if(!cont) return;
   const agora = new Date();
-  const emBreve = STATE.eventos.filter(e=>{
-    if(e.recorrente) return true;
-    if(!e.dataInicio) return true;
+  const pontuais = STATE.eventos.filter(e=>{
+    if(e.recorrente) return false;
+    if(!e.dataInicio) return false;
     const d = new Date(e.dataInicio);
     return d >= agora && (d-agora)<7*24*3600*1000;
-  }).slice(0,3);
+  }).sort((a,b)=>new Date(a.dataInicio)-new Date(b.dataInicio));
+  const recorrentes = STATE.eventos.filter(e=>e.recorrente);
+  const emBreve = [...pontuais, ...recorrentes].slice(0,3);
   if(!emBreve.length){
     cont.innerHTML=`<div style="text-align:center;padding:32px 20px 16px;">
       <svg width="110" height="90" viewBox="0 0 110 90" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -3400,6 +3402,11 @@ function sairAdmin(){
   setarTela("inicio");
 }
 
+function admIrParaLugares(){
+  const tab = document.querySelector('.adm-tab[onclick*="lugares"]');
+  if(tab) trocarTabAdmin(tab, "lugares");
+}
+
 function trocarTabAdmin(el, tab){
   document.querySelectorAll(".adm-tab").forEach(t=>t.classList.remove("ativo"));
   el.classList.add("ativo");
@@ -3511,7 +3518,7 @@ async function renderAdmGeral(){
       <div class="adm-incompleto-row">
         <span>Completos ✓</span><span class="adm-badge-alerta ok">${completos} locais</span>
       </div>
-      <button onclick="const b=document.querySelectorAll('.adm-tab')[1];trocarTabAdmin(b,'lugares')"
+      <button onclick="admIrParaLugares()"
         style="margin-top:10px;font-size:.75rem;font-weight:700;color:var(--navy);background:none;border:1.5px solid var(--borda);border-radius:var(--radius-sm);padding:6px 14px;cursor:pointer;font-family:'Nunito',sans-serif;">
         Ir para Lugares para corrigir →
       </button>
