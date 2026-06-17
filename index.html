@@ -495,11 +495,11 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
         Cafés
       </div>
       <div class="chip-cat" data-cat="Praças" onclick="filtrarCategoria(this,'Praças')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 8C8 10 5.9 16.17 3.82 22"/><path d="M9.5 9.5C5 11 3 19 3 22"/><path d="M12 3C5.5 6 5 14 5 17"/><path d="M20 4C16 6 14 9 14 13"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="9" r="4"/><path d="M12 5V2"/><path d="M12 16v-3"/><path d="M5 9H2"/><path d="M22 9h-3"/><path d="M4.22 4.22l2.12 2.12"/><path d="M17.66 4.22l-2.12 2.12"/><path d="M2 19c3-3 5-3 10-3s7 0 10 3"/></svg>
         Praças
       </div>
       <div class="chip-cat" data-cat="Kids" onclick="filtrarCategoria(this,'Kids')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0 1 12 0v2"/><circle cx="18" cy="7" r="2"/><circle cx="6" cy="7" r="2"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="2"/><path d="M12 7v7"/><path d="M8 10l4 2 4-2"/><path d="M9 20l3-4 3 4"/></svg>
         Espaço Kids
       </div>
       <div class="chip-cat" data-cat="Tranquilos" onclick="filtrarCategoria(this,'Tranquilos')">
@@ -768,15 +768,69 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
           </div>
         </div>
         <div class="campo" id="af-ev-data-wrap"><label>Data</label><input type="date" id="af-ev-data"></div>
-        <div class="campo" id="af-ev-recorrencia-wrap" style="display:none;">
-          <label>Descrição da recorrência</label>
-          <input id="af-ev-recorrencia-texto" placeholder="Ex.: Toda quarta-feira, Toda 1ª sábado do mês…">
+        <div id="af-ev-recorrencia-wrap" style="display:none;">
+          <div class="campo">
+            <label>Frequência</label>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;" id="af-ev-freq-opcoes">
+              <label class="tag-check" style="cursor:pointer;"><input type="radio" name="af-ev-freq" value="semanal" style="display:none;" onchange="admTrocarFreq('semanal')"> Semanal</label>
+              <label class="tag-check" style="cursor:pointer;"><input type="radio" name="af-ev-freq" value="quinzenal" style="display:none;" onchange="admTrocarFreq('quinzenal')"> Quinzenal</label>
+              <label class="tag-check" style="cursor:pointer;"><input type="radio" name="af-ev-freq" value="mensal" style="display:none;" onchange="admTrocarFreq('mensal')"> Mensal</label>
+              <label class="tag-check" style="cursor:pointer;"><input type="radio" name="af-ev-freq" value="outro" style="display:none;" onchange="admTrocarFreq('outro')"> Outro</label>
+            </div>
+          </div>
+          <div class="campo" id="af-ev-dias-wrap" style="display:none;">
+            <label>Dia(s) da semana</label>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;">
+              <div class="tag-check" data-af-dia="Segunda" onclick="admToggleDia(this)">Seg</div>
+              <div class="tag-check" data-af-dia="Terça" onclick="admToggleDia(this)">Ter</div>
+              <div class="tag-check" data-af-dia="Quarta" onclick="admToggleDia(this)">Qua</div>
+              <div class="tag-check" data-af-dia="Quinta" onclick="admToggleDia(this)">Qui</div>
+              <div class="tag-check" data-af-dia="Sexta" onclick="admToggleDia(this)">Sex</div>
+              <div class="tag-check" data-af-dia="Sábado" onclick="admToggleDia(this)">Sáb</div>
+              <div class="tag-check" data-af-dia="Domingo" onclick="admToggleDia(this)">Dom</div>
+            </div>
+          </div>
+          <div class="campo" id="af-ev-semana-wrap" style="display:none;">
+            <label>Qual semana do mês?</label>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;">
+              <div class="tag-check" data-af-sem="1ª" onclick="admToggleSemana(this)">1ª semana</div>
+              <div class="tag-check" data-af-sem="2ª" onclick="admToggleSemana(this)">2ª semana</div>
+              <div class="tag-check" data-af-sem="3ª" onclick="admToggleSemana(this)">3ª semana</div>
+              <div class="tag-check" data-af-sem="4ª" onclick="admToggleSemana(this)">4ª semana</div>
+            </div>
+          </div>
+          <div class="campo" id="af-ev-mensal-wrap" style="display:none;">
+            <label>Como se repete?</label>
+            <div style="display:flex;flex-direction:column;gap:10px;margin-top:6px;">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.88rem;font-weight:600;">
+                <input type="radio" name="af-ev-mensal-tipo" value="dia" checked onchange="admAtualizarPreviewRecorrencia()" style="accent-color:var(--laranja);"> Todo dia
+                <input type="number" id="af-ev-mensal-dia" min="1" max="31" placeholder="15" style="width:60px;border:1.5px solid var(--borda);border-radius:8px;padding:6px;font-size:.88rem;font-family:'Nunito',sans-serif;text-align:center;"> do mês
+              </label>
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.88rem;font-weight:600;flex-wrap:wrap;">
+                <input type="radio" name="af-ev-mensal-tipo" value="semana" onchange="admAtualizarPreviewRecorrencia()" style="accent-color:var(--laranja);">
+                <select id="af-ev-mensal-nth" style="border:1.5px solid var(--borda);border-radius:8px;padding:6px;font-size:.85rem;font-family:'Nunito',sans-serif;">
+                  <option value="1ª">1ª</option><option value="2ª">2ª</option><option value="3ª">3ª</option><option value="4ª">4ª</option><option value="última">última</option>
+                </select>
+                <select id="af-ev-mensal-diasem" style="border:1.5px solid var(--borda);border-radius:8px;padding:6px;font-size:.85rem;font-family:'Nunito',sans-serif;">
+                  <option value="segunda">segunda</option><option value="terça">terça</option><option value="quarta">quarta</option>
+                  <option value="quinta">quinta</option><option value="sexta">sexta</option><option value="sábado">sábado</option><option value="domingo">domingo</option>
+                </select>
+                do mês
+              </label>
+            </div>
+          </div>
+          <div class="campo" id="af-ev-outro-wrap" style="display:none;">
+            <label>Descreva a frequência</label>
+            <input id="af-ev-outro-texto" placeholder="Ex.: A cada 2 meses, nas férias escolares…">
+          </div>
+          <div id="af-ev-recorrencia-preview" style="display:none;background:var(--cream);border-radius:var(--radius-sm);padding:10px 14px;font-size:.82rem;color:var(--navy);font-weight:600;margin-top:4px;"></div>
         </div>
         <div class="campo"><label>Horário</label><input id="af-ev-hora" placeholder="Ex.: 10h às 11h"></div>
 
         <div style="font-size:.72rem;font-weight:800;color:var(--suave);letter-spacing:.06em;margin:16px 0 10px;">ONDE</div>
         <div class="campo"><label>Nome do local</label><input id="af-ev-local" placeholder="Ex.: Espaço Encantar"></div>
-        <div class="campo"><label>Endereço / Bairro</label><input id="af-ev-endereco" placeholder="Ex.: Rua X, 45 – Botafogo"></div>
+        <div class="campo"><label>Endereço</label><input id="af-ev-endereco" placeholder="Ex.: Rua X, 45 – Botafogo"></div>
+        <div class="campo"><label>Bairro <span style="color:var(--suave);font-weight:400">(preenchido ao buscar)</span></label><input id="af-ev-bairro" placeholder="Ex.: Botafogo"></div>
         <input type="hidden" id="af-ev-lat">
         <input type="hidden" id="af-ev-lng">
         <button type="button" onclick="admBuscarEnderecoEvento()"
@@ -1404,12 +1458,16 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
         <input id="ev-hora" placeholder="Ex.: 10h às 11h">
       </div>
       <div class="campo">
-        <label>Local</label>
+        <label>Nome do local</label>
         <input id="ev-local" placeholder="Ex.: Espaço Encantar">
       </div>
       <div class="campo">
-        <label>Endereço / Bairro</label>
+        <label>Endereço</label>
         <input id="ev-endereco" placeholder="Ex.: Rua X, 45 – Botafogo">
+      </div>
+      <div class="campo">
+        <label>Bairro <span style="color:var(--suave);font-weight:400">(preenchido ao buscar)</span></label>
+        <input id="ev-bairro" placeholder="Ex.: Botafogo">
       </div>
       <input type="hidden" id="ev-lat">
       <input type="hidden" id="ev-lng">
@@ -2812,7 +2870,7 @@ function abrirAddEvento(){
   mostrarPassoEv(1);
   if(STATE.usuario?.nome) document.getElementById("ev-autor").value=STATE.usuario.nome;
   // reset
-  ["ev-titulo","ev-etaria","ev-hora","ev-local","ev-endereco","ev-contato","ev-desc","ev-autor","ev-preco"].forEach(id=>{
+  ["ev-titulo","ev-etaria","ev-hora","ev-local","ev-endereco","ev-bairro","ev-contato","ev-desc","ev-autor","ev-preco"].forEach(id=>{
     const el=document.getElementById(id); if(el) el.value="";
   });
   document.getElementById("ev-lat").value="";
@@ -2940,7 +2998,7 @@ async function buscarEnderecoEvento(){
   opcoes.innerHTML=""; opcoes.style.display="none";
   try{
     const q = encodeURIComponent(`${q_str}, Rio de Janeiro, Brasil`);
-    const r = await fetch(`https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=4&countrycodes=br`,
+    const r = await fetch(`https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=4&countrycodes=br&addressdetails=1`,
       {headers:{"Accept-Language":"pt-BR","User-Agent":"OndeVamosMamae/1.0"}});
     const results = await r.json();
     if(!results.length){
@@ -2950,12 +3008,14 @@ async function buscarEnderecoEvento(){
       status.style.background="#F0FDF4"; status.style.color="#15803D";
       status.textContent="Confirme o endereço correto:";
       opcoes.style.display="flex"; opcoes.style.flexDirection="column"; opcoes.style.gap="8px"; opcoes.style.marginTop="8px";
-      opcoes.innerHTML = results.map(res=>`
-        <button onclick="confirmarEnderecoEvento(${res.lat},${res.lon},'${(res.display_name||"").replace(/'/g,"").substring(0,60)}')"
+      opcoes.innerHTML = results.map(res=>{
+        const bairro = (res.address?.suburb||res.address?.neighbourhood||res.address?.city_district||"").replace(/'/g,"");
+        return `<button onclick="confirmarEnderecoEvento(${res.lat},${res.lon},'${(res.display_name||"").replace(/'/g,"").substring(0,60)}','${bairro}')"
           style="background:#fff;border:1.5px solid var(--borda);border-radius:var(--radius-sm);padding:10px 14px;text-align:left;cursor:pointer;font-family:'Nunito',sans-serif;font-size:.82rem;">
           <strong style="display:block;color:var(--navy);">📍 ${esc((res.display_name||"").split(",").slice(0,2).join(", "))}</strong>
-          <span style="color:var(--suave);font-size:.75rem;">${esc((res.display_name||"").split(",").slice(2,4).join(", "))}</span>
-        </button>`).join("");
+          <span style="color:var(--suave);font-size:.75rem;">${bairro||esc((res.display_name||"").split(",").slice(2,4).join(", "))}</span>
+        </button>`;
+      }).join("");
     }
   }catch(e){
     status.style.background="#FFF1F2"; status.style.color="#BE123C";
@@ -2964,12 +3024,13 @@ async function buscarEnderecoEvento(){
   btn.textContent="Buscar localização pelo endereço"; btn.disabled=false;
 }
 
-function confirmarEnderecoEvento(lat,lng,label){
+function confirmarEnderecoEvento(lat,lng,label,bairro){
   document.getElementById("ev-lat").value=lat;
   document.getElementById("ev-lng").value=lng;
+  if(bairro) document.getElementById("ev-bairro").value=bairro;
   document.getElementById("busca-end-ev-status").style.background="#F0FDF4";
   document.getElementById("busca-end-ev-status").style.color="#15803D";
-  document.getElementById("busca-end-ev-status").textContent="Localização confirmada!";
+  document.getElementById("busca-end-ev-status").textContent="Localização confirmada!" + (bairro?` Bairro: ${bairro}`:"");
   document.getElementById("busca-end-ev-opcoes").style.display="none";
 }
 
@@ -2986,7 +3047,7 @@ async function publicarEvento(){
     faixaEtaria:document.getElementById("ev-etaria").value.trim(),
     local:document.getElementById("ev-local").value.trim(),
     endereco:enderecoVal,
-    bairro:enderecoVal.split(/[–-]/).pop()?.trim()||document.getElementById("ev-local").value.trim(),
+    bairro:document.getElementById("ev-bairro").value.trim()||document.getElementById("ev-local").value.trim(),
     lat:parseFloat(document.getElementById("ev-lat").value)||null,
     lng:parseFloat(document.getElementById("ev-lng").value)||null,
     foto:document.getElementById("ev-foto-url").value||"",
@@ -3509,6 +3570,55 @@ function admCancelarFormEvento(){
 function admToggleRecorrente(sim){
   document.getElementById("af-ev-data-wrap").style.display = sim?"none":"block";
   document.getElementById("af-ev-recorrencia-wrap").style.display = sim?"block":"none";
+  if(sim && !document.querySelector('[name="af-ev-freq"]:checked')){
+    const rad=document.querySelector('[name="af-ev-freq"][value="semanal"]');
+    if(rad){ rad.checked=true; admTrocarFreq("semanal"); }
+  }
+}
+function admTrocarFreq(freq){
+  ["af-ev-dias-wrap","af-ev-semana-wrap","af-ev-mensal-wrap","af-ev-outro-wrap"].forEach(id=>document.getElementById(id).style.display="none");
+  document.querySelectorAll("#af-ev-freq-opcoes .tag-check").forEach(el=>{
+    const inp=el.querySelector("input");
+    el.classList.toggle("sel", inp&&inp.value===freq);
+  });
+  if(freq==="semanal"){ document.getElementById("af-ev-dias-wrap").style.display="block"; }
+  else if(freq==="quinzenal"){ document.getElementById("af-ev-dias-wrap").style.display="block"; document.getElementById("af-ev-semana-wrap").style.display="block"; }
+  else if(freq==="mensal"){ document.getElementById("af-ev-mensal-wrap").style.display="block"; }
+  else if(freq==="outro"){ document.getElementById("af-ev-outro-wrap").style.display="block"; }
+  admAtualizarPreviewRecorrencia();
+}
+function admToggleDia(el){ el.classList.toggle("sel"); admAtualizarPreviewRecorrencia(); }
+function admToggleSemana(el){
+  document.querySelectorAll("[data-af-sem]").forEach(e=>e.classList.remove("sel"));
+  el.classList.add("sel");
+  admAtualizarPreviewRecorrencia();
+}
+function admGerarTextoRecorrencia(){
+  const freq=document.querySelector('[name="af-ev-freq"]:checked')?.value;
+  if(!freq) return "";
+  if(freq==="semanal"){
+    const dias=[...document.querySelectorAll("[data-af-dia].sel")].map(el=>el.getAttribute("data-af-dia"));
+    if(!dias.length) return "Semanal";
+    return dias.length===1?`Toda ${dias[0]}`:`Toda ${dias.slice(0,-1).join(", ")} e ${dias[dias.length-1]}`;
+  }
+  if(freq==="quinzenal"){
+    const dias=[...document.querySelectorAll("[data-af-dia].sel")].map(el=>el.getAttribute("data-af-dia"));
+    const sem=document.querySelector("[data-af-sem].sel")?.getAttribute("data-af-sem")||"";
+    return ["Quinzenal",sem?`${sem} semana`:"",dias.length?dias.join(" e "):""].filter(Boolean).join(" · ");
+  }
+  if(freq==="mensal"){
+    const tipo=document.querySelector('[name="af-ev-mensal-tipo"]:checked')?.value||"dia";
+    if(tipo==="dia") return `Todo dia ${document.getElementById("af-ev-mensal-dia").value||"?"} do mês`;
+    return `${document.getElementById("af-ev-mensal-nth").value} ${document.getElementById("af-ev-mensal-diasem").value}-feira do mês`;
+  }
+  if(freq==="outro") return document.getElementById("af-ev-outro-texto").value||"Outro";
+  return "";
+}
+function admAtualizarPreviewRecorrencia(){
+  const txt=admGerarTextoRecorrencia();
+  const prev=document.getElementById("af-ev-recorrencia-preview");
+  if(txt){ prev.style.display="block"; prev.textContent="🔄 "+txt; }
+  else prev.style.display="none";
 }
 
 function admTogglePago(pago){
@@ -3522,9 +3632,12 @@ function admAbrirFormEvento(id){
   document.getElementById("adm-form-evento-titulo").textContent = id?"Editar evento":"Novo evento";
   document.getElementById("af-ev-geo-status").style.display="none";
   document.getElementById("af-ev-geo-opcoes").style.display="none";
-  const campos = ["af-ev-id","af-ev-titulo","af-ev-local","af-ev-endereco","af-ev-data","af-ev-hora",
-    "af-ev-etaria","af-ev-contato","af-ev-desc","af-ev-foto","af-ev-lat","af-ev-lng",
-    "af-ev-preco","af-ev-autor","af-ev-recorrencia-texto"];
+  const campos = ["af-ev-id","af-ev-titulo","af-ev-local","af-ev-endereco","af-ev-bairro","af-ev-data","af-ev-hora",
+    "af-ev-etaria","af-ev-contato","af-ev-desc","af-ev-foto","af-ev-lat","af-ev-lng","af-ev-preco","af-ev-autor"];
+  // reset recorrência estruturada
+  document.querySelectorAll("[data-af-dia]").forEach(el=>el.classList.remove("sel"));
+  document.querySelectorAll("[data-af-sem]").forEach(el=>el.classList.remove("sel"));
+  document.getElementById("af-ev-recorrencia-preview").style.display="none";
   if(id){
     const e = STATE.eventos.find(x=>x.id===id);
     if(!e) return;
@@ -3533,6 +3646,7 @@ function admAbrirFormEvento(id){
     document.getElementById("af-ev-cat").value=e.categoria||"musicalização";
     document.getElementById("af-ev-local").value=e.local||"";
     document.getElementById("af-ev-endereco").value=e.endereco||"";
+    document.getElementById("af-ev-bairro").value=e.bairro||"";
     document.getElementById("af-ev-data").value=e.dataInicio||"";
     document.getElementById("af-ev-hora").value=e.hora||"";
     document.getElementById("af-ev-etaria").value=e.faixaEtaria||"";
@@ -3543,16 +3657,25 @@ function admAbrirFormEvento(id){
     document.getElementById("af-ev-lng").value=e.lng||"";
     document.getElementById("af-ev-preco").value=e.preco||"";
     document.getElementById("af-ev-autor").value=e.adicionadoPor||"";
-    document.getElementById("af-ev-recorrencia-texto").value=e.recorrenciaTexto||"";
     document.getElementById("af-ev-vagas").checked=!!e.vagasLimitadas;
     const recorrente=!!e.recorrente;
     document.querySelector(`[name="af-ev-recorrente"][value="${recorrente?"sim":"nao"}"]`).checked=true;
     admToggleRecorrente(recorrente);
+    if(recorrente && e.frequencia){
+      const rad=document.querySelector(`[name="af-ev-freq"][value="${e.frequencia}"]`);
+      if(rad){ rad.checked=true; admTrocarFreq(e.frequencia); }
+      if(e.diasSemana?.length){
+        document.querySelectorAll("[data-af-dia]").forEach(el=>{
+          if(e.diasSemana.includes(el.getAttribute("data-af-dia"))) el.classList.add("sel");
+        });
+      }
+      admAtualizarPreviewRecorrencia();
+    }
     const pago=!!e.pago;
     document.querySelector(`[name="af-ev-pago"][value="${pago?"pago":"gratis"}"]`).checked=true;
     admTogglePago(pago);
   } else {
-    campos.forEach(i=>{ document.getElementById(i).value=""; });
+    campos.forEach(i=>{ const el=document.getElementById(i); if(el) el.value=""; });
     document.getElementById("af-ev-cat").value="musicalização";
     document.getElementById("af-ev-vagas").checked=false;
     document.querySelector('[name="af-ev-recorrente"][value="nao"]').checked=true;
@@ -3580,21 +3703,24 @@ async function admBuscarEnderecoEvento(){
   status.textContent=`Buscando "${q}"...`;
   opcoes.innerHTML=""; opcoes.style.display="none";
   try{
-    const r=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q+", Rio de Janeiro, Brasil")}&format=json&limit=4&countrycodes=br`,
+    const r=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q+", Rio de Janeiro, Brasil")}&format=json&limit=4&countrycodes=br&addressdetails=1`,
       {headers:{"Accept-Language":"pt-BR","User-Agent":"OndeVamosMamae/1.0"}});
     const results=await r.json();
     if(!results.length){
       status.style.background="#FFF1F2"; status.style.color="#BE123C";
-      status.textContent="Não encontrado. Insira lat/lng manualmente.";
+      status.textContent="Não encontrado. Preencha o bairro manualmente.";
     } else {
       status.style.background="#F0FDF4"; status.style.color="#15803D";
       status.textContent="Confirme a localização:";
       opcoes.style.display="flex"; opcoes.style.flexDirection="column"; opcoes.style.gap="6px"; opcoes.style.marginTop="6px";
-      opcoes.innerHTML = results.map(res=>`
-        <button onclick="admConfirmarGeoEvento(${res.lat},${res.lon})"
+      opcoes.innerHTML = results.map(res=>{
+        const bairro=(res.address?.suburb||res.address?.neighbourhood||res.address?.city_district||"").replace(/'/g,"");
+        return `<button onclick="admConfirmarGeoEvento(${res.lat},${res.lon},'${bairro}')"
           style="background:#fff;border:1.5px solid var(--borda);border-radius:var(--radius-sm);padding:8px 12px;text-align:left;cursor:pointer;font-family:'Nunito',sans-serif;font-size:.78rem;">
           <strong style="color:var(--navy);">${esc((res.display_name||"").split(",").slice(0,2).join(", "))}</strong>
-        </button>`).join("");
+          ${bairro?`<span style="color:var(--suave);font-size:.72rem;display:block;">📍 ${bairro}</span>`:""}
+        </button>`;
+      }).join("");
     }
   }catch(e){
     status.style.background="#FFF1F2"; status.style.color="#BE123C";
@@ -3602,12 +3728,13 @@ async function admBuscarEnderecoEvento(){
   }
 }
 
-function admConfirmarGeoEvento(lat,lng){
+function admConfirmarGeoEvento(lat,lng,bairro){
   document.getElementById("af-ev-lat").value=lat;
   document.getElementById("af-ev-lng").value=lng;
+  if(bairro) document.getElementById("af-ev-bairro").value=bairro;
   document.getElementById("af-ev-geo-status").style.background="#F0FDF4";
   document.getElementById("af-ev-geo-status").style.color="#15803D";
-  document.getElementById("af-ev-geo-status").textContent="Localização confirmada!";
+  document.getElementById("af-ev-geo-status").textContent="Localização confirmada!"+(bairro?` Bairro: ${bairro}`:"");
   document.getElementById("af-ev-geo-opcoes").style.display="none";
 }
 
@@ -3623,7 +3750,7 @@ async function admSalvarEvento(){
     categoria:document.getElementById("af-ev-cat").value,
     local:document.getElementById("af-ev-local").value.trim(),
     endereco:document.getElementById("af-ev-endereco").value.trim(),
-    bairro:document.getElementById("af-ev-endereco").value.trim()||document.getElementById("af-ev-local").value.trim(),
+    bairro:document.getElementById("af-ev-bairro").value.trim()||document.getElementById("af-ev-local").value.trim(),
     dataInicio:recorrente?"":document.getElementById("af-ev-data").value,
     hora:document.getElementById("af-ev-hora").value.trim(),
     faixaEtaria:document.getElementById("af-ev-etaria").value.trim(),
@@ -3636,7 +3763,9 @@ async function admSalvarEvento(){
     preco:pago?document.getElementById("af-ev-preco").value.trim():"",
     vagasLimitadas:document.getElementById("af-ev-vagas").checked,
     recorrente,
-    recorrenciaTexto:recorrente?document.getElementById("af-ev-recorrencia-texto").value.trim():"",
+    recorrenciaTexto:recorrente?admGerarTextoRecorrencia():"",
+    frequencia:recorrente?document.querySelector('[name="af-ev-freq"]:checked')?.value||""  :"",
+    diasSemana:recorrente?[...document.querySelectorAll("[data-af-dia].sel")].map(el=>el.getAttribute("data-af-dia")):[],
     adicionadoPor:document.getElementById("af-ev-autor").value.trim()||"Admin",
     criadoEm:existingId?(STATE.eventos.find(e=>e.id===existingId)?.criadoEm||new Date().toISOString()):new Date().toISOString(),
   };
