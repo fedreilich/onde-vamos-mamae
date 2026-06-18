@@ -1017,6 +1017,7 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
           <option>Presencial e Telemedicina</option>
         </select>
       </div>
+      <div class="campo"><label>Idade atendida <span style="font-weight:400;color:var(--suave);">(opcional)</span></label><input id="ip-idade-atendida" placeholder="Ex.: 0 a 18 anos, Gestantes, Adultos..."></div>
       <button onclick="ipMostrarPasso(2)" style="width:100%;background:var(--laranja);color:#fff;border:none;border-radius:var(--radius-sm);padding:13px;font-size:.9rem;font-weight:800;font-family:'Nunito',sans-serif;cursor:pointer;margin-top:8px;">Continuar</button>
       <div style="height:16px;"></div>
     </div>
@@ -1843,6 +1844,53 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
   </div>
   <div class="painel-footer">
     <button class="btn-ver-resultados" onclick="aplicarFiltros()">Ver resultados</button>
+  </div>
+</div>
+
+<!-- ══ FILTROS ESCOLAS ══ -->
+<div class="veu-filtros" id="veu-filtros-escola" onclick="fecharFiltrosEscola()"></div>
+<div class="painel-filtros" id="painel-filtros-escola">
+  <div class="painel-handle"></div>
+  <div class="painel-titulo">Filtrar escolas<button onclick="fecharFiltrosEscola()">✕</button></div>
+  <div class="filtro-secao">
+    <span class="filtro-secao-label">Bairro</span>
+    <div class="filtro-chips" id="filtro-escola-bairro-chips"></div>
+  </div>
+  <div class="filtro-secao">
+    <span class="filtro-secao-label">Avaliacao minima</span>
+    <div class="filtro-chips" id="filtro-escola-nota-chips">
+      <button class="filtro-chip ativo" onclick="setFiltroEscolaNota(this,0)">Todas</button>
+      <button class="filtro-chip" onclick="setFiltroEscolaNota(this,4)">★ 4+</button>
+      <button class="filtro-chip" onclick="setFiltroEscolaNota(this,4.5)">★ 4.5+</button>
+    </div>
+  </div>
+  <div class="painel-footer" style="display:flex;gap:8px;">
+    <button onclick="limparFiltrosEscola()" style="flex:1;background:var(--cinza);border:none;border-radius:var(--radius-sm);padding:13px;font-size:.85rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;">Limpar</button>
+    <button class="btn-ver-resultados" style="flex:2;" onclick="aplicarFiltrosEscola()">Ver resultados</button>
+  </div>
+</div>
+
+<!-- ══ FILTROS PROFISSIONAIS ══ -->
+<div class="veu-filtros" id="veu-filtros-prof" onclick="fecharFiltrosProf()"></div>
+<div class="painel-filtros" id="painel-filtros-prof">
+  <div class="painel-handle"></div>
+  <div class="painel-titulo">Filtrar profissionais<button onclick="fecharFiltrosProf()">✕</button></div>
+  <div class="filtro-secao">
+    <span class="filtro-secao-label">Bairro</span>
+    <div class="filtro-chips" id="filtro-prof-bairro-chips"></div>
+  </div>
+  <div class="filtro-secao">
+    <span class="filtro-secao-label">Atendimento</span>
+    <div class="filtro-chips" id="filtro-prof-atend-chips">
+      <button class="filtro-chip ativo" onclick="setFiltroProfAtend(this,'')">Todos</button>
+      <button class="filtro-chip" onclick="setFiltroProfAtend(this,'Presencial')">Presencial</button>
+      <button class="filtro-chip" onclick="setFiltroProfAtend(this,'Telemedicina')">Telemedicina</button>
+      <button class="filtro-chip" onclick="setFiltroProfAtend(this,'Presencial e Telemedicina')">Ambos</button>
+    </div>
+  </div>
+  <div class="painel-footer" style="display:flex;gap:8px;">
+    <button onclick="limparFiltrosProf()" style="flex:1;background:var(--cinza);border:none;border-radius:var(--radius-sm);padding:13px;font-size:.85rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;">Limpar</button>
+    <button class="btn-ver-resultados" style="flex:2;" onclick="aplicarFiltrosProf()">Ver resultados</button>
   </div>
 </div>
 
@@ -5351,7 +5399,7 @@ function normalizarEscolaDoc(doc){
 }
 
 function normalizarProfDoc(doc){
-  return {...doc, nota:0, avaliacoes:0, tags:(doc.tags||[]).map(t=>({t,v:1})), _fromFirebase:true, _validado:doc.status==="validado"};
+  return {...doc, nota:0, avaliacoes:0, tags:(doc.tags||[]).map((t,i)=>({t,v:((doc.votos||{})[i]??1)})), _fromFirebase:true, _validado:doc.status==="validado"};
 }
 
 async function carregarEscolasSugeridas(){
@@ -5429,8 +5477,72 @@ function toggleDiferencial(el, dif){
   else { FILTROS_ESCOLAS.diferenciais.add(dif); el.classList.add("ativo"); }
   renderEscolas();
 }
-function abrirFiltroEscola(tipo, el){ /* expansão futura */ }
-function abrirFiltroProfissional(tipo, el){ /* expansão futura */ }
+function abrirFiltrosEscola(){
+  const bairros = [...new Set(STATE.escolasSugeridas.map(e=>e.bairro).filter(Boolean))].sort();
+  const bc = document.getElementById("filtro-escola-bairro-chips");
+  bc.innerHTML = bairros.map(b=>`<button class="filtro-chip${FILTROS_ESCOLAS.bairro===b?" ativo":""}" onclick="setFiltroEscolaBairro(this,'${b.replace(/'/g,"&apos;")}')">${esc(b)}</button>`).join("");
+  document.querySelectorAll("#filtro-escola-nota-chips .filtro-chip").forEach(c=>c.classList.toggle("ativo",parseFloat(c.onclick.toString().match(/[\d.]+/)?.[0]||"0")===FILTROS_ESCOLAS.nota));
+  document.getElementById("veu-filtros-escola").classList.add("aberto");
+  document.getElementById("painel-filtros-escola").classList.add("aberto");
+}
+function abrirFiltroEscola(tipo, el){ abrirFiltrosEscola(); }
+function fecharFiltrosEscola(){
+  document.getElementById("veu-filtros-escola").classList.remove("aberto");
+  document.getElementById("painel-filtros-escola").classList.remove("aberto");
+}
+function setFiltroEscolaBairro(el, v){
+  document.querySelectorAll("#filtro-escola-bairro-chips .filtro-chip").forEach(c=>c.classList.remove("ativo"));
+  if(FILTROS_ESCOLAS.bairro===v){ FILTROS_ESCOLAS.bairro=""; }
+  else{ el.classList.add("ativo"); FILTROS_ESCOLAS.bairro=v; }
+}
+function setFiltroEscolaNota(el, v){
+  document.querySelectorAll("#filtro-escola-nota-chips .filtro-chip").forEach(c=>c.classList.remove("ativo"));
+  el.classList.add("ativo");
+  FILTROS_ESCOLAS.nota = v;
+}
+function limparFiltrosEscola(){
+  FILTROS_ESCOLAS.bairro=""; FILTROS_ESCOLAS.nota=0;
+  fecharFiltrosEscola(); renderEscolas();
+  document.querySelectorAll(".escola-chip[data-ef]").forEach(c=>c.classList.remove("ativo"));
+  document.querySelector(".escola-chip[data-ef='bairro']")?.classList.add("ativo");
+}
+function aplicarFiltrosEscola(){
+  fecharFiltrosEscola(); renderEscolas();
+  document.querySelectorAll(".escola-chip[data-ef]").forEach(c=>{
+    const ef=c.dataset.ef;
+    c.classList.toggle("ativo",(ef==="bairro"&&!FILTROS_ESCOLAS.bairro)||(ef==="nota"&&FILTROS_ESCOLAS.nota>0));
+    if(ef==="bairro"&&!FILTROS_ESCOLAS.bairro) c.classList.add("ativo");
+  });
+}
+
+function abrirFiltrosProf(){
+  const bairros = [...new Set(STATE.profSugeridos.map(p=>p.bairro).filter(Boolean))].sort();
+  const bc = document.getElementById("filtro-prof-bairro-chips");
+  bc.innerHTML = bairros.map(b=>`<button class="filtro-chip${FILTROS_PROF.bairro===b?" ativo":""}" onclick="setFiltroProfBairro(this,'${b.replace(/'/g,"&apos;")}')">${esc(b)}</button>`).join("");
+  document.getElementById("veu-filtros-prof").classList.add("aberto");
+  document.getElementById("painel-filtros-prof").classList.add("aberto");
+}
+function abrirFiltroProfissional(tipo, el){ abrirFiltrosProf(); }
+function fecharFiltrosProf(){
+  document.getElementById("veu-filtros-prof").classList.remove("aberto");
+  document.getElementById("painel-filtros-prof").classList.remove("aberto");
+}
+function setFiltroProfBairro(el, v){
+  document.querySelectorAll("#filtro-prof-bairro-chips .filtro-chip").forEach(c=>c.classList.remove("ativo"));
+  if(FILTROS_PROF.bairro===v){ FILTROS_PROF.bairro=""; }
+  else{ el.classList.add("ativo"); FILTROS_PROF.bairro=v; }
+}
+function setFiltroProfAtend(el, v){
+  document.querySelectorAll("#filtro-prof-atend-chips .filtro-chip").forEach(c=>c.classList.remove("ativo"));
+  el.classList.add("ativo"); FILTROS_PROF.atendimento=v;
+}
+function limparFiltrosProf(){
+  FILTROS_PROF.bairro=""; FILTROS_PROF.atendimento="";
+  fecharFiltrosProf(); renderProfissionais();
+}
+function aplicarFiltrosProf(){
+  fecharFiltrosProf(); renderProfissionais();
+}
 
 // ═══════════════════════════════════════════════════
 // RENDER PROFISSIONAIS
@@ -5680,20 +5792,24 @@ function fecharDetalheProf(){
 }
 function votarTag(profId, idx, el){
   if(!VOTOS_PROF[profId]) VOTOS_PROF[profId] = new Set();
-  const p = [...PROF_MOCK, ...STATE.profSugeridos.map(normalizarProfDoc)].find(x=>x.id===profId);
-  if(!p) return;
+  const rawDoc = STATE.profSugeridos.find(x=>x.id===profId);
+  if(!rawDoc) return;
+  if(!rawDoc.votos) rawDoc.votos = {};
+  const novoV = VOTOS_PROF[profId].has(idx)
+    ? Math.max(0, (rawDoc.votos[idx]??1) - 1)
+    : (rawDoc.votos[idx]??1) + 1;
   if(VOTOS_PROF[profId].has(idx)){
     VOTOS_PROF[profId].delete(idx);
-    p.tags[idx].v = Math.max(0, p.tags[idx].v-1);
     el.classList.remove("votado");
   } else {
     VOTOS_PROF[profId].add(idx);
-    p.tags[idx].v++;
     el.classList.add("votado");
     toast("Obrigada por confirmar!");
   }
-  el.querySelector(".contagem").textContent = p.tags[idx].v+" maes confirmaram";
-  if(p.tags[idx].v>=8) el.classList.add("confiavel"); else el.classList.remove("confiavel");
+  rawDoc.votos[idx] = novoV;
+  el.querySelector(".contagem").textContent = novoV+" maes confirmaram";
+  if(novoV>=8) el.classList.add("confiavel"); else el.classList.remove("confiavel");
+  if(db) db.collection("profissionais_sugeridos").doc(profId).update({[`votos.${idx}`]: novoV}).catch(()=>{});
 }
 
 // ═══════════════════════════════════════════════════
@@ -5770,6 +5886,9 @@ function abrirIndicarEscola(){
 function fecharIndicarEscola(){
   document.getElementById("veu-add-escola").classList.remove("aberto");
   document.getElementById("sheet-add-escola").classList.remove("aberto");
+  window._pinParaEscola = false;
+  modoPin = false;
+  document.getElementById("aviso-pin-mapa").style.display="none";
 }
 
 async function ieGeocode(){
@@ -5932,7 +6051,7 @@ function ipToggleTag(el, t){
 }
 
 function abrirIndicarProfissional(){
-  ["ip-nome","ip-endereco","ip-bairro","ip-whatsapp","ip-instagram","ip-preco","ip-convenio","ip-obs","ip-esp-outro"].forEach(id=>{
+  ["ip-nome","ip-endereco","ip-bairro","ip-whatsapp","ip-instagram","ip-preco","ip-convenio","ip-obs","ip-esp-outro","ip-idade-atendida"].forEach(id=>{
     const el=document.getElementById(id); if(el) el.value="";
   });
   ["ip-esp","ip-atendimento"].forEach(id=>{ const el=document.getElementById(id); if(el) el.selectedIndex=0; });
@@ -5950,6 +6069,9 @@ function abrirIndicarProfissional(){
 function fecharIndicarProfissional(){
   document.getElementById("veu-add-prof").classList.remove("aberto");
   document.getElementById("sheet-add-prof").classList.remove("aberto");
+  window._pinParaProf = false;
+  modoPin = false;
+  document.getElementById("aviso-pin-mapa").style.display="none";
 }
 
 async function salvarIndicacaoProfissional(){
@@ -5970,6 +6092,7 @@ async function salvarIndicacaoProfissional(){
     preco: document.getElementById("ip-preco").value.trim(),
     convenio: document.getElementById("ip-convenio").value.trim(),
     atendimento: document.getElementById("ip-atendimento").value,
+    idadeAtendida: document.getElementById("ip-idade-atendida").value.trim(),
     tags: [...IP_TAGS_FORM],
     obs: document.getElementById("ip-obs").value.trim(),
     autor: document.getElementById("ip-autor").value.trim() || STATE.usuario?.nome || "Anonima",
@@ -5992,7 +6115,12 @@ if("serviceWorker" in navigator){
       reg.addEventListener("updatefound",()=>{
         const novo = reg.installing;
         novo.addEventListener("statechange",()=>{
-          if(novo.state==="activated") window.location.reload();
+          if(novo.state==="activated"){
+            const t=document.createElement("div");
+            t.style.cssText="position:fixed;bottom:calc(var(--nav)+16px);left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:12px 18px;border-radius:var(--radius);font-size:.85rem;font-weight:700;font-family:'Nunito',sans-serif;z-index:9999;display:flex;gap:12px;align-items:center;box-shadow:0 4px 20px rgba(0,0,0,.25);";
+            t.innerHTML=`<span>Nova versão disponível ✨</span><button onclick="window.location.reload()" style="background:var(--laranja);border:none;color:#fff;border-radius:var(--radius-sm);padding:6px 14px;font-size:.8rem;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;">Atualizar</button>`;
+            document.body.appendChild(t);
+          }
         });
       });
     }).catch(()=>{});
