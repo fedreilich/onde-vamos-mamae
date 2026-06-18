@@ -3590,6 +3590,7 @@ function trocarTabAdmin(el, tab){
     document.getElementById("adm-tab-"+t).style.display = t===tab?"block":"none";
   });
   admTabAtiva = tab;
+  if(tab==="geral") renderAdmGeral();
   if(tab==="melhorias") renderAdmMelhorias();
   if(tab==="eventos") renderAdmEventos();
   if(tab==="escolas") renderAdmEscolas();
@@ -3615,12 +3616,18 @@ async function renderAdmGeral(){
   const cont = document.getElementById("adm-geral-content");
   cont.innerHTML = `<div style="text-align:center;padding:32px 0;color:var(--suave);font-size:.85rem;">Carregando...</div>`;
 
-  let usuarios = [], feedbacks = [], reports = [];
+  let usuarios = [], feedbacks = [], reports = [], escolas = [], profs = [];
   if(db){
     try{ const s=await db.collection("usuarios").get(); usuarios=s.docs.map(d=>d.data()); }catch(e){}
     try{ const s=await db.collection("feedbacks").get(); feedbacks=s.docs.map(d=>d.data()); }catch(e){}
     try{ const s=await db.collection("reports").get(); reports=s.docs.map(d=>({id:d.id,...d.data()})); }catch(e){}
+    try{ escolas = await fbList("escolas_sugeridas"); }catch(e){}
+    try{ profs = await fbList("profissionais_sugeridos"); }catch(e){}
+    try{ const lDocs = await fbList("lugares"); if(lDocs.length) STATE.lugares=lDocs; }catch(e){}
+    try{ const eDocs = await fbList("eventos"); STATE.eventos=eDocs; }catch(e){}
   }
+  document.getElementById("adm-header-sub").textContent =
+    `${STATE.lugares.length} lugares · ${STATE.eventos.length} eventos`;
 
   // deltas mensais
   const agora = new Date();
@@ -3657,10 +3664,16 @@ async function renderAdmGeral(){
   const pendentes = reports.filter(r=>!r.resolvido);
 
   cont.innerHTML = `
+    <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
+      <button onclick="renderAdmGeral()" style="background:var(--navy);color:#fff;border:none;border-radius:var(--radius-sm);padding:8px 16px;font-size:.78rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;display:flex;align-items:center;gap:6px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
+        Atualizar dados
+      </button>
+    </div>
     <div class="adm-kpi-grid">
       <div class="adm-kpi">
         <div class="adm-kpi-num" style="color:var(--laranja);">${STATE.lugares.length}</div>
-        <div class="adm-kpi-label">Lugares</div>
+        <div class="adm-kpi-label">Locais</div>
         ${deltaHtml(dL,"este mês")}
       </div>
       <div class="adm-kpi">
@@ -3674,8 +3687,18 @@ async function renderAdmGeral(){
         ${deltaHtml(dU,"este mês")}
       </div>
       <div class="adm-kpi">
+        <div class="adm-kpi-num" style="color:#2E7D32;">${escolas.length}</div>
+        <div class="adm-kpi-label">Escolas</div>
+        <div class="adm-kpi-delta ${escolas.filter(x=>x.status!=='validado').length?'up':'zero'}">${escolas.filter(x=>x.status!=='validado').length} pendentes</div>
+      </div>
+      <div class="adm-kpi">
+        <div class="adm-kpi-num" style="color:#1565C0;">${profs.length}</div>
+        <div class="adm-kpi-label">Profissionais</div>
+        <div class="adm-kpi-delta ${profs.filter(x=>x.status!=='validado').length?'up':'zero'}">${profs.filter(x=>x.status!=='validado').length} pendentes</div>
+      </div>
+      <div class="adm-kpi">
         <div class="adm-kpi-num" style="color:${pendentes.length?'var(--rosa)':'var(--amarelo)'};">${pendentes.length}</div>
-        <div class="adm-kpi-label">Reportes pendentes</div>
+        <div class="adm-kpi-label">Reportes</div>
         <div class="adm-kpi-delta ${pendentes.length?'up':'zero'}">${pendentes.length?'⚠️ atenção':'tudo ok'}</div>
       </div>
     </div>
