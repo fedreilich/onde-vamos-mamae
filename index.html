@@ -4042,7 +4042,7 @@ async function renderAdmEscolas(){
       <div class="adm-card-foto" style="font-size:1.2rem;">🏫</div>
       <div class="adm-card-body">
         <div class="adm-card-nome">${esc(e.nome||"—")}</div>
-        <div class="adm-card-sub">${esc(e.bairro||"—")} · ${esc(e.status||"pendente")} · ${esc(e.autor||"—")}</div>
+        <div class="adm-card-sub">${esc(e.bairro||"—")} · ${e.status==="validado"?`<span style="color:#2E7D32;font-weight:700;">✓ validado</span>`:`<span style="color:#888;">pendente</span>`} · por ${esc(e.autor||"—")}</div>
         ${e.metodologia?`<div class="adm-card-sub">${esc(e.metodologia)}</div>`:""}
         ${e.obs?`<div class="adm-card-sub" style="margin-top:4px;font-style:italic;">"${esc(e.obs.substring(0,80))}${e.obs.length>80?"...":""}"</div>`:""}
       </div>
@@ -4114,7 +4114,7 @@ async function renderAdmProfissionais(){
       <div class="adm-card-foto" style="font-size:1.2rem;">👩‍⚕️</div>
       <div class="adm-card-body">
         <div class="adm-card-nome">${esc(p.nome||"—")}</div>
-        <div class="adm-card-sub">${esc(p.esp||"—")} · ${esc(p.bairro||"—")} · ${esc(p.status||"pendente")}</div>
+        <div class="adm-card-sub">${esc(p.esp||"—")} · ${esc(p.bairro||"—")} · ${p.status==="validado"?`<span style="color:#2E7D32;font-weight:700;">✓ validado</span>`:`<span style="color:#888;">pendente</span>`}</div>
         <div class="adm-card-sub">por ${esc(p.autor||"—")}</div>
         ${(p.tags||[]).length?`<div class="adm-card-sub" style="margin-top:4px;">${p.tags.slice(0,3).map(t=>`<span class="prof-tag" style="font-size:.65rem;">${esc(t)}</span>`).join("")}</div>`:""}
         ${p.obs?`<div class="adm-card-sub" style="margin-top:4px;font-style:italic;">"${esc(p.obs.substring(0,80))}${p.obs.length>80?"...":""}"</div>`:""}
@@ -4167,10 +4167,11 @@ async function admSalvarProf(){
   } catch(e){ toast("Erro ao salvar"); }
 }
 
-async function admAprovarProf(id){
+async function admValidarProf(id){
   if(!db) return;
-  try{ await db.collection("profissionais_sugeridos").doc(id).update({status:"aprovada"}); toast("Profissional aprovado!"); renderAdmProfissionais(); }
-  catch(e){ toast("Erro ao aprovar"); }
+  if(!confirm("Validar este profissional?")) return;
+  try{ await db.collection("profissionais_sugeridos").doc(id).update({status:"validado"}); _profCache=[]; toast("Profissional validado!"); renderAdmProfissionais(); }
+  catch(e){ toast("Erro ao validar"); }
 }
 async function admDeletarProfSugerido(id){
   if(!confirm("Excluir esta indicacao?")) return;
@@ -4645,11 +4646,11 @@ const FILTROS_PROF = {esp:"Todos", bairro:"", atendimento:"", preco:0, convenio:
 function normalizarEscolaDoc(doc){
   const notasVals = Object.values(doc.notas||{}).filter(v=>v>0);
   const nota = notasVals.length ? Math.round((notasVals.reduce((s,v)=>s+v,0)/notasVals.length)*10)/10 : 0;
-  return {...doc, nota, avaliacoes: nota>0?1:0, destaques:doc.notas||{}, recomendada:false, faixaMin:0, faixaMax:0, mensMin:0, mensMax:0, _fromFirebase:true, _pendente:doc.status==="pendente"};
+  return {...doc, nota, avaliacoes: nota>0?1:0, destaques:doc.notas||{}, recomendada:false, faixaMin:0, faixaMax:0, mensMin:0, mensMax:0, _fromFirebase:true, _validado:doc.status==="validado"};
 }
 
 function normalizarProfDoc(doc){
-  return {...doc, nota:0, avaliacoes:0, tags:(doc.tags||[]).map(t=>({t,n:1})), _fromFirebase:true, _pendente:doc.status==="pendente"};
+  return {...doc, nota:0, avaliacoes:0, tags:(doc.tags||[]).map(t=>({t,n:1})), _fromFirebase:true, _validado:doc.status==="validado"};
 }
 
 async function carregarEscolasSugeridas(){
@@ -4682,8 +4683,9 @@ function renderEscolas(){
   const count = document.getElementById("escolas-count");
   if(!cont) return;
   count.textContent = lista.length+" escola"+(lista.length!==1?"s":"")+" encontrada"+(lista.length!==1?"s":"");
-  const aviso = lista.some(e=>e.exemplo) ? `<div style="background:#FFF9E0;border-radius:var(--radius-sm);padding:10px 14px;font-size:.78rem;color:#7A5C00;font-weight:600;margin-bottom:12px;">Estes sao exemplos ilustrativos. Indique as escolas da sua confianca!</div>` : "";
-  cont.innerHTML = aviso + lista.map(e=>cardEscola(e)).join("");
+  const avisoExemplo = lista.some(e=>e.exemplo) ? `<div style="background:#FFF9E0;border-radius:var(--radius-sm);padding:10px 14px;font-size:.78rem;color:#7A5C00;font-weight:600;margin-bottom:12px;">Estes sao exemplos ilustrativos. Indique as escolas da sua confianca!</div>` : "";
+  const avisoComunidade = lista.some(e=>e._fromFirebase) ? `<div style="background:#F5F5F5;border-radius:var(--radius-sm);padding:10px 14px;font-size:.75rem;color:#888;margin-bottom:12px;">As indicações são da comunidade. Sempre verifique antes de visitar ou matricular. ✓ Validado = escola confirmada por nós.</div>` : "";
+  cont.innerHTML = avisoExemplo + avisoComunidade + lista.map(e=>cardEscola(e)).join("");
 }
 
 function cardEscola(e){
@@ -4701,7 +4703,7 @@ function cardEscola(e){
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px;">
         ${e.recomendada?`<div class="badge-recomendada">Muito recomendada</div>`:""}
         ${e.exemplo?`<div style="display:inline-block;background:#F0F0F0;color:#888;font-size:.62rem;font-weight:700;border-radius:999px;padding:3px 10px;">Exemplo ilustrativo</div>`:""}
-        ${e._pendente?`<div style="display:inline-block;background:#FFF9E0;color:#7A5C00;font-size:.62rem;font-weight:700;border-radius:999px;padding:3px 10px;">Aguardando aprovacao</div>`:""}
+        ${e._fromFirebase && e._validado?`<div style="display:inline-block;background:#E8F5E9;color:#2E7D32;font-size:.62rem;font-weight:700;border-radius:999px;padding:3px 10px;">✓ Validado</div>`:e._fromFirebase?`<div style="display:inline-block;background:#F5F5F5;color:#888;font-size:.62rem;font-weight:700;border-radius:999px;padding:3px 10px;">Indicação da comunidade</div>`:""}
       </div>
       <div class="card-escola-nome">${e.nome}</div>
       <div class="card-escola-meta">
@@ -4749,8 +4751,9 @@ function renderProfissionais(){
   const count = document.getElementById("profissionais-count");
   if(!cont) return;
   count.textContent = lista.length+" profissional"+(lista.length!==1?"is":"")+" encontrado"+(lista.length!==1?"s":"");
-  const aviso = lista.some(p=>p.exemplo) ? `<div style="background:#FFF9E0;border-radius:var(--radius-sm);padding:10px 14px;font-size:.78rem;color:#7A5C00;font-weight:600;margin-bottom:12px;">Estes sao exemplos ilustrativos. Indique os seus profissionais favoritos!</div>` : "";
-  cont.innerHTML = aviso + lista.map(p=>cardProf(p)).join("");
+  const avisoExemplo = lista.some(p=>p.exemplo) ? `<div style="background:#FFF9E0;border-radius:var(--radius-sm);padding:10px 14px;font-size:.78rem;color:#7A5C00;font-weight:600;margin-bottom:12px;">Estes sao exemplos ilustrativos. Indique os seus profissionais favoritos!</div>` : "";
+  const avisoComunidade = lista.some(p=>p._fromFirebase) ? `<div style="background:#F5F5F5;border-radius:var(--radius-sm);padding:10px 14px;font-size:.75rem;color:#888;margin-bottom:12px;">As indicações são da comunidade. Sempre verifique antes de contratar. ✓ Validado = profissional confirmado por nós.</div>` : "";
+  cont.innerHTML = avisoExemplo + avisoComunidade + lista.map(p=>cardProf(p)).join("");
 }
 
 function cardProf(p){
@@ -4770,7 +4773,7 @@ function cardProf(p){
         <div style="text-align:right;">${notaHtml}</div>
       </div>
       <div class="card-prof-meta">${p.bairro||"—"} ${p.preco?`· ${p.preco}`:""}</div>
-      ${p._pendente?`<div style="font-size:.65rem;color:#7A5C00;font-weight:700;margin-top:4px;">Aguardando aprovacao</div>`:""}
+      ${p._fromFirebase && p._validado?`<div style="font-size:.65rem;color:#2E7D32;font-weight:700;margin-top:4px;">✓ Validado</div>`:p._fromFirebase?`<div style="font-size:.65rem;color:#888;font-weight:600;margin-top:4px;">Indicação da comunidade</div>`:""}
       <div class="card-prof-tags">${top2.map(t=>`<span class="prof-tag">${typeof t==="string"?t:t.t}</span>`).join("")}</div>
     </div>
   </div>`;
