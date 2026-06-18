@@ -1562,6 +1562,7 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
       <div class="ideal-grid" id="det-evt-ideal"></div>
     </div>
     <div class="det-acoes">
+      <button class="btn-acao btn-acao-outline" id="det-evt-btn-maps" style="display:none;">🗺️ Como chegar</button>
       <button class="btn-acao btn-acao-outline" onclick="compartilharEvento()">📤 Compartilhar</button>
       <button class="btn-acao btn-acao-outline" onclick="exportarEventoCal()" id="det-evt-btn-cal">📅 Salvar no calendário</button>
       <button class="btn-acao btn-acao-primary" id="det-evt-btn-contato">Quero participar</button>
@@ -2946,6 +2947,12 @@ function abrirDetalheEvento(id){
   // contato
   const btnContato=document.getElementById("det-evt-btn-contato");
   if(e.contato){ btnContato.onclick=()=>{ const txt=e.contato; if(navigator.share) navigator.share({title:e.titulo,text:txt}).catch(()=>{}); else { navigator.clipboard.writeText(txt).then(()=>toast("Contato copiado 📋")); } }; }
+  // como chegar
+  const btnMapsEvt = document.getElementById("det-evt-btn-maps");
+  if(e.lat!=null && e.lng!=null){
+    btnMapsEvt.style.display="";
+    btnMapsEvt.onclick=()=>window.open(`https://www.google.com/maps/dir/?api=1&destination=${e.lat},${e.lng}`,"_blank","noopener");
+  } else { btnMapsEvt.style.display="none"; }
   history.pushState(null,"","#evento/"+e.id);
   document.getElementById("overlay-evento").classList.add("aberto");
 }
@@ -4844,9 +4851,12 @@ function abrirDetalheEscola(id){
       <div class="info-linha"><span class="label">Faixa etaria</span><span class="valor">${e.faixaMin} a ${e.faixaMax} anos</span></div>
       <div class="info-linha"><span class="label">Mensalidade</span><span class="valor">R$ ${e.mensMin.toLocaleString()} – ${e.mensMax.toLocaleString()}</span></div>
     </div>
-    <div style="display:flex;gap:10px;padding:14px 16px 24px;background:var(--branco);margin-top:8px;">
-      <button style="flex:1;background:var(--cinza);border:none;border-radius:var(--radius-sm);padding:13px;font-size:.85rem;font-weight:800;color:var(--suave);cursor:pointer;font-family:'Nunito',sans-serif;" onclick="fecharDetalheEscola()">Voltar</button>
-      <button style="flex:2;background:var(--laranja);border:none;border-radius:var(--radius-sm);padding:13px;font-size:.85rem;font-weight:800;color:#fff;cursor:pointer;font-family:'Nunito',sans-serif;">Indicar escola</button>
+    <div style="display:flex;gap:8px;padding:14px 16px 8px;background:var(--branco);margin-top:8px;flex-wrap:wrap;">
+      ${e.lat?`<button onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${e.lat},${e.lng}','_blank','noopener')" style="flex:1;min-width:120px;background:var(--cinza);border:none;border-radius:var(--radius-sm);padding:12px;font-size:.82rem;font-weight:800;color:var(--texto);cursor:pointer;font-family:'Nunito',sans-serif;">🗺️ Como chegar</button>`:""}
+      <button onclick="compartilharEscola('${e.id}')" style="flex:1;min-width:120px;background:var(--cinza);border:none;border-radius:var(--radius-sm);padding:12px;font-size:.82rem;font-weight:800;color:var(--texto);cursor:pointer;font-family:'Nunito',sans-serif;">📤 Compartilhar</button>
+    </div>
+    <div style="padding:0 16px 24px;background:var(--branco);">
+      <button onclick="fecharDetalheEscola()" style="width:100%;background:var(--laranja);border:none;border-radius:var(--radius-sm);padding:13px;font-size:.85rem;font-weight:800;color:#fff;cursor:pointer;font-family:'Nunito',sans-serif;">Fechar</button>
     </div>
     <div style="height:20px;"></div>`;
   let el = document.getElementById("detalhe-escola-tela");
@@ -4862,6 +4872,22 @@ function abrirDetalheEscola(id){
 function fecharDetalheEscola(){
   const el = document.getElementById("detalhe-escola-tela");
   if(el) el.classList.remove("aberto");
+}
+function compartilharEscola(id){
+  const merged = [...ESCOLAS_MOCK, ...STATE.escolasSugeridas.map(normalizarEscolaDoc)];
+  const e = merged.find(x=>x.id===id);
+  if(!e) return;
+  const texto = `${e.nome} — ${e.bairro}\n\nVi no Onde Vamos, Mamãe! 🍼\nhttps://fedreilich.github.io/onde-vamos-mamae/`;
+  if(navigator.share) navigator.share({title:"Onde Vamos, Mamãe?", text:texto}).catch(()=>{});
+  else navigator.clipboard.writeText(texto).then(()=>toast("Copiado! Cola no WhatsApp 💬"));
+}
+function compartilharProf(id){
+  const merged = [...PROF_MOCK, ...STATE.profSugeridos.map(normalizarProfDoc)];
+  const p = merged.find(x=>x.id===id);
+  if(!p) return;
+  const texto = `${p.nome} — ${p.esp}\n📍 ${p.bairro||""}\n\nVi no Onde Vamos, Mamãe! 🍼\nhttps://fedreilich.github.io/onde-vamos-mamae/`;
+  if(navigator.share) navigator.share({title:"Onde Vamos, Mamãe?", text:texto}).catch(()=>{});
+  else navigator.clipboard.writeText(texto).then(()=>toast("Copiado! Cola no WhatsApp 💬"));
 }
 
 // ═══════════════════════════════════════════════════
@@ -4919,6 +4945,10 @@ function abrirDetalheProf(id){
       ${p.crm?`<div class="info-linha"><span class="label">Registro</span><span class="valor">${p.crm}</span></div>`:""}
     </div>
     ${palavraHtml}
+    <div style="display:flex;gap:8px;padding:14px 16px 8px;background:var(--branco);margin-top:8px;flex-wrap:wrap;">
+      ${p.lat?`<button onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}','_blank','noopener')" style="flex:1;min-width:120px;background:var(--cinza);border:none;border-radius:var(--radius-sm);padding:12px;font-size:.82rem;font-weight:800;color:var(--texto);cursor:pointer;font-family:'Nunito',sans-serif;">🗺️ Como chegar</button>`:""}
+      <button onclick="compartilharProf('${p.id}')" style="flex:1;min-width:120px;background:var(--cinza);border:none;border-radius:var(--radius-sm);padding:12px;font-size:.82rem;font-weight:800;color:var(--texto);cursor:pointer;font-family:'Nunito',sans-serif;">📤 Compartilhar</button>
+    </div>
     <div style="height:calc(var(--nav) + 20px);"></div>`;
   let el = document.getElementById("detalhe-prof-tela");
   if(!el){
