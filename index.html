@@ -595,7 +595,7 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
           <div style="font-size:.78rem;color:var(--suave);font-weight:600;" id="header-saudacao">Bom dia,</div>
           <div style="font-size:1.2rem;font-weight:900;color:var(--texto);" id="header-nome">Mamãe! ☀️</div>
         </div>
-        <div class="header-avatar" id="header-avatar">M</div>
+        <div class="header-avatar" id="header-avatar" onclick="abrirEditarPerfil()">M</div>
       </div>
       <!-- busca -->
       <div class="busca-container">
@@ -746,6 +746,16 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
       <div style="font-size:1.4rem;font-weight:900;color:var(--texto);">Mais</div>
     </div>
     <div style="padding:8px 16px 4px;">
+      <!-- mini card de perfil -->
+      <div id="perfil-card-mais" onclick="abrirEditarPerfil()" style="background:var(--branco);border-radius:var(--radius-sm);border:1px solid var(--borda);padding:14px 16px;display:flex;align-items:center;gap:14px;margin-bottom:12px;cursor:pointer;">
+        <div id="perfil-avatar-mais" style="width:46px;height:46px;border-radius:50%;background:var(--laranja);display:flex;align-items:center;justify-content:center;font-size:1.15rem;font-weight:900;color:#fff;flex-shrink:0;">M</div>
+        <div style="flex:1;min-width:0;">
+          <div id="perfil-nome-mais" style="font-size:.95rem;font-weight:900;color:var(--texto);">Mamãe</div>
+          <div id="perfil-sub-mais" style="font-size:.72rem;color:var(--suave);margin-top:2px;"></div>
+        </div>
+        <span style="font-size:.75rem;font-weight:700;color:var(--laranja);">Editar →</span>
+      </div>
+      <div style="height:1px;background:var(--borda);margin:4px 0 8px;"></div>
       <div class="mais-item" onclick="setarTela('escolas')">
         <div class="mais-icone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M9 22V12h6v10"/></svg></div>
         <div class="mais-info">
@@ -1019,6 +1029,38 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
       </div>
       <div style="height:16px;"></div>
     </div>
+  </div>
+</div>
+
+<!-- ══ SHEET: EDITAR PERFIL ══ -->
+<div class="veu-sheet" id="veu-editar-perfil" onclick="fecharEditarPerfil()"></div>
+<div class="modal-sheet" id="sheet-editar-perfil">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <div class="sheet-titulo">Meu perfil</div>
+    <button class="sheet-fechar" onclick="fecharEditarPerfil()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div class="sheet-body">
+    <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:20px;">
+      <div id="ep-avatar" style="width:72px;height:72px;border-radius:50%;background:var(--laranja);display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:900;color:#fff;margin-bottom:10px;">M</div>
+    </div>
+    <div class="campo"><label>Nome *</label><input id="ep-nome" placeholder="Como quer ser chamada"></div>
+    <div class="campo"><label>Email</label><input id="ep-email" type="email" placeholder="fernanda@email.com"></div>
+    <div class="campo"><label>WhatsApp</label><input id="ep-whatsapp" type="tel" placeholder="(21) 99999-9999"></div>
+    <div class="campo">
+      <label>Quanto tem seu filho? <span style="color:var(--suave);font-weight:400">(pode marcar mais de um)</span></label>
+      <div id="ep-faixas" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+        <div class="ob-chip" data-faixa="gestante" onclick="toggleObChip(this)">Gestante</div>
+        <div class="ob-chip" data-faixa="0-6m" onclick="toggleObChip(this)">0–6 meses</div>
+        <div class="ob-chip" data-faixa="6-12m" onclick="toggleObChip(this)">6–12 meses</div>
+        <div class="ob-chip" data-faixa="1-2a" onclick="toggleObChip(this)">1–2 anos</div>
+        <div class="ob-chip" data-faixa="3-5a" onclick="toggleObChip(this)">3–5 anos</div>
+        <div class="ob-chip" data-faixa="6+" onclick="toggleObChip(this)">6+ anos</div>
+      </div>
+    </div>
+    <div class="campo"><label>Bairro onde mora</label><input id="ep-bairro" placeholder="Ex.: Botafogo"></div>
+    <button onclick="salvarPerfil()" style="width:100%;background:var(--laranja);color:#fff;border:none;border-radius:var(--radius-sm);padding:14px;font-size:.95rem;font-weight:800;font-family:'Nunito',sans-serif;cursor:pointer;margin-top:8px;">Salvar</button>
+    <div style="height:20px;"></div>
   </div>
 </div>
 
@@ -2271,6 +2313,7 @@ function checkOnboarding(){
     document.getElementById("app").style.display="block";
     document.getElementById("bottom-nav").style.display="flex";
     atualizarHeader();
+    atualizarCardPerfilMais();
   }
 }
 
@@ -2293,6 +2336,7 @@ document.getElementById("ob-entrar").addEventListener("click", async ()=>{
   document.getElementById("app").style.display="block";
   document.getElementById("bottom-nav").style.display="flex";
   atualizarHeader();
+  atualizarCardPerfilMais();
   renderHome();
 });
 
@@ -3235,6 +3279,66 @@ function voltarPasso(n){ mostrarPasso(n); }
 
 function toggleTagCheck(el){ el.classList.toggle("sel"); }
 function toggleObChip(el){ el.classList.toggle("sel"); }
+
+// ═══════════════════════════════════════════════════
+// PERFIL
+// ═══════════════════════════════════════════════════
+function abrirEditarPerfil(){
+  const u = STATE.usuario||{};
+  const faixas = u.faixaFilho||JSON.parse(localStorage.getItem("ovm_faixa_filho")||"[]");
+  const bairro = localStorage.getItem("ovm_bairro")||"";
+  document.getElementById("ep-nome").value = u.nome||"";
+  document.getElementById("ep-email").value = u.email||localStorage.getItem("ovm_email")||"";
+  document.getElementById("ep-whatsapp").value = u.whatsapp||localStorage.getItem("ovm_whatsapp")||"";
+  document.getElementById("ep-bairro").value = bairro;
+  document.querySelectorAll("#ep-faixas .ob-chip").forEach(c=>{
+    c.classList.toggle("sel", faixas.includes(c.dataset.faixa));
+  });
+  const inicial = (u.nome||"M").charAt(0).toUpperCase();
+  document.getElementById("ep-avatar").textContent = inicial;
+  document.getElementById("veu-editar-perfil").classList.add("aberto");
+  document.getElementById("sheet-editar-perfil").classList.add("aberto");
+}
+
+function fecharEditarPerfil(){
+  document.getElementById("veu-editar-perfil").classList.remove("aberto");
+  document.getElementById("sheet-editar-perfil").classList.remove("aberto");
+}
+
+async function salvarPerfil(){
+  const nome = document.getElementById("ep-nome").value.trim();
+  if(!nome){ toast("Coloca seu nome pra salvar 🙂"); return; }
+  const email = document.getElementById("ep-email").value.trim();
+  const whatsapp = document.getElementById("ep-whatsapp").value.trim();
+  const bairro = document.getElementById("ep-bairro").value.trim();
+  const faixaFilho = [...document.querySelectorAll("#ep-faixas .ob-chip.sel")].map(c=>c.dataset.faixa);
+  localStorage.setItem("ovm_nome", nome);
+  if(email) localStorage.setItem("ovm_email", email);
+  if(whatsapp) localStorage.setItem("ovm_whatsapp", whatsapp);
+  if(bairro) localStorage.setItem("ovm_bairro", bairro);
+  localStorage.setItem("ovm_faixa_filho", JSON.stringify(faixaFilho));
+  STATE.usuario = {...(STATE.usuario||{}), nome, email, whatsapp, bairro, faixaFilho};
+  if(db) await fbSet("usuarios", STATE.uid, {nome, email:email||"", whatsapp:whatsapp||"", bairro:bairro||"", faixaFilho, atualizadoEm:new Date().toISOString()}).catch(()=>{});
+  atualizarHeader();
+  atualizarCardPerfilMais();
+  fecharEditarPerfil();
+  toast("Perfil atualizado!");
+}
+
+function atualizarCardPerfilMais(){
+  const u = STATE.usuario||{};
+  const faixas = u.faixaFilho||[];
+  const inicial = (u.nome||"M").charAt(0).toUpperCase();
+  const av = document.getElementById("perfil-avatar-mais"); if(av) av.textContent = inicial;
+  const nm = document.getElementById("perfil-nome-mais"); if(nm) nm.textContent = u.nome||"Mamãe";
+  const sb = document.getElementById("perfil-sub-mais");
+  if(sb){
+    const partes = [];
+    if(u.email) partes.push(u.email);
+    if(faixas.length) partes.push(faixas.join(" · "));
+    sb.textContent = partes.join(" · ")||"Toque para editar seu perfil";
+  }
+}
 
 // ═══════════════════════════════════════════════════
 // MINHAS CONTRIBUIÇÕES
