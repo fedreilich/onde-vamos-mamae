@@ -3275,7 +3275,7 @@ function fecharBannerPerto(){
 
 function irParaMapaPerto(){
   fecharBannerPerto();
-  irParaTela("mapa");
+  setarTela("mapa");
 }
 
 function compartilharEvento(){
@@ -3669,9 +3669,9 @@ async function publicarLugar(){
     id, nome, bairro,
     hora:document.getElementById("f-hora").value.trim(),
     dica, foto:fotoUrl||null, tags, ideal,
-    adicionadoPor:autor, uid:STATE.uid||"", criadoEm:new Date().toISOString(),
+    adicionadoPor:autor, uid:STATE.uid||"", criadoEm:isEdicao?(STATE.lugares.find(l=>l.id===id)?.criadoEm||new Date().toISOString()):new Date().toISOString(),
     lat:pinTemp?.lat??null, lng:pinTemp?.lng??null,
-    tipo:(tags.includes("café")||tags.includes("brunch")||tags.includes("almoço"))?"cafe":"cafe",
+    tipo:(tags.includes("café")||tags.includes("brunch")||tags.includes("almoço")||tags.includes("padaria")||tags.includes("gelato"))?"cafe":"praca",
   };
   if(isEdicao){
     const idx=STATE.lugares.findIndex(l=>l.id===id);
@@ -5007,8 +5007,8 @@ async function admSalvarLugar(){
     lat:parseFloat(document.getElementById("af-lat").value)||null,
     lng:parseFloat(document.getElementById("af-lng").value)||null,
     foto:document.getElementById("af-foto").value.trim(),
-    criadoEm:new Date().toISOString(),
   };
+  if(!existingId) lugar.criadoEm = new Date().toISOString();
   const idx=STATE.lugares.findIndex(l=>l.id===id);
   if(idx>=0) STATE.lugares[idx]=lugar; else STATE.lugares.push(lugar);
   if(db) await fbSet("lugares",id,lugar);
@@ -5653,7 +5653,7 @@ function abrirDetalheProf(id){
     <div class="detalhe-secao">
       <div class="detalhe-secao-titulo">Informacoes</div>
       <div class="info-linha"><span class="label">Consulta</span><span class="valor">R$ ${p.preco}</span></div>
-      ${p.convenios.length?`<div class="info-linha"><span class="label">Convenios</span><span class="valor">${p.convenios.join(", ")}</span></div>`:""}
+      ${p.convenio?`<div class="info-linha"><span class="label">Convenios</span><span class="valor">${p.convenio}</span></div>`:p.convenios&&p.convenios.length?`<div class="info-linha"><span class="label">Convenios</span><span class="valor">${p.convenios.join(", ")}</span></div>`:""}
       <div class="info-linha"><span class="label">Atendimento</span><span class="valor">${p.atendimento}</span></div>
       <div class="info-linha"><span class="label">Idade atendida</span><span class="valor">${p.idadeAtendida}</span></div>
       ${p.crm?`<div class="info-linha"><span class="label">Registro</span><span class="valor">${p.crm}</span></div>`:""}
