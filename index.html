@@ -1268,17 +1268,43 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 <div id="adm-form-escola" onclick="if(event.target===this)admFecharFormEscola()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:910;overflow-y:auto;padding:24px 16px;align-items:flex-start;justify-content:center;">
   <div style="background:var(--branco);border-radius:var(--radius);padding:20px;width:100%;max-width:500px;">
     <input type="hidden" id="af-esc-id">
-    <div style="font-weight:800;color:var(--navy);margin-bottom:12px;">Editar Escola</div>
+    <div style="font-weight:800;color:var(--navy);font-size:1rem;margin-bottom:14px;">Editar Escola</div>
     <div class="campo"><label>Nome *</label><input id="af-esc-nome" placeholder="Nome da escola"></div>
     <div class="campo"><label>Bairro</label><input id="af-esc-bairro" placeholder="Ex.: Botafogo"></div>
-    <div class="campo"><label>Metodologia</label><input id="af-esc-metodologia" placeholder="Ex.: Montessori, Waldorf…"></div>
+    <div class="campo"><label>Endereço</label><input id="af-esc-endereco" placeholder="Ex.: Rua das Flores, 100"></div>
+    <div class="campo"><label>Telefone</label><input id="af-esc-tel" placeholder="Ex.: (21) 99999-9999"></div>
+    <div class="campo"><label>Instagram</label><input id="af-esc-instagram" placeholder="@escola"></div>
+    <div class="campo"><label>Site</label><input id="af-esc-site" placeholder="https://..."></div>
+    <div class="campo"><label>Metodologia</label>
+      <select id="af-esc-metodologia">
+        <option value="">Não informada</option>
+        <option value="Tradicional">Tradicional</option>
+        <option value="Construtivista">Construtivista</option>
+        <option value="Montessori">Montessori</option>
+        <option value="Waldorf">Waldorf</option>
+        <option value="Socioconstrutivista">Socioconstrutivista</option>
+        <option value="Bilíngue">Bilíngue</option>
+        <option value="Outro">Outro</option>
+      </select>
+    </div>
+    <div class="campo"><label>Mensalidade</label><input id="af-esc-mensalidade" placeholder="Ex.: R$ 1.200"></div>
+    <div class="campo"><label>Níveis <span style="color:var(--suave);font-weight:400">(separados por vírgula)</span></label><input id="af-esc-niveis" placeholder="Ex.: Berçário, Maternal, Pré"></div>
+    <div class="campo"><label>Observação</label><textarea id="af-esc-obs" style="height:72px;resize:none;" maxlength="500" placeholder="Observação da indicação…"></textarea></div>
+    <div style="margin-bottom:12px;">
+      <div style="font-size:.78rem;font-weight:700;color:var(--texto);margin-bottom:6px;">Localização</div>
+      <div style="display:flex;gap:8px;margin-bottom:6px;">
+        <input id="af-esc-lat" placeholder="Latitude" style="flex:1;border:1.5px solid var(--borda);border-radius:var(--radius-sm);padding:8px;font-size:.82rem;font-family:'Nunito',sans-serif;">
+        <input id="af-esc-lng" placeholder="Longitude" style="flex:1;border:1.5px solid var(--borda);border-radius:var(--radius-sm);padding:8px;font-size:.82rem;font-family:'Nunito',sans-serif;">
+      </div>
+      <button type="button" onclick="admGeoEscola()" style="width:100%;background:var(--navy);color:#fff;border:none;border-radius:var(--radius-sm);padding:9px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;">Buscar localização pelo nome/endereço</button>
+      <div id="af-esc-geo-status" style="display:none;padding:8px 12px;border-radius:var(--radius-sm);font-size:.78rem;margin-top:6px;"></div>
+    </div>
     <div class="campo"><label>Status</label>
       <select id="af-esc-status">
         <option value="pendente">Pendente</option>
         <option value="validado">Validado</option>
       </select>
     </div>
-    <div class="campo"><label>Observação</label><textarea id="af-esc-obs" style="height:72px;resize:none;" maxlength="400" placeholder="Observação da indicação…"></textarea></div>
     <div style="display:flex;gap:8px;margin-top:4px;">
       <button onclick="admFecharFormEscola()" style="flex:1;border:1.5px solid var(--borda);background:none;border-radius:var(--radius-sm);padding:10px;font-size:.82rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;">Cancelar</button>
       <button onclick="admSalvarEscola()" style="flex:2;background:var(--laranja);color:#fff;border:none;border-radius:var(--radius-sm);padding:10px;font-size:.82rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;">Salvar</button>
@@ -1290,18 +1316,56 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 <div id="adm-form-prof" onclick="if(event.target===this)admFecharFormProf()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:910;overflow-y:auto;padding:24px 16px;align-items:flex-start;justify-content:center;">
   <div style="background:var(--branco);border-radius:var(--radius);padding:20px;width:100%;max-width:500px;">
     <input type="hidden" id="af-prof-id">
-    <div style="font-weight:800;color:var(--navy);margin-bottom:12px;">Editar Profissional</div>
-    <div class="campo"><label>Nome *</label><input id="af-prof-nome" placeholder="Nome do profissional"></div>
-    <div class="campo"><label>Especialidade</label><input id="af-prof-esp" placeholder="Ex.: Pediatra, Fonoaudióloga…"></div>
+    <div style="font-weight:800;color:var(--navy);font-size:1rem;margin-bottom:14px;">Editar Profissional</div>
+    <div class="campo"><label>Nome *</label><input id="af-prof-nome" placeholder="Ex.: Dra. Ana Silva"></div>
+    <div class="campo"><label>Especialidade</label>
+      <select id="af-prof-esp">
+        <option value="">Selecionar…</option>
+        <option value="Pediatra">Pediatra</option>
+        <option value="Neuropediatra">Neuropediatra</option>
+        <option value="Fonoaudióloga">Fonoaudióloga</option>
+        <option value="Psicóloga">Psicóloga</option>
+        <option value="Fisioterapeuta">Fisioterapeuta</option>
+        <option value="Terapeuta Ocupacional">Terapeuta Ocupacional</option>
+        <option value="Dentista">Dentista</option>
+        <option value="Nutricionista">Nutricionista</option>
+        <option value="Consultora de amamentação">Consultora de amamentação</option>
+        <option value="Doula">Doula</option>
+        <option value="Outro">Outro</option>
+      </select>
+    </div>
+    <div class="campo"><label>Endereço / Consultório</label><input id="af-prof-endereco" placeholder="Ex.: Rua X, 100 — Tijuca"></div>
     <div class="campo"><label>Bairro</label><input id="af-prof-bairro" placeholder="Ex.: Tijuca"></div>
-    <div class="campo"><label>Tags <span style="color:var(--suave);font-weight:400">(separadas por vírgula)</span></label><input id="af-prof-tags" placeholder="plano de saúde, atende bebês…"></div>
+    <div class="campo"><label>WhatsApp</label><input id="af-prof-whatsapp" placeholder="Ex.: (21) 99999-9999"></div>
+    <div class="campo"><label>Instagram</label><input id="af-prof-instagram" placeholder="@profissional"></div>
+    <div class="campo"><label>Preço / Consulta</label><input id="af-prof-preco" placeholder="Ex.: R$ 250, Consultar"></div>
+    <div class="campo"><label>Convênio</label><input id="af-prof-convenio" placeholder="Ex.: Unimed, Bradesco, Particular"></div>
+    <div class="campo"><label>Atendimento</label>
+      <select id="af-prof-atendimento">
+        <option value="">Não informado</option>
+        <option value="Presencial">Presencial</option>
+        <option value="Online">Online</option>
+        <option value="Presencial e Online">Presencial e Online</option>
+        <option value="Domiciliar">Domiciliar</option>
+      </select>
+    </div>
+    <div class="campo"><label>Tags <span style="color:var(--suave);font-weight:400">(separadas por vírgula)</span></label><input id="af-prof-tags" placeholder="Não medicaliza, Aceita convênio…"></div>
+    <div class="campo"><label>Observação</label><textarea id="af-prof-obs" style="height:72px;resize:none;" maxlength="500" placeholder="Observação da indicação…"></textarea></div>
+    <div style="margin-bottom:12px;">
+      <div style="font-size:.78rem;font-weight:700;color:var(--texto);margin-bottom:6px;">Localização</div>
+      <div style="display:flex;gap:8px;margin-bottom:6px;">
+        <input id="af-prof-lat" placeholder="Latitude" style="flex:1;border:1.5px solid var(--borda);border-radius:var(--radius-sm);padding:8px;font-size:.82rem;font-family:'Nunito',sans-serif;">
+        <input id="af-prof-lng" placeholder="Longitude" style="flex:1;border:1.5px solid var(--borda);border-radius:var(--radius-sm);padding:8px;font-size:.82rem;font-family:'Nunito',sans-serif;">
+      </div>
+      <button type="button" onclick="admGeoProf()" style="width:100%;background:var(--navy);color:#fff;border:none;border-radius:var(--radius-sm);padding:9px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;">Buscar localização pelo nome/endereço</button>
+      <div id="af-prof-geo-status" style="display:none;padding:8px 12px;border-radius:var(--radius-sm);font-size:.78rem;margin-top:6px;"></div>
+    </div>
     <div class="campo"><label>Status</label>
       <select id="af-prof-status">
         <option value="pendente">Pendente</option>
         <option value="validado">Validado</option>
       </select>
     </div>
-    <div class="campo"><label>Observação</label><textarea id="af-prof-obs" style="height:72px;resize:none;" maxlength="400" placeholder="Observação da indicação…"></textarea></div>
     <div style="display:flex;gap:8px;margin-top:4px;">
       <button onclick="admFecharFormProf()" style="flex:1;border:1.5px solid var(--borda);background:none;border-radius:var(--radius-sm);padding:10px;font-size:.82rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;">Cancelar</button>
       <button onclick="admSalvarProf()" style="flex:2;background:var(--laranja);color:#fff;border:none;border-radius:var(--radius-sm);padding:10px;font-size:.82rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;">Salvar</button>
@@ -4093,23 +4157,63 @@ async function admEditarEscola(id){
   document.getElementById("af-esc-id").value = id;
   document.getElementById("af-esc-nome").value = e.nome||"";
   document.getElementById("af-esc-bairro").value = e.bairro||"";
+  document.getElementById("af-esc-endereco").value = e.endereco||"";
+  document.getElementById("af-esc-tel").value = e.tel||"";
+  document.getElementById("af-esc-instagram").value = e.instagram||"";
+  document.getElementById("af-esc-site").value = e.site||"";
   document.getElementById("af-esc-metodologia").value = e.metodologia||"";
+  document.getElementById("af-esc-mensalidade").value = e.mensalidade||"";
+  document.getElementById("af-esc-niveis").value = (e.niveis||[]).join(", ");
   document.getElementById("af-esc-obs").value = e.obs||"";
+  document.getElementById("af-esc-lat").value = e.lat||"";
+  document.getElementById("af-esc-lng").value = e.lng||"";
   document.getElementById("af-esc-status").value = e.status||"pendente";
-  const modal = document.getElementById("adm-form-escola");
-  modal.style.display = "flex";
+  document.getElementById("af-esc-geo-status").style.display = "none";
+  document.getElementById("adm-form-escola").style.display = "flex";
 }
 function admFecharFormEscola(){
   document.getElementById("adm-form-escola").style.display = "none";
 }
+async function admGeoEscola(){
+  const nome = document.getElementById("af-esc-nome").value.trim();
+  const end = document.getElementById("af-esc-endereco").value.trim();
+  const bairro = document.getElementById("af-esc-bairro").value.trim();
+  const status = document.getElementById("af-esc-geo-status");
+  if(!nome && !end){ toast("Preenche nome ou endereço primeiro"); return; }
+  status.style.display="block"; status.style.background="#F0F4FF"; status.style.color="#1A3C8B";
+  status.textContent="Buscando...";
+  try{
+    const q = encodeURIComponent([nome,end,bairro,"Rio de Janeiro"].filter(Boolean).join(", "));
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1`,{headers:{"Accept-Language":"pt-BR"}});
+    const data = await res.json();
+    if(data.length){
+      document.getElementById("af-esc-lat").value = data[0].lat;
+      document.getElementById("af-esc-lng").value = data[0].lon;
+      status.style.background="#E8F8EE"; status.style.color="#1A6B3C";
+      status.textContent="✓ Localização encontrada! Lat: "+parseFloat(data[0].lat).toFixed(5);
+    } else {
+      status.style.background="#FFF9E0"; status.style.color="#7A5C00";
+      status.textContent="Não encontrado. Insira as coordenadas manualmente.";
+    }
+  }catch(e){ status.style.background="#FEE8F2"; status.style.color="#8B0040"; status.textContent="Erro de conexão."; }
+}
 async function admSalvarEscola(){
   const id = document.getElementById("af-esc-id").value;
   if(!id || !db) return;
+  const niveisRaw = document.getElementById("af-esc-niveis").value;
   const dados = {
     nome: document.getElementById("af-esc-nome").value.trim(),
     bairro: document.getElementById("af-esc-bairro").value.trim(),
-    metodologia: document.getElementById("af-esc-metodologia").value.trim(),
+    endereco: document.getElementById("af-esc-endereco").value.trim(),
+    tel: document.getElementById("af-esc-tel").value.trim(),
+    instagram: document.getElementById("af-esc-instagram").value.trim(),
+    site: document.getElementById("af-esc-site").value.trim(),
+    metodologia: document.getElementById("af-esc-metodologia").value,
+    mensalidade: document.getElementById("af-esc-mensalidade").value.trim(),
+    niveis: niveisRaw.split(",").map(t=>t.trim()).filter(Boolean),
     obs: document.getElementById("af-esc-obs").value.trim(),
+    lat: document.getElementById("af-esc-lat").value||null,
+    lng: document.getElementById("af-esc-lng").value||null,
     status: document.getElementById("af-esc-status").value,
   };
   try{
@@ -4166,26 +4270,65 @@ async function admEditarProf(id){
   document.getElementById("af-prof-id").value = id;
   document.getElementById("af-prof-nome").value = p.nome||"";
   document.getElementById("af-prof-esp").value = p.esp||"";
+  document.getElementById("af-prof-endereco").value = p.endereco||"";
   document.getElementById("af-prof-bairro").value = p.bairro||"";
+  document.getElementById("af-prof-whatsapp").value = p.whatsapp||"";
+  document.getElementById("af-prof-instagram").value = p.instagram||"";
+  document.getElementById("af-prof-preco").value = p.preco||"";
+  document.getElementById("af-prof-convenio").value = p.convenio||"";
+  document.getElementById("af-prof-atendimento").value = p.atendimento||"";
   document.getElementById("af-prof-tags").value = (p.tags||[]).join(", ");
   document.getElementById("af-prof-obs").value = p.obs||"";
+  document.getElementById("af-prof-lat").value = p.lat||"";
+  document.getElementById("af-prof-lng").value = p.lng||"";
   document.getElementById("af-prof-status").value = p.status||"pendente";
+  document.getElementById("af-prof-geo-status").style.display = "none";
   document.getElementById("adm-form-prof").style.display = "flex";
 }
 function admFecharFormProf(){
   document.getElementById("adm-form-prof").style.display = "none";
 }
+async function admGeoProf(){
+  const nome = document.getElementById("af-prof-nome").value.trim();
+  const end = document.getElementById("af-prof-endereco").value.trim();
+  const bairro = document.getElementById("af-prof-bairro").value.trim();
+  const status = document.getElementById("af-prof-geo-status");
+  if(!nome && !end){ toast("Preenche nome ou endereço primeiro"); return; }
+  status.style.display="block"; status.style.background="#F0F4FF"; status.style.color="#1A3C8B";
+  status.textContent="Buscando...";
+  try{
+    const q = encodeURIComponent([nome,end,bairro,"Rio de Janeiro"].filter(Boolean).join(", "));
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1`,{headers:{"Accept-Language":"pt-BR"}});
+    const data = await res.json();
+    if(data.length){
+      document.getElementById("af-prof-lat").value = data[0].lat;
+      document.getElementById("af-prof-lng").value = data[0].lon;
+      status.style.background="#E8F8EE"; status.style.color="#1A6B3C";
+      status.textContent="✓ Localização encontrada! Lat: "+parseFloat(data[0].lat).toFixed(5);
+    } else {
+      status.style.background="#FFF9E0"; status.style.color="#7A5C00";
+      status.textContent="Não encontrado. Insira as coordenadas manualmente.";
+    }
+  }catch(e){ status.style.background="#FEE8F2"; status.style.color="#8B0040"; status.textContent="Erro de conexão."; }
+}
 async function admSalvarProf(){
   const id = document.getElementById("af-prof-id").value;
   if(!id || !db) return;
-  const tagsRaw = document.getElementById("af-prof-tags").value;
-  const tags = tagsRaw.split(",").map(t=>t.trim()).filter(Boolean);
+  const tags = document.getElementById("af-prof-tags").value.split(",").map(t=>t.trim()).filter(Boolean);
   const dados = {
     nome: document.getElementById("af-prof-nome").value.trim(),
-    esp: document.getElementById("af-prof-esp").value.trim(),
+    esp: document.getElementById("af-prof-esp").value,
+    endereco: document.getElementById("af-prof-endereco").value.trim(),
     bairro: document.getElementById("af-prof-bairro").value.trim(),
+    whatsapp: document.getElementById("af-prof-whatsapp").value.trim(),
+    instagram: document.getElementById("af-prof-instagram").value.trim(),
+    preco: document.getElementById("af-prof-preco").value.trim(),
+    convenio: document.getElementById("af-prof-convenio").value.trim(),
+    atendimento: document.getElementById("af-prof-atendimento").value,
     tags,
     obs: document.getElementById("af-prof-obs").value.trim(),
+    lat: document.getElementById("af-prof-lat").value||null,
+    lng: document.getElementById("af-prof-lng").value||null,
     status: document.getElementById("af-prof-status").value,
   };
   try{
