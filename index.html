@@ -4371,10 +4371,37 @@ async function deletarMelhoria(id){
   });
 }
 
+let _lugarFiltroQual = null;
+function admFiltroLugarQual(key){
+  _lugarFiltroQual = _lugarFiltroQual === key ? null : key;
+  renderAdmLugares();
+}
+
 function renderAdmLugares(){
   const cont = document.getElementById("adm-lista-lugares");
   if(!STATE.lugares.length){ cont.innerHTML=`<div class="adm-empty">Nenhum lugar cadastrado.</div>`; return; }
-  cont.innerHTML = STATE.lugares.map(l=>{
+  const total = STATE.lugares.length;
+  const semFoto   = STATE.lugares.filter(l=>!l.foto).length;
+  const semMapa   = STATE.lugares.filter(l=>!l.lat||!l.lng).length;
+  const semDesc   = STATE.lugares.filter(l=>!l.dica).length;
+  const semBairro = STATE.lugares.filter(l=>!l.bairro).length;
+  const badgeHtml = key => _lugarFiltroQual===key ? "adm-filter-btn ativo" : "adm-filter-btn";
+  const qualHtml = `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;align-items:center;">
+    <span style="font-size:.7rem;font-weight:800;color:var(--suave);">QUALIDADE:</span>
+    ${semFoto?`<button class="${badgeHtml('semFoto')}" onclick="admFiltroLugarQual('semFoto')" style="color:${_lugarFiltroQual==='semFoto'?'#fff':'#E65100'};">${semFoto} sem foto</button>`:""}
+    ${semMapa?`<button class="${badgeHtml('semMapa')}" onclick="admFiltroLugarQual('semMapa')" style="color:${_lugarFiltroQual==='semMapa'?'#fff':'#E65100'};">${semMapa} sem mapa</button>`:""}
+    ${semDesc?`<button class="${badgeHtml('semDesc')}" onclick="admFiltroLugarQual('semDesc')" style="color:${_lugarFiltroQual==='semDesc'?'#fff':'#E65100'};">${semDesc} sem descrição</button>`:""}
+    ${semBairro?`<button class="${badgeHtml('semBairro')}" onclick="admFiltroLugarQual('semBairro')" style="color:${_lugarFiltroQual==='semBairro'?'#fff':'#E65100'};">${semBairro} sem bairro</button>`:""}
+    ${!semFoto&&!semMapa&&!semDesc&&!semBairro?`<span style="font-size:.72rem;color:var(--verde);font-weight:700;">✓ Todos completos</span>`:""}
+  </div>`;
+  const filtradores = {
+    semFoto: l => !l.foto,
+    semMapa: l => !l.lat||!l.lng,
+    semDesc: l => !l.dica,
+    semBairro: l => !l.bairro,
+  };
+  const lista = _lugarFiltroQual ? STATE.lugares.filter(filtradores[_lugarFiltroQual]) : STATE.lugares;
+  cont.innerHTML = qualHtml + lista.map(l=>{
     const emoji = l.tipo==="praca"?"🌳":"☕";
     const fotoHtml = l.foto
       ? `<img class="adm-card-foto" src="${esc(l.foto)}" onerror="this.textContent='${emoji}'">`
@@ -4398,10 +4425,33 @@ function renderAdmLugares(){
   }).join("");
 }
 
+let _eventoFiltroQual = null;
+function admFiltroEventoQual(key){
+  _eventoFiltroQual = _eventoFiltroQual === key ? null : key;
+  renderAdmEventos();
+}
+
 function renderAdmEventos(){
   const cont = document.getElementById("adm-lista-eventos");
   if(!STATE.eventos.length){ cont.innerHTML=`<div class="adm-empty">Nenhum evento cadastrado.</div>`; return; }
-  cont.innerHTML = STATE.eventos.map(e=>{
+  const semFoto   = STATE.eventos.filter(e=>!e.foto).length;
+  const semLocal  = STATE.eventos.filter(e=>!e.local&&!e.bairro).length;
+  const semDesc   = STATE.eventos.filter(e=>!e.dica&&!e.descricao).length;
+  const badgeHtml = key => _eventoFiltroQual===key ? "adm-filter-btn ativo" : "adm-filter-btn";
+  const qualHtml = `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;align-items:center;">
+    <span style="font-size:.7rem;font-weight:800;color:var(--suave);">QUALIDADE:</span>
+    ${semFoto?`<button class="${badgeHtml('semFoto')}" onclick="admFiltroEventoQual('semFoto')" style="color:${_eventoFiltroQual==='semFoto'?'#fff':'#E65100'};">${semFoto} sem foto</button>`:""}
+    ${semLocal?`<button class="${badgeHtml('semLocal')}" onclick="admFiltroEventoQual('semLocal')" style="color:${_eventoFiltroQual==='semLocal'?'#fff':'#E65100'};">${semLocal} sem local</button>`:""}
+    ${semDesc?`<button class="${badgeHtml('semDesc')}" onclick="admFiltroEventoQual('semDesc')" style="color:${_eventoFiltroQual==='semDesc'?'#fff':'#E65100'};">${semDesc} sem descrição</button>`:""}
+    ${!semFoto&&!semLocal&&!semDesc?`<span style="font-size:.72rem;color:var(--verde);font-weight:700;">✓ Todos completos</span>`:""}
+  </div>`;
+  const filtradores = {
+    semFoto:  e => !e.foto,
+    semLocal: e => !e.local&&!e.bairro,
+    semDesc:  e => !e.dica&&!e.descricao,
+  };
+  const lista = _eventoFiltroQual ? STATE.eventos.filter(filtradores[_eventoFiltroQual]) : STATE.eventos;
+  cont.innerHTML = qualHtml + lista.map(e=>{
     const fotoHtml = e.foto
       ? `<img class="adm-card-foto" src="${esc(e.foto)}" onerror="this.textContent='★'">`
       : `<div class="adm-card-foto">★</div>`;
@@ -4423,14 +4473,33 @@ function renderAdmEventos(){
   }).join("");
 }
 
+let _escFiltroQual = null;
+function admFiltroEscolaQual(key){
+  _escFiltroQual = _escFiltroQual === key ? null : key;
+  renderAdmEscolas();
+}
+
 async function renderAdmEscolas(){
   const cont = document.getElementById("adm-lista-escolas");
   cont.innerHTML=`<div class="adm-empty">Carregando...</div>`;
-  let docs = [];
-  if(db){ try{ docs = await fbList("escolas_sugeridas"); _escCache = docs; }catch(e){} }
+  let allDocs = [];
+  if(db){ try{ allDocs = await fbList("escolas_sugeridas"); _escCache = allDocs; }catch(e){} }
+  const semBairro = allDocs.filter(e=>!e.bairro).length;
+  const semMet    = allDocs.filter(e=>!e.metodologia).length;
+  const semTel    = allDocs.filter(e=>!e.tel).length;
+  const bQ = key => _escFiltroQual===key ? "adm-filter-btn ativo" : "adm-filter-btn";
+  const qualHtml = `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;align-items:center;">
+    <span style="font-size:.7rem;font-weight:800;color:var(--suave);">QUALIDADE:</span>
+    ${semBairro?`<button class="${bQ('semBairro')}" onclick="admFiltroEscolaQual('semBairro')" style="color:${_escFiltroQual==='semBairro'?'#fff':'#E65100'};">${semBairro} sem bairro</button>`:""}
+    ${semMet?`<button class="${bQ('semMet')}" onclick="admFiltroEscolaQual('semMet')" style="color:${_escFiltroQual==='semMet'?'#fff':'#E65100'};">${semMet} sem metodologia</button>`:""}
+    ${semTel?`<button class="${bQ('semTel')}" onclick="admFiltroEscolaQual('semTel')" style="color:${_escFiltroQual==='semTel'?'#fff':'#E65100'};">${semTel} sem telefone</button>`:""}
+    ${!semBairro&&!semMet&&!semTel?`<span style="font-size:.72rem;color:var(--verde);font-weight:700;">✓ Todos completos</span>`:""}
+  </div>`;
+  const filtQual = { semBairro: e=>!e.bairro, semMet: e=>!e.metodologia, semTel: e=>!e.tel };
+  let docs = _escFiltroQual ? allDocs.filter(filtQual[_escFiltroQual]) : allDocs;
   if(_escFiltro !== "todos") docs = docs.filter(e => e.status === _escFiltro);
-  if(!docs.length){ cont.innerHTML=`<div class="adm-empty">Nenhuma escola${_escFiltro!=="todos"?" "+_escFiltro:""} encontrada.</div>`; return; }
-  cont.innerHTML = docs.map(e=>`<div class="adm-card">
+  if(!docs.length){ cont.innerHTML=qualHtml+`<div class="adm-empty">Nenhuma escola${_escFiltro!=="todos"?" "+_escFiltro:""} encontrada.</div>`; return; }
+  cont.innerHTML = qualHtml + docs.map(e=>`<div class="adm-card">
     <div class="adm-card-top">
       <div class="adm-card-foto" style="font-size:1.2rem;">🏫</div>
       <div class="adm-card-body">
@@ -4576,14 +4645,33 @@ let _profFiltro = "todos";
 function admFiltroProf(el,filtro){ document.querySelectorAll("#adm-tab-profissionais .adm-filter-btn").forEach(b=>b.classList.remove("ativo")); el.classList.add("ativo"); _profFiltro=filtro; renderAdmProfissionais(); }
 function admNovoProf(){ document.getElementById("af-prof-id").value=""; ["af-prof-nome","af-prof-endereco","af-prof-bairro","af-prof-whatsapp","af-prof-instagram","af-prof-preco","af-prof-convenio","af-prof-tags","af-prof-obs","af-prof-lat","af-prof-lng"].forEach(i=>document.getElementById(i).value=""); document.getElementById("af-prof-esp").value=""; document.getElementById("af-prof-atendimento").value=""; document.getElementById("af-prof-status").value="pendente"; document.getElementById("af-prof-geo-status").style.display="none"; document.getElementById("adm-form-prof").style.display="flex"; }
 
+let _profFiltroQual = null;
+function admFiltroProfQual(key){
+  _profFiltroQual = _profFiltroQual === key ? null : key;
+  renderAdmProfissionais();
+}
+
 async function renderAdmProfissionais(){
   const cont = document.getElementById("adm-lista-profissionais");
   cont.innerHTML=`<div class="adm-empty">Carregando...</div>`;
-  let docs = [];
-  if(db){ try{ docs = await fbList("profissionais_sugeridos"); _profCache=docs; }catch(e){} }
+  let allDocs = [];
+  if(db){ try{ allDocs = await fbList("profissionais_sugeridos"); _profCache=allDocs; }catch(e){} }
+  const semBairro = allDocs.filter(p=>!p.bairro).length;
+  const semEsp    = allDocs.filter(p=>!p.esp).length;
+  const semContato= allDocs.filter(p=>!p.whatsapp&&!p.instagram).length;
+  const bQ = key => _profFiltroQual===key ? "adm-filter-btn ativo" : "adm-filter-btn";
+  const qualHtml = `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;align-items:center;">
+    <span style="font-size:.7rem;font-weight:800;color:var(--suave);">QUALIDADE:</span>
+    ${semBairro?`<button class="${bQ('semBairro')}" onclick="admFiltroProfQual('semBairro')" style="color:${_profFiltroQual==='semBairro'?'#fff':'#E65100'};">${semBairro} sem bairro</button>`:""}
+    ${semEsp?`<button class="${bQ('semEsp')}" onclick="admFiltroProfQual('semEsp')" style="color:${_profFiltroQual==='semEsp'?'#fff':'#E65100'};">${semEsp} sem especialidade</button>`:""}
+    ${semContato?`<button class="${bQ('semContato')}" onclick="admFiltroProfQual('semContato')" style="color:${_profFiltroQual==='semContato'?'#fff':'#E65100'};">${semContato} sem contato</button>`:""}
+    ${!semBairro&&!semEsp&&!semContato?`<span style="font-size:.72rem;color:var(--verde);font-weight:700;">✓ Todos completos</span>`:""}
+  </div>`;
+  const filtQual = { semBairro: p=>!p.bairro, semEsp: p=>!p.esp, semContato: p=>!p.whatsapp&&!p.instagram };
+  let docs = _profFiltroQual ? allDocs.filter(filtQual[_profFiltroQual]) : allDocs;
   if(_profFiltro!=="todos") docs=docs.filter(p=>p.status===_profFiltro);
-  if(!docs.length){ cont.innerHTML=`<div class="adm-empty">Nenhum profissional${_profFiltro!=="todos"?" "+_profFiltro:""} encontrado.</div>`; return; }
-  cont.innerHTML = docs.map(p=>`<div class="adm-card">
+  if(!docs.length){ cont.innerHTML=qualHtml+`<div class="adm-empty">Nenhum profissional${_profFiltro!=="todos"?" "+_profFiltro:""} encontrado.</div>`; return; }
+  cont.innerHTML = qualHtml + docs.map(p=>`<div class="adm-card">
     <div class="adm-card-top">
       <div class="adm-card-foto" style="font-size:1.2rem;">👩‍⚕️</div>
       <div class="adm-card-body">
