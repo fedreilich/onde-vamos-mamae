@@ -1445,25 +1445,36 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
     <div class="campo"><label>Especialidade</label>
       <select id="af-prof-esp">
         <option value="">Selecionar…</option>
-        <option value="Pediatra">Pediatra</option>
-        <option value="Neuropediatra">Neuropediatra</option>
-        <option value="Fonoaudióloga">Fonoaudióloga</option>
-        <option value="Psicóloga">Psicóloga</option>
-        <option value="Fisioterapeuta">Fisioterapeuta</option>
-        <option value="Terapeuta Ocupacional">Terapeuta Ocupacional</option>
-        <option value="Dentista">Dentista</option>
-        <option value="Nutricionista">Nutricionista</option>
-        <option value="Consultora de amamentação">Consultora de amamentação</option>
-        <option value="Doula">Doula</option>
-        <option value="Buffet infantil">Buffet infantil</option>
-        <option value="Confeiteira / Bolos">Confeiteira / Bolos</option>
-        <option value="Chef / Comida saudável">Chef / Comida saudável</option>
-        <option value="Personal chef">Personal chef</option>
-        <option value="Fotógrafa">Fotógrafa</option>
-        <option value="Decoração festas">Decoração festas</option>
-        <option value="Instrutora de yoga/pilates">Instrutora de yoga/pilates</option>
-        <option value="Educadora parental">Educadora parental</option>
-        <option value="Outro">Outro</option>
+        <optgroup label="Saúde">
+          <option value="Pediatra">Pediatra</option>
+          <option value="Neuropediatra">Neuropediatra</option>
+          <option value="Fonoaudióloga">Fonoaudióloga</option>
+          <option value="Psicóloga">Psicóloga</option>
+          <option value="Fisioterapeuta">Fisioterapeuta</option>
+          <option value="Terapeuta Ocupacional">Terapeuta Ocupacional</option>
+          <option value="Dentista">Dentista</option>
+          <option value="Nutricionista">Nutricionista</option>
+          <option value="Consultora de amamentação">Consultora de amamentação</option>
+          <option value="Doula">Doula</option>
+        </optgroup>
+        <optgroup label="Comidas / Buffets / Doces">
+          <option value="Buffet infantil">Buffet infantil</option>
+          <option value="Confeiteira / Bolos">Confeiteira / Bolos</option>
+          <option value="Chef / Comida saudável">Chef / Comida saudável</option>
+          <option value="Personal chef">Personal chef</option>
+        </optgroup>
+        <optgroup label="Festas">
+          <option value="Casa de festas">Casa de festas</option>
+          <option value="Decoração festas">Decoração festas</option>
+        </optgroup>
+        <optgroup label="Fotografia">
+          <option value="Fotógrafa">Fotógrafa</option>
+        </optgroup>
+        <optgroup label="Outros">
+          <option value="Instrutora de yoga/pilates">Instrutora de yoga/pilates</option>
+          <option value="Educadora parental">Educadora parental</option>
+          <option value="Outro">Outro</option>
+        </optgroup>
       </select>
     </div>
     <div class="campo"><label>Endereço / Consultório</label><input id="af-prof-endereco" placeholder="Ex.: Rua X, 100 — Tijuca"></div>
@@ -1489,6 +1500,11 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
       <button type="button" onclick="admGeoProf()" style="width:100%;background:var(--navy);color:#fff;border:none;border-radius:var(--radius-sm);padding:9px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;">📍 Localizar no mapa pelo nome/endereço</button>
       <div id="af-prof-geo-status" style="display:none;padding:8px 12px;border-radius:var(--radius-sm);font-size:.78rem;margin-top:6px;"></div>
     </div>
+    <div style="border-top:1px solid var(--borda);margin:14px 0 12px;"></div>
+    <div style="font-size:.78rem;font-weight:800;color:var(--navy);margin-bottom:8px;">Fala do profissional <span style="color:var(--suave);font-weight:400;font-size:.72rem;">(aparece no detalhe para as usuárias)</span></div>
+    <div class="campo"><label>Texto de apresentação</label><textarea id="af-prof-palavra" style="height:80px;resize:none;" maxlength="600" placeholder="Texto enviado pelo próprio profissional apresentando seu trabalho…"></textarea></div>
+    <div class="campo"><label>Autor / Assinatura</label><input id="af-prof-palavra-autor" placeholder="Ex.: Dra. Ana Silva — verificado pelo Onde Vamos"></div>
+    <div style="border-top:1px solid var(--borda);margin:14px 0 12px;"></div>
     <div class="campo"><label>Status</label>
       <select id="af-prof-status">
         <option value="pendente">Pendente</option>
@@ -4647,7 +4663,7 @@ async function admDeletarEscolaSugerida(id){
 
 let _profFiltro = "todos";
 function admFiltroProf(el,filtro){ document.querySelectorAll("#adm-tab-profissionais .adm-filter-btn").forEach(b=>b.classList.remove("ativo")); el.classList.add("ativo"); _profFiltro=filtro; renderAdmProfissionais(); }
-function admNovoProf(){ document.getElementById("af-prof-titulo-form").textContent="Novo Profissional"; document.getElementById("af-prof-id").value=""; ["af-prof-nome","af-prof-endereco","af-prof-bairro","af-prof-whatsapp","af-prof-instagram","af-prof-preco","af-prof-convenio","af-prof-tags","af-prof-obs","af-prof-lat","af-prof-lng"].forEach(i=>document.getElementById(i).value=""); document.getElementById("af-prof-esp").value=""; document.getElementById("af-prof-atendimento").value=""; document.getElementById("af-prof-status").value="pendente"; document.getElementById("af-prof-geo-status").style.display="none"; document.getElementById("adm-form-prof").style.display="flex"; }
+function admNovoProf(){ document.getElementById("af-prof-titulo-form").textContent="Novo Profissional"; document.getElementById("af-prof-id").value=""; ["af-prof-nome","af-prof-endereco","af-prof-bairro","af-prof-whatsapp","af-prof-instagram","af-prof-preco","af-prof-convenio","af-prof-tags","af-prof-obs","af-prof-lat","af-prof-lng","af-prof-palavra","af-prof-palavra-autor"].forEach(i=>document.getElementById(i).value=""); document.getElementById("af-prof-esp").value=""; document.getElementById("af-prof-atendimento").value=""; document.getElementById("af-prof-status").value="pendente"; document.getElementById("af-prof-geo-status").style.display="none"; document.getElementById("adm-form-prof").style.display="flex"; }
 
 let _profFiltroQual = null;
 function admFiltroProfQual(key){
@@ -4715,6 +4731,8 @@ async function admEditarProf(id){
   document.getElementById("af-prof-lat").value = p.lat||"";
   document.getElementById("af-prof-lng").value = p.lng||"";
   document.getElementById("af-prof-status").value = p.status||"pendente";
+  document.getElementById("af-prof-palavra").value = p.palavra||"";
+  document.getElementById("af-prof-palavra-autor").value = p.palavraAutor||"";
   document.getElementById("af-prof-geo-status").style.display = "none";
   document.getElementById("adm-form-prof").style.display = "flex";
 }
@@ -4765,6 +4783,8 @@ async function admSalvarProf(){
     obs: document.getElementById("af-prof-obs").value.trim(),
     lat: document.getElementById("af-prof-lat").value||null,
     lng: document.getElementById("af-prof-lng").value||null,
+    palavra: document.getElementById("af-prof-palavra").value.trim(),
+    palavraAutor: document.getElementById("af-prof-palavra-autor").value.trim(),
     status: document.getElementById("af-prof-status").value,
   };
   if(!existingId) dados.criadoEm = new Date().toISOString();
