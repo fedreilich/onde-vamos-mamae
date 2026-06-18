@@ -859,6 +859,7 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
       <div class="escola-chip" data-esp="Fisioterapeuta pelvica" onclick="setEspecialidade(this,'Fisioterapeuta pelvica')">Fisio pelvica</div>
       <div class="escola-chip" data-esp="Psicologa" onclick="setEspecialidade(this,'Psicologa')">Psicologa</div>
       <div class="escola-chip" data-esp="Consultora de amamentacao" onclick="setEspecialidade(this,'Consultora de amamentacao')">Amamentacao</div>
+      <div class="escola-chip" data-esp="Comidas" onclick="setEspecialidade(this,'Comidas')">Comidas</div>
     </div>
     <!-- filtros secundarios -->
     <div class="escola-filtros-scroll">
@@ -993,6 +994,7 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
           <option>Fisioterapeuta pelvica</option>
           <option>Psicologa</option>
           <option>Consultora de amamentacao</option>
+          <option>Comidas</option>
           <option>Outro</option>
         </select>
       </div>
@@ -5307,15 +5309,8 @@ function mostrarTooltipPerfilSeNecessario(){
 // ═══════════════════════════════════════════════════
 // DADOS MOCK — ESCOLAS
 // ═══════════════════════════════════════════════════
-const ESCOLAS_MOCK = [
-  {id:"e1", nome:"Escola Pequenos Passos", bairro:"Tijuca", modalidade:"Creche", metodologia:"Sociointeracionista", faixaMin:0, faixaMax:5, mensMin:1800, mensMax:2500, nota:4.6, avaliacoes:87, diferenciais:["bilingue","integral"], destaques:{acolhimento:4.8,professores:4.6,comunicacao:4.5,estrutura:4.4,alimentacao:4.2}, recomendada:true, foto:"", exemplo:true, palavra:"Nossa proposta e acolher cada crianca em seu ritmo, com uma equipe dedicada e comunicacao proxima com as familias.", palavraAutor:"Coordenacao pedagogica"},
-  {id:"e2", nome:"Escola Raizes do Amanha", bairro:"Botafogo", modalidade:"Educacao Infantil", metodologia:"Construtivista", faixaMin:2, faixaMax:6, mensMin:2000, mensMax:2800, nota:4.4, avaliacoes:63, diferenciais:["externo","integral"], destaques:{acolhimento:4.5,professores:4.3,comunicacao:4.2,estrutura:4.6,alimentacao:4.7}, recomendada:false, foto:"", exemplo:true, palavra:"", palavraAutor:""},
-];
-
-const PROF_MOCK = [
-  {id:"p1", nome:"Dra. Ana Beatriz", esp:"Pediatra", bairro:"Tijuca", preco:350, convenios:["Bradesco","Amil","SulAmerica"], atendimento:"Presencial", idadeAtendida:"0 a 18 anos", nota:4.9, avaliacoes:56, foto:"", instagram:"@dra.anabeatriz", whatsapp:"", crm:"CRM 52.12345-RJ", sobre:"Pediatra com foco em cuidado integral, desde o recem-nascido ate a adolescencia.", tags:[{t:"Nao medicaliza",v:31},{t:"Responde no WhatsApp",v:28},{t:"Excelente com recem-nascidos",v:24},{t:"Explica com calma",v:19},{t:"Pontual",v:15},{t:"Aceita convenio",v:12},{t:"Acolhedora",v:9},{t:"Atende amamentacao",v:7}], exemplo:true, palavra:"Acredito em uma pediatria humanizada, que escuta a mae tanto quanto o bebe.", palavraAutor:"Dra. Ana Beatriz"},
-  {id:"p2", nome:"Juliana Castro", esp:"Doula", bairro:"Botafogo", preco:250, convenios:[], atendimento:"Presencial", idadeAtendida:"Gestantes", nota:4.8, avaliacoes:38, foto:"", instagram:"@julianacastro.doula", whatsapp:"", crm:"", sobre:"Doula e consultora de amamentacao com 8 anos de experiencia.", tags:[{t:"Suporte emocional",v:22},{t:"Presente no parto",v:19},{t:"Boa comunicacao com equipe",v:14},{t:"Acolhedora",v:11},{t:"Responde no WhatsApp",v:9},{t:"Pontual",v:7}], exemplo:true, palavra:"", palavraAutor:""},
-];
+const ESCOLAS_MOCK = [];
+const PROF_MOCK = [];
 
 // ═══════════════════════════════════════════════════
 // ESTADO FILTROS
@@ -5333,7 +5328,7 @@ function normalizarEscolaDoc(doc){
 }
 
 function normalizarProfDoc(doc){
-  return {...doc, nota:0, avaliacoes:0, tags:(doc.tags||[]).map(t=>({t,n:1})), _fromFirebase:true, _validado:doc.status==="validado"};
+  return {...doc, nota:0, avaliacoes:0, tags:(doc.tags||[]).map(t=>({t,v:1})), _fromFirebase:true, _validado:doc.status==="validado"};
 }
 
 async function carregarEscolasSugeridas(){
@@ -5477,33 +5472,76 @@ function abrirDetalheEscola(id){
   const merged = [...ESCOLAS_MOCK, ...STATE.escolasSugeridas.map(normalizarEscolaDoc)];
   const e = merged.find(x=>x.id===id);
   if(!e) return;
-  const top5 = Object.entries(e.destaques).sort((a,b)=>b[1]-a[1]);
+  const top5 = Object.entries(e.destaques||{}).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
   const palavraHtml = e.palavra
     ? `<div class="detalhe-secao"><div class="detalhe-secao-titulo">Palavra da escola</div>
         <div class="palavra-box"><div class="palavra-texto">"${e.palavra}"</div><div class="palavra-autor">${e.palavraAutor} — verificado pelo Onde Vamos</div></div></div>`
     : `<div class="detalhe-secao"><div class="detalhe-secao-titulo">Palavra da escola</div>
         <div style="font-size:.85rem;color:var(--suave);line-height:1.5;">Esta escola ainda nao enviou uma apresentacao. <a href="https://forms.gle/47Kd6cWrtWxeHoXJ6" target="_blank" style="color:var(--laranja);font-weight:700;">Representa esta escola? Fale com a gente.</a></div></div>`;
+
+  // meta adaptado para mock vs firebase
+  const faixaStr = e._fromFirebase
+    ? ((e.niveis||[]).join(", ")||"—")
+    : `${e.faixaMin} a ${e.faixaMax} anos`;
+  const mensStr = e._fromFirebase
+    ? (e.mensalidade||"Consultar")
+    : `R$ ${(e.mensMin||0).toLocaleString()}–${(e.mensMax||0).toLocaleString()}`;
+
+  // seção informações adaptada
+  const infoHtml = e._fromFirebase ? `
+    <div class="detalhe-secao">
+      <div class="detalhe-secao-titulo">Informacoes</div>
+      ${(e.niveis||[]).length?`<div class="info-linha"><span class="label">Niveis</span><span class="valor">${e.niveis.join(", ")}</span></div>`:""}
+      ${e.metodologia?`<div class="info-linha"><span class="label">Metodologia</span><span class="valor">${e.metodologia}</span></div>`:""}
+      ${e.mensalidade?`<div class="info-linha"><span class="label">Mensalidade</span><span class="valor">${e.mensalidade}</span></div>`:""}
+    </div>` : `
+    <div class="detalhe-secao">
+      <div class="detalhe-secao-titulo">Informacoes</div>
+      <div class="info-linha"><span class="label">Modalidade</span><span class="valor">${e.modalidade||"—"}</span></div>
+      <div class="info-linha"><span class="label">Metodologia</span><span class="valor">${e.metodologia||"—"}</span></div>
+      <div class="info-linha"><span class="label">Faixa etaria</span><span class="valor">${e.faixaMin} a ${e.faixaMax} anos</span></div>
+      <div class="info-linha"><span class="label">Mensalidade</span><span class="valor">R$ ${(e.mensMin||0).toLocaleString()} – ${(e.mensMax||0).toLocaleString()}</span></div>
+    </div>`;
+
+  // seção contato (apenas para firebase)
+  const contatoHtml = e._fromFirebase && (e.tel||e.instagram||e.site||e.endereco) ? `
+    <div class="detalhe-secao">
+      <div class="detalhe-secao-titulo">Contato e endereco</div>
+      ${e.endereco?`<div class="info-linha"><span class="label">Endereço</span><span class="valor">${e.endereco}</span></div>`:""}
+      ${e.tel?`<div style="display:flex;gap:8px;margin-top:8px;">
+        <button class="contato-btn" onclick="window.open('https://wa.me/55${e.tel.replace(/\D/g,'')}','_blank')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>
+          <span>WhatsApp</span></button>
+      </div>`:""}
+      ${e.instagram?`<div style="margin-top:8px;font-size:.82rem;color:var(--texto);">Instagram: <a href="https://instagram.com/${e.instagram.replace('@','')}" target="_blank" style="color:var(--laranja);font-weight:700;">${e.instagram}</a></div>`:""}
+      ${e.site?`<div style="margin-top:4px;font-size:.82rem;color:var(--texto);">Site: <a href="${e.site}" target="_blank" style="color:var(--laranja);font-weight:700;">${e.site}</a></div>`:""}
+    </div>` : "";
+
+  // observações da comunidade
+  const obsHtml = e.obs ? `
+    <div class="detalhe-secao">
+      <div class="detalhe-secao-titulo">Observações da comunidade</div>
+      <div style="font-size:.85rem;color:var(--texto);line-height:1.6;background:var(--cream);padding:10px 12px;border-radius:var(--radius-sm);">${e.obs}</div>
+    </div>` : "";
+
   const html = `<div class="detalhe-back" onclick="fecharDetalheEscola()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
       <span>Escolas</span></div>
     <div style="background:var(--branco);padding:14px 16px 12px;border-bottom:1px solid var(--borda);">
       ${e.recomendada?`<div class="badge-recomendada">Muito recomendada</div>`:""}
+      ${e._fromFirebase && e._validado?`<div style="display:inline-block;background:#E8F5E9;color:#2E7D32;font-size:.62rem;font-weight:700;border-radius:999px;padding:3px 10px;margin-bottom:6px;">✓ Validado</div>`:e._fromFirebase?`<div style="display:inline-block;background:#F5F5F5;color:#888;font-size:.62rem;font-weight:700;border-radius:999px;padding:3px 10px;margin-bottom:6px;">Indicação da comunidade</div>`:""}
       <div style="font-size:1.3rem;font-weight:900;color:var(--texto);margin-bottom:6px;">${e.nome}</div>
-      <div style="font-size:.8rem;color:var(--suave);">📍 ${e.bairro} · ${e.faixaMin} a ${e.faixaMax} anos · R$ ${e.mensMin.toLocaleString()}–${e.mensMax.toLocaleString()}</div>
-      <div style="margin-top:8px;font-size:.9rem;font-weight:800;">★ ${e.nota} <span style="font-size:.75rem;font-weight:600;color:var(--suave);">${e.avaliacoes} avaliacoes</span></div>
+      <div style="font-size:.8rem;color:var(--suave);">📍 ${e.bairro||"—"} · ${faixaStr} · ${mensStr}</div>
+      ${(e.nota||0)>0?`<div style="margin-top:8px;font-size:.9rem;font-weight:800;">★ ${e.nota} <span style="font-size:.75rem;font-weight:600;color:var(--suave);">${e.avaliacoes} avaliacoes</span></div>`:""}
     </div>
-    <div class="detalhe-secao">
+    ${top5.length?`<div class="detalhe-secao">
       <div class="detalhe-secao-titulo">Destaques da comunidade</div>
       <div class="destaques-grid">${top5.map(([k,v])=>`<div class="destaque-box"><div class="valor">${v}</div><div class="nome">${k.charAt(0).toUpperCase()+k.slice(1)}</div></div>`).join("")}</div>
-    </div>
+    </div>`:""}
     ${palavraHtml}
-    <div class="detalhe-secao">
-      <div class="detalhe-secao-titulo">Informacoes</div>
-      <div class="info-linha"><span class="label">Modalidade</span><span class="valor">${e.modalidade}</span></div>
-      <div class="info-linha"><span class="label">Metodologia</span><span class="valor">${e.metodologia}</span></div>
-      <div class="info-linha"><span class="label">Faixa etaria</span><span class="valor">${e.faixaMin} a ${e.faixaMax} anos</span></div>
-      <div class="info-linha"><span class="label">Mensalidade</span><span class="valor">R$ ${e.mensMin.toLocaleString()} – ${e.mensMax.toLocaleString()}</span></div>
-    </div>
+    ${infoHtml}
+    ${contatoHtml}
+    ${obsHtml}
     <div style="display:flex;gap:8px;padding:14px 16px 8px;background:var(--branco);margin-top:8px;flex-wrap:wrap;">
       ${e.lat?`<button onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${e.lat},${e.lng}','_blank','noopener')" style="flex:1;min-width:120px;background:var(--cinza);border:none;border-radius:var(--radius-sm);padding:12px;font-size:.82rem;font-weight:800;color:var(--texto);cursor:pointer;font-family:'Nunito',sans-serif;">🗺️ Como chegar</button>`:""}
       <button onclick="compartilharEscola('${e.id}')" style="flex:1;min-width:120px;background:var(--cinza);border:none;border-radius:var(--radius-sm);padding:12px;font-size:.82rem;font-weight:800;color:var(--texto);cursor:pointer;font-family:'Nunito',sans-serif;">📤 Compartilhar</button>
