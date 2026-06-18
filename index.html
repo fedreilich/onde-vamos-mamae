@@ -58,6 +58,8 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 .ob-hint{font-size:.75rem;color:var(--suave);margin-top:-6px;}
 .ob-btn{background:var(--laranja);color:#fff;border:none;border-radius:var(--radius-sm);padding:16px;font-size:1rem;font-weight:800;font-family:'Nunito',sans-serif;cursor:pointer;width:100%;max-width:340px;letter-spacing:.3px;}
 .ob-btn:hover{filter:brightness(1.05);}
+.ob-chip{padding:8px 14px;border-radius:999px;border:1.5px solid var(--borda);font-size:.8rem;font-weight:700;color:var(--suave);background:var(--branco);cursor:pointer;transition:all .15s;user-select:none;}
+.ob-chip.sel{background:var(--laranja);border-color:var(--laranja);color:#fff;}
 
 /* ── BOTTOM NAV ── */
 #bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav);background:var(--branco);border-top:1px solid var(--borda);display:flex;align-items:center;justify-content:space-around;z-index:500;padding-bottom:env(safe-area-inset-bottom);}
@@ -557,6 +559,17 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
       <input class="ob-input" id="ob-whatsapp" type="tel" placeholder="(21) 99999-9999" autocomplete="tel">
       <p class="ob-hint" style="margin-top:6px;">Para receber alertas de eventos no grupo</p>
     </div>
+    <div>
+      <label class="ob-label">Quanto tem seu filho? <span style="color:var(--suave);font-weight:500">(opcional · pode marcar mais de um)</span></label>
+      <div id="ob-faixas" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+        <div class="ob-chip" data-faixa="gestante" onclick="toggleObChip(this)">Gestante</div>
+        <div class="ob-chip" data-faixa="0-6m" onclick="toggleObChip(this)">0–6 meses</div>
+        <div class="ob-chip" data-faixa="6-12m" onclick="toggleObChip(this)">6–12 meses</div>
+        <div class="ob-chip" data-faixa="1-2a" onclick="toggleObChip(this)">1–2 anos</div>
+        <div class="ob-chip" data-faixa="3-5a" onclick="toggleObChip(this)">3–5 anos</div>
+        <div class="ob-chip" data-faixa="6+" onclick="toggleObChip(this)">6+ anos</div>
+      </div>
+    </div>
   </div>
   <button class="ob-btn" id="ob-entrar">Entrar no app →</button>
 </div>
@@ -754,6 +767,14 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
         <div class="mais-info">
           <div class="mais-label">Favoritos</div>
           <div class="mais-sub">Lugares e eventos salvos</div>
+        </div>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;color:var(--suave);flex-shrink:0;"><path d="m9 18 6-6-6-6"/></svg>
+      </div>
+      <div class="mais-item" onclick="abrirMinhasContribuicoes()">
+        <div class="mais-icone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div>
+        <div class="mais-info">
+          <div class="mais-label">Minhas contribuições</div>
+          <div class="mais-sub">Lugares, escolas e profissionais que você indicou</div>
         </div>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;color:var(--suave);flex-shrink:0;"><path d="m9 18 6-6-6-6"/></svg>
       </div>
@@ -998,6 +1019,19 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
       </div>
       <div style="height:16px;"></div>
     </div>
+  </div>
+</div>
+
+<!-- ══ SHEET: MINHAS CONTRIBUIÇÕES ══ -->
+<div class="veu-sheet" id="veu-contribuicoes" onclick="fecharMinhasContribuicoes()"></div>
+<div class="modal-sheet" id="sheet-contribuicoes" style="max-height:90vh;">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <div class="sheet-titulo">Minhas contribuições</div>
+    <button class="sheet-fechar" onclick="fecharMinhasContribuicoes()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div class="sheet-body" id="contrib-body" style="padding-bottom:32px;">
+    <div style="text-align:center;padding:32px 0;color:var(--suave);font-size:.85rem;">Carregando...</div>
   </div>
 </div>
 
@@ -2230,7 +2264,8 @@ async function carregarDados(){
 function checkOnboarding(){
   const nome = localStorage.getItem("ovm_nome");
   if(nome){
-    STATE.usuario = {nome, email:localStorage.getItem("ovm_email")||""};
+    const faixaFilho = JSON.parse(localStorage.getItem("ovm_faixa_filho")||"[]");
+    STATE.usuario = {nome, email:localStorage.getItem("ovm_email")||"", faixaFilho};
     STATE.uid = getUid();
     document.getElementById("onboarding").classList.add("oculto");
     document.getElementById("app").style.display="block";
@@ -2244,13 +2279,15 @@ document.getElementById("ob-entrar").addEventListener("click", async ()=>{
   if(!nome){ toast("Coloca seu nome pra continuar 🙂"); return; }
   const email = document.getElementById("ob-email").value.trim();
   const whatsapp = document.getElementById("ob-whatsapp").value.trim();
+  const faixaFilho = [...document.querySelectorAll("#ob-faixas .ob-chip.sel")].map(c=>c.dataset.faixa);
   localStorage.setItem("ovm_nome", nome);
   if(email) localStorage.setItem("ovm_email", email);
   if(whatsapp) localStorage.setItem("ovm_whatsapp", whatsapp);
+  localStorage.setItem("ovm_faixa_filho", JSON.stringify(faixaFilho));
   STATE.uid = getUid();
-  STATE.usuario = {nome, email, whatsapp};
+  STATE.usuario = {nome, email, whatsapp, faixaFilho};
   if(db){
-    await fbSet("usuarios", STATE.uid, {nome, email:email||"", whatsapp:whatsapp||"", criadoEm:new Date().toISOString(), dispositivo:navigator.userAgent.substring(0,80)});
+    await fbSet("usuarios", STATE.uid, {nome, email:email||"", whatsapp:whatsapp||"", faixaFilho, criadoEm:new Date().toISOString(), dispositivo:navigator.userAgent.substring(0,80)});
   }
   document.getElementById("onboarding").classList.add("oculto");
   document.getElementById("app").style.display="block";
@@ -3197,6 +3234,85 @@ function avancarPasso(n){
 function voltarPasso(n){ mostrarPasso(n); }
 
 function toggleTagCheck(el){ el.classList.toggle("sel"); }
+function toggleObChip(el){ el.classList.toggle("sel"); }
+
+// ═══════════════════════════════════════════════════
+// MINHAS CONTRIBUIÇÕES
+// ═══════════════════════════════════════════════════
+function abrirMinhasContribuicoes(){
+  document.getElementById("veu-contribuicoes").classList.add("aberto");
+  document.getElementById("sheet-contribuicoes").classList.add("aberto");
+  renderMinhasContribuicoes();
+}
+function fecharMinhasContribuicoes(){
+  document.getElementById("veu-contribuicoes").classList.remove("aberto");
+  document.getElementById("sheet-contribuicoes").classList.remove("aberto");
+}
+
+async function renderMinhasContribuicoes(){
+  const cont = document.getElementById("contrib-body");
+  const uid = STATE.uid;
+  if(!uid){ cont.innerHTML=`<div style="text-align:center;padding:32px;color:var(--suave);font-size:.85rem;">Faça login para ver suas contribuições.</div>`; return; }
+  cont.innerHTML=`<div style="text-align:center;padding:32px 0;color:var(--suave);font-size:.85rem;">Carregando...</div>`;
+
+  const lugaresMeus = STATE.lugares.filter(l=>l.uid===uid);
+  const eventosMeus = STATE.eventos.filter(e=>e.uid===uid);
+  let escolasMinas = [], profsMeus = [];
+  if(db){
+    try{
+      const eSnap = await db.collection("escolas_sugeridas").where("uid","==",uid).get();
+      escolasMinas = eSnap.docs.map(d=>({id:d.id,...d.data()}));
+    }catch(e){}
+    try{
+      const pSnap = await db.collection("profissionais_sugeridos").where("uid","==",uid).get();
+      profsMeus = pSnap.docs.map(d=>({id:d.id,...d.data()}));
+    }catch(e){}
+  }
+
+  const total = lugaresMeus.length + eventosMeus.length + escolasMinas.length + profsMeus.length;
+  if(!total){
+    cont.innerHTML=`<div style="text-align:center;padding:40px 20px;">
+      <div style="font-size:2rem;margin-bottom:12px;">✨</div>
+      <div style="font-weight:800;color:var(--navy);margin-bottom:8px;">Você ainda não indicou nada</div>
+      <div style="font-size:.82rem;color:var(--suave);line-height:1.5;">Use o botão + para indicar lugares, escolas e profissionais para outras mães!</div>
+    </div>`;
+    return;
+  }
+
+  const statusBadge = s => s==="aprovada"||s==="aprovado"
+    ? `<span style="background:#E8F8EE;color:#1A6B3C;font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:999px;">✓ Aprovado</span>`
+    : `<span style="background:#FFF9E0;color:#7A5C00;font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:999px;">Em revisão</span>`;
+
+  const item = (icon, nome, sub, status) => `
+    <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--cinza);">
+      <div style="width:38px;height:38px;border-radius:10px;background:var(--cinza);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">${icon}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:.85rem;font-weight:800;color:var(--texto);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(nome)}</div>
+        <div style="font-size:.72rem;color:var(--suave);">${esc(sub)}</div>
+      </div>
+      <div style="flex-shrink:0;">${status}</div>
+    </div>`;
+
+  let html = `<div style="font-size:.72rem;font-weight:700;color:var(--suave);margin-bottom:4px;">${total} contribuição${total!==1?"s":""} no total</div>`;
+
+  if(lugaresMeus.length){
+    html += `<div style="font-size:.78rem;font-weight:800;color:var(--navy);margin:14px 0 4px;">📍 Lugares (${lugaresMeus.length})</div>`;
+    html += lugaresMeus.map(l=>item("☕", l.nome, l.bairro||"—", statusBadge("aprovado"))).join("");
+  }
+  if(eventosMeus.length){
+    html += `<div style="font-size:.78rem;font-weight:800;color:var(--navy);margin:14px 0 4px;">🎉 Eventos (${eventosMeus.length})</div>`;
+    html += eventosMeus.map(e=>item("⭐", e.titulo, e.bairro||e.local||"—", statusBadge("aprovado"))).join("");
+  }
+  if(escolasMinas.length){
+    html += `<div style="font-size:.78rem;font-weight:800;color:var(--navy);margin:14px 0 4px;">🏫 Escolas (${escolasMinas.length})</div>`;
+    html += escolasMinas.map(e=>item("🏫", e.nome, e.bairro||"—", statusBadge(e.status))).join("");
+  }
+  if(profsMeus.length){
+    html += `<div style="font-size:.78rem;font-weight:800;color:var(--navy);margin:14px 0 4px;">👩‍⚕️ Profissionais (${profsMeus.length})</div>`;
+    html += profsMeus.map(p=>item("👩‍⚕️", p.nome, `${p.esp||""} · ${p.bairro||"—"}`, statusBadge(p.status))).join("");
+  }
+  cont.innerHTML = html;
+}
 function toggleIdealSel(el){ el.classList.toggle("sel"); }
 
 function iniciarPin(){
