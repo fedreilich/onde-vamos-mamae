@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -886,15 +886,6 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
           <div class="tag-check" data-nivel="Ensino Medio" onclick="toggleTagCheck(this)">Ensino Medio</div>
         </div>
       </div>
-      <div class="campo"><label>Modalidade</label>
-        <select id="ie-modalidade">
-          <option value="">Selecione...</option>
-          <option>Creche</option>
-          <option>Educacao Infantil</option>
-          <option>Creche e Educacao Infantil</option>
-          <option>Escola regular</option>
-        </select>
-      </div>
       <div class="campo"><label>Metodologia</label>
         <select id="ie-metodologia">
           <option value="">Selecione...</option>
@@ -975,6 +966,10 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
       <div class="campo" id="ip-esp-outro-wrap" style="display:none;"><label>Qual especialidade?</label><input id="ip-esp-outro" placeholder="Ex.: Homeopata"></div>
       <div class="campo"><label>Endereco / consultorio</label><input id="ip-endereco" placeholder="Ex.: Rua X, 100 — Tijuca"></div>
       <div class="campo"><label>Bairro</label><input id="ip-bairro" placeholder="Ex.: Tijuca"></div>
+      <button type="button" onclick="ipGeocode()" id="ip-btn-geo" style="width:100%;background:var(--navy);color:#fff;border:none;border-radius:var(--radius-sm);padding:11px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;margin-bottom:6px;">Buscar localizacao no mapa</button>
+      <div id="ip-geo-status" style="display:none;font-size:.78rem;padding:8px 12px;border-radius:var(--radius-sm);margin-bottom:8px;"></div>
+      <button type="button" id="ip-btn-pin" onclick="ipIniciarPin()" style="display:none;width:100%;background:var(--cream);color:var(--laranja);border:1.5px solid var(--laranja);border-radius:var(--radius-sm);padding:10px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;margin-bottom:8px;">Marcar no mapa manualmente</button>
+      <input type="hidden" id="ip-lat"><input type="hidden" id="ip-lng">
       <div class="campo"><label>WhatsApp ou telefone</label><input id="ip-whatsapp" placeholder="(21) 99999-9999"></div>
       <div class="campo"><label>Instagram</label><input id="ip-instagram" placeholder="@profissional"></div>
       <div class="campo"><label>Valor da consulta</label><input id="ip-preco" placeholder="Ex.: R$ 300"></div>
@@ -1027,7 +1022,7 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
   <!-- painel principal -->
   <div id="adm-painel" style="display:none;">
     <div class="adm-header">
-      <button class="adm-header-back" onclick="sairAdmin()">
+      <button class="adm-header-back" onclick="admVoltarOuSair()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
       </button>
       <div>
@@ -1039,6 +1034,8 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
       <button class="adm-tab ativo" onclick="trocarTabAdmin(this,'geral')">Início</button>
       <button class="adm-tab" onclick="trocarTabAdmin(this,'lugares')">Lugares</button>
       <button class="adm-tab" onclick="trocarTabAdmin(this,'eventos')">Eventos</button>
+      <button class="adm-tab" onclick="trocarTabAdmin(this,'escolas')">Escolas</button>
+      <button class="adm-tab" onclick="trocarTabAdmin(this,'profissionais')">Profissionais</button>
       <button class="adm-tab" onclick="trocarTabAdmin(this,'usuarios')">Usuárias</button>
       <button class="adm-tab" onclick="trocarTabAdmin(this,'melhorias')">Melhorias</button>
     </div>
@@ -1206,6 +1203,16 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
       <div id="adm-lista-eventos"></div>
     </div>
 
+    <!-- tab escolas -->
+    <div class="adm-section" id="adm-tab-escolas" style="display:none;">
+      <div id="adm-lista-escolas"><div style="color:var(--suave);text-align:center;padding:32px 0;font-size:.85rem;">Carregando...</div></div>
+    </div>
+
+    <!-- tab profissionais -->
+    <div class="adm-section" id="adm-tab-profissionais" style="display:none;">
+      <div id="adm-lista-profissionais"><div style="color:var(--suave);text-align:center;padding:32px 0;font-size:.85rem;">Carregando...</div></div>
+    </div>
+
     <!-- tab usuárias -->
     <div class="adm-section" id="adm-tab-usuarios" style="display:none;">
       <div id="adm-lista-usuarios"></div>
@@ -1253,6 +1260,51 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
     <div style="display:flex;gap:8px;margin-top:4px;">
       <button onclick="admCancelarFormLugar()" style="flex:1;border:1.5px solid var(--borda);background:none;border-radius:var(--radius-sm);padding:11px;font-size:.85rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;">Cancelar</button>
       <button onclick="admSalvarLugar()" style="flex:2;background:var(--laranja);color:#fff;border:none;border-radius:var(--radius-sm);padding:11px;font-size:.85rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;">Salvar lugar</button>
+    </div>
+  </div>
+</div>
+
+<!-- form editar escola (modal) -->
+<div id="adm-form-escola" onclick="if(event.target===this)admFecharFormEscola()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:910;overflow-y:auto;padding:24px 16px;align-items:flex-start;justify-content:center;">
+  <div style="background:var(--branco);border-radius:var(--radius);padding:20px;width:100%;max-width:500px;">
+    <input type="hidden" id="af-esc-id">
+    <div style="font-weight:800;color:var(--navy);margin-bottom:12px;">Editar Escola</div>
+    <div class="campo"><label>Nome *</label><input id="af-esc-nome" placeholder="Nome da escola"></div>
+    <div class="campo"><label>Bairro</label><input id="af-esc-bairro" placeholder="Ex.: Botafogo"></div>
+    <div class="campo"><label>Metodologia</label><input id="af-esc-metodologia" placeholder="Ex.: Montessori, Waldorf…"></div>
+    <div class="campo"><label>Status</label>
+      <select id="af-esc-status">
+        <option value="pendente">Pendente</option>
+        <option value="validado">Validado</option>
+      </select>
+    </div>
+    <div class="campo"><label>Observação</label><textarea id="af-esc-obs" style="height:72px;resize:none;" maxlength="400" placeholder="Observação da indicação…"></textarea></div>
+    <div style="display:flex;gap:8px;margin-top:4px;">
+      <button onclick="admFecharFormEscola()" style="flex:1;border:1.5px solid var(--borda);background:none;border-radius:var(--radius-sm);padding:10px;font-size:.82rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;">Cancelar</button>
+      <button onclick="admSalvarEscola()" style="flex:2;background:var(--laranja);color:#fff;border:none;border-radius:var(--radius-sm);padding:10px;font-size:.82rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- form editar profissional (modal) -->
+<div id="adm-form-prof" onclick="if(event.target===this)admFecharFormProf()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:910;overflow-y:auto;padding:24px 16px;align-items:flex-start;justify-content:center;">
+  <div style="background:var(--branco);border-radius:var(--radius);padding:20px;width:100%;max-width:500px;">
+    <input type="hidden" id="af-prof-id">
+    <div style="font-weight:800;color:var(--navy);margin-bottom:12px;">Editar Profissional</div>
+    <div class="campo"><label>Nome *</label><input id="af-prof-nome" placeholder="Nome do profissional"></div>
+    <div class="campo"><label>Especialidade</label><input id="af-prof-esp" placeholder="Ex.: Pediatra, Fonoaudióloga…"></div>
+    <div class="campo"><label>Bairro</label><input id="af-prof-bairro" placeholder="Ex.: Tijuca"></div>
+    <div class="campo"><label>Tags <span style="color:var(--suave);font-weight:400">(separadas por vírgula)</span></label><input id="af-prof-tags" placeholder="plano de saúde, atende bebês…"></div>
+    <div class="campo"><label>Status</label>
+      <select id="af-prof-status">
+        <option value="pendente">Pendente</option>
+        <option value="validado">Validado</option>
+      </select>
+    </div>
+    <div class="campo"><label>Observação</label><textarea id="af-prof-obs" style="height:72px;resize:none;" maxlength="400" placeholder="Observação da indicação…"></textarea></div>
+    <div style="display:flex;gap:8px;margin-top:4px;">
+      <button onclick="admFecharFormProf()" style="flex:1;border:1.5px solid var(--borda);background:none;border-radius:var(--radius-sm);padding:10px;font-size:.82rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;">Cancelar</button>
+      <button onclick="admSalvarProf()" style="flex:2;background:var(--laranja);color:#fff;border:none;border-radius:var(--radius-sm);padding:10px;font-size:.82rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;">Salvar</button>
     </div>
   </div>
 </div>
@@ -2045,6 +2097,8 @@ let STATE = {
   filtroAgenda: "todos",
   tabSalvos: "lugares",
   catHome: "Todos",
+  escolasSugeridas: [],
+  profSugeridos: [],
 };
 let map = null, camadaPins = null, mapaIniciado = false;
 let pinTemp = null, modoPin = false;
@@ -2171,8 +2225,8 @@ function setarTela(tela){
   if(tela==="mapa"){ iniciarMapa(); setTimeout(()=>{if(map)map.invalidateSize();},200); }
   if(tela==="agenda") renderAgenda();
   if(tela==="salvos") renderSalvos();
-  if(tela==="escolas") renderEscolas();
-  if(tela==="profissionais") renderProfissionais();
+  if(tela==="escolas") carregarEscolasSugeridas();
+  if(tela==="profissionais") carregarProfSugeridos();
   // deep link
   history.pushState(null,"","#"+tela);
 }
@@ -2282,15 +2336,37 @@ function iniciarMapa(){
   },200);
   map.on("click",e=>{
     if(!modoPin){ fecharPreviewMapa(); return; }
-    pinTemp = {lat:e.latlng.lat, lng:e.latlng.lng};
+    const lat = e.latlng.lat, lng = e.latlng.lng;
     modoPin = false;
     document.getElementById("leaflet-map").style.cursor="";
     document.getElementById("aviso-pin-mapa").style.display="none";
-    document.getElementById("btn-pin-mapa").className="btn-pin-mapa ok";
-    document.getElementById("btn-pin-mapa").textContent="✅ Localização marcada!";
-    // reabre sheet
-    document.getElementById("veu-add-lugar").classList.add("aberto");
-    document.getElementById("sheet-add-lugar").classList.add("aberto");
+    if(window._pinParaEscola){
+      window._pinParaEscola = false;
+      document.getElementById("ie-lat").value = lat;
+      document.getElementById("ie-lng").value = lng;
+      const st = document.getElementById("ie-geo-status");
+      st.style.display="block"; st.style.background="#E8F8EE"; st.style.color="#1A6B3C";
+      st.textContent="Localizacao marcada no mapa!";
+      document.getElementById("ie-btn-pin").style.display="none";
+      document.getElementById("veu-add-escola").classList.add("aberto");
+      document.getElementById("sheet-add-escola").classList.add("aberto");
+    } else if(window._pinParaProf){
+      window._pinParaProf = false;
+      document.getElementById("ip-lat").value = lat;
+      document.getElementById("ip-lng").value = lng;
+      const st = document.getElementById("ip-geo-status");
+      if(st){ st.style.display="block"; st.style.background="#E8F8EE"; st.style.color="#1A6B3C"; st.textContent="Localizacao marcada no mapa!"; }
+      const pinBtn = document.getElementById("ip-btn-pin");
+      if(pinBtn) pinBtn.style.display="none";
+      document.getElementById("veu-add-prof").classList.add("aberto");
+      document.getElementById("sheet-add-prof").classList.add("aberto");
+    } else {
+      pinTemp = {lat, lng};
+      document.getElementById("btn-pin-mapa").className="btn-pin-mapa ok";
+      document.getElementById("btn-pin-mapa").textContent="✅ Localização marcada!";
+      document.getElementById("veu-add-lugar").classList.add("aberto");
+      document.getElementById("sheet-add-lugar").classList.add("aberto");
+    }
   });
   desenharPins();
 }
@@ -3493,6 +3569,15 @@ function sairAdmin(){
   setarTela("inicio");
 }
 
+function admVoltarOuSair(){
+  if(admTabAtiva && admTabAtiva !== "geral"){
+    const tabBtn = document.querySelector('.adm-tab[onclick*="geral"]');
+    if(tabBtn) trocarTabAdmin(tabBtn, "geral");
+  } else {
+    sairAdmin();
+  }
+}
+
 function admIrParaLugares(){
   const tab = document.querySelector('.adm-tab[onclick*="lugares"]');
   if(tab) trocarTabAdmin(tab, "lugares");
@@ -3501,11 +3586,14 @@ function admIrParaLugares(){
 function trocarTabAdmin(el, tab){
   document.querySelectorAll(".adm-tab").forEach(t=>t.classList.remove("ativo"));
   el.classList.add("ativo");
-  ["geral","lugares","eventos","usuarios","melhorias"].forEach(t=>{
+  ["geral","lugares","eventos","escolas","profissionais","usuarios","melhorias"].forEach(t=>{
     document.getElementById("adm-tab-"+t).style.display = t===tab?"block":"none";
   });
   admTabAtiva = tab;
   if(tab==="melhorias") renderAdmMelhorias();
+  if(tab==="eventos") renderAdmEventos();
+  if(tab==="escolas") renderAdmEscolas();
+  if(tab==="profissionais") renderAdmProfissionais();
 }
 
 async function renderAdmin(){
@@ -3941,6 +4029,153 @@ function renderAdmEventos(){
       </div>
     </div>`;
   }).join("");
+}
+
+async function renderAdmEscolas(){
+  const cont = document.getElementById("adm-lista-escolas");
+  cont.innerHTML=`<div class="adm-empty">Carregando...</div>`;
+  let docs = [];
+  if(db){ try{ docs = await fbList("escolas_sugeridas"); }catch(e){} }
+  if(!docs.length){ cont.innerHTML=`<div class="adm-empty">Nenhuma escola indicada ainda.</div>`; return; }
+  cont.innerHTML = docs.map(e=>`<div class="adm-card">
+    <div class="adm-card-top">
+      <div class="adm-card-foto" style="font-size:1.2rem;">🏫</div>
+      <div class="adm-card-body">
+        <div class="adm-card-nome">${esc(e.nome||"—")}</div>
+        <div class="adm-card-sub">${esc(e.bairro||"—")} · ${esc(e.status||"pendente")} · ${esc(e.autor||"—")}</div>
+        ${e.metodologia?`<div class="adm-card-sub">${esc(e.metodologia)}</div>`:""}
+        ${e.obs?`<div class="adm-card-sub" style="margin-top:4px;font-style:italic;">"${esc(e.obs.substring(0,80))}${e.obs.length>80?"...":""}"</div>`:""}
+      </div>
+    </div>
+    <div class="adm-card-actions">
+      <button class="adm-btn-edit" onclick="admValidarEscola('${esc(e.id)}')">Validar</button>
+      <button class="adm-btn-edit" onclick="admEditarEscola('${esc(e.id)}')">Editar</button>
+      <button class="adm-btn-del" onclick="admDeletarEscolaSugerida('${esc(e.id)}')">Excluir</button>
+    </div>
+  </div>`).join("");
+}
+
+let _escCache = [];
+async function admEditarEscola(id){
+  if(!_escCache.length && db){ try{ _escCache = await fbList("escolas_sugeridas"); }catch(e){} }
+  const e = _escCache.find(x=>x.id===id);
+  if(!e) return;
+  document.getElementById("af-esc-id").value = id;
+  document.getElementById("af-esc-nome").value = e.nome||"";
+  document.getElementById("af-esc-bairro").value = e.bairro||"";
+  document.getElementById("af-esc-metodologia").value = e.metodologia||"";
+  document.getElementById("af-esc-obs").value = e.obs||"";
+  document.getElementById("af-esc-status").value = e.status||"pendente";
+  const modal = document.getElementById("adm-form-escola");
+  modal.style.display = "flex";
+}
+function admFecharFormEscola(){
+  document.getElementById("adm-form-escola").style.display = "none";
+}
+async function admSalvarEscola(){
+  const id = document.getElementById("af-esc-id").value;
+  if(!id || !db) return;
+  const dados = {
+    nome: document.getElementById("af-esc-nome").value.trim(),
+    bairro: document.getElementById("af-esc-bairro").value.trim(),
+    metodologia: document.getElementById("af-esc-metodologia").value.trim(),
+    obs: document.getElementById("af-esc-obs").value.trim(),
+    status: document.getElementById("af-esc-status").value,
+  };
+  try{
+    await db.collection("escolas_sugeridas").doc(id).update(dados);
+    toast("Escola salva!");
+    admFecharFormEscola();
+    _escCache = [];
+    renderAdmEscolas();
+  } catch(e){ toast("Erro ao salvar"); }
+}
+
+async function admValidarEscola(id){
+  if(!db) return;
+  if(!confirm("Validar esta escola?")) return;
+  try{ await db.collection("escolas_sugeridas").doc(id).update({status:"validado"}); _escCache=[]; toast("Escola validada!"); renderAdmEscolas(); }
+  catch(e){ toast("Erro ao validar"); }
+}
+async function admDeletarEscolaSugerida(id){
+  if(!confirm("Excluir esta indicacao?")) return;
+  try{ if(db) await fbDel("escolas_sugeridas", id); toast("Removida."); renderAdmEscolas(); }
+  catch(e){ toast("Erro ao excluir"); }
+}
+
+async function renderAdmProfissionais(){
+  const cont = document.getElementById("adm-lista-profissionais");
+  cont.innerHTML=`<div class="adm-empty">Carregando...</div>`;
+  let docs = [];
+  if(db){ try{ docs = await fbList("profissionais_sugeridos"); }catch(e){} }
+  if(!docs.length){ cont.innerHTML=`<div class="adm-empty">Nenhum profissional indicado ainda.</div>`; return; }
+  cont.innerHTML = docs.map(p=>`<div class="adm-card">
+    <div class="adm-card-top">
+      <div class="adm-card-foto" style="font-size:1.2rem;">👩‍⚕️</div>
+      <div class="adm-card-body">
+        <div class="adm-card-nome">${esc(p.nome||"—")}</div>
+        <div class="adm-card-sub">${esc(p.esp||"—")} · ${esc(p.bairro||"—")} · ${esc(p.status||"pendente")}</div>
+        <div class="adm-card-sub">por ${esc(p.autor||"—")}</div>
+        ${(p.tags||[]).length?`<div class="adm-card-sub" style="margin-top:4px;">${p.tags.slice(0,3).map(t=>`<span class="prof-tag" style="font-size:.65rem;">${esc(t)}</span>`).join("")}</div>`:""}
+        ${p.obs?`<div class="adm-card-sub" style="margin-top:4px;font-style:italic;">"${esc(p.obs.substring(0,80))}${p.obs.length>80?"...":""}"</div>`:""}
+      </div>
+    </div>
+    <div class="adm-card-actions">
+      <button class="adm-btn-edit" onclick="admValidarProf('${esc(p.id)}')">Validar</button>
+      <button class="adm-btn-edit" onclick="admEditarProf('${esc(p.id)}')">Editar</button>
+      <button class="adm-btn-del" onclick="admDeletarProfSugerido('${esc(p.id)}')">Excluir</button>
+    </div>
+  </div>`).join("");
+}
+
+let _profCache = [];
+async function admEditarProf(id){
+  if(!_profCache.length && db){ try{ _profCache = await fbList("profissionais_sugeridos"); }catch(e){} }
+  const p = _profCache.find(x=>x.id===id);
+  if(!p) return;
+  document.getElementById("af-prof-id").value = id;
+  document.getElementById("af-prof-nome").value = p.nome||"";
+  document.getElementById("af-prof-esp").value = p.esp||"";
+  document.getElementById("af-prof-bairro").value = p.bairro||"";
+  document.getElementById("af-prof-tags").value = (p.tags||[]).join(", ");
+  document.getElementById("af-prof-obs").value = p.obs||"";
+  document.getElementById("af-prof-status").value = p.status||"pendente";
+  document.getElementById("adm-form-prof").style.display = "flex";
+}
+function admFecharFormProf(){
+  document.getElementById("adm-form-prof").style.display = "none";
+}
+async function admSalvarProf(){
+  const id = document.getElementById("af-prof-id").value;
+  if(!id || !db) return;
+  const tagsRaw = document.getElementById("af-prof-tags").value;
+  const tags = tagsRaw.split(",").map(t=>t.trim()).filter(Boolean);
+  const dados = {
+    nome: document.getElementById("af-prof-nome").value.trim(),
+    esp: document.getElementById("af-prof-esp").value.trim(),
+    bairro: document.getElementById("af-prof-bairro").value.trim(),
+    tags,
+    obs: document.getElementById("af-prof-obs").value.trim(),
+    status: document.getElementById("af-prof-status").value,
+  };
+  try{
+    await db.collection("profissionais_sugeridos").doc(id).update(dados);
+    toast("Profissional salvo!");
+    admFecharFormProf();
+    _profCache = [];
+    renderAdmProfissionais();
+  } catch(e){ toast("Erro ao salvar"); }
+}
+
+async function admAprovarProf(id){
+  if(!db) return;
+  try{ await db.collection("profissionais_sugeridos").doc(id).update({status:"aprovada"}); toast("Profissional aprovado!"); renderAdmProfissionais(); }
+  catch(e){ toast("Erro ao aprovar"); }
+}
+async function admDeletarProfSugerido(id){
+  if(!confirm("Excluir esta indicacao?")) return;
+  try{ if(db) await fbDel("profissionais_sugeridos", id); toast("Removido."); renderAdmProfissionais(); }
+  catch(e){ toast("Erro ao excluir"); }
 }
 
 async function renderAdmUsuarios(){
@@ -4407,14 +4642,35 @@ const FILTROS_PROF = {esp:"Todos", bairro:"", atendimento:"", preco:0, convenio:
 // ═══════════════════════════════════════════════════
 // RENDER ESCOLAS
 // ═══════════════════════════════════════════════════
+function normalizarEscolaDoc(doc){
+  const notasVals = Object.values(doc.notas||{}).filter(v=>v>0);
+  const nota = notasVals.length ? Math.round((notasVals.reduce((s,v)=>s+v,0)/notasVals.length)*10)/10 : 0;
+  return {...doc, nota, avaliacoes: nota>0?1:0, destaques:doc.notas||{}, recomendada:false, faixaMin:0, faixaMax:0, mensMin:0, mensMax:0, _fromFirebase:true, _pendente:doc.status==="pendente"};
+}
+
+function normalizarProfDoc(doc){
+  return {...doc, nota:0, avaliacoes:0, tags:(doc.tags||[]).map(t=>({t,n:1})), _fromFirebase:true, _pendente:doc.status==="pendente"};
+}
+
+async function carregarEscolasSugeridas(){
+  if(db){ try{ STATE.escolasSugeridas = await fbList("escolas_sugeridas"); }catch(e){ STATE.escolasSugeridas=[]; } }
+  renderEscolas();
+}
+
+async function carregarProfSugeridos(){
+  if(db){ try{ STATE.profSugeridos = await fbList("profissionais_sugeridos"); }catch(e){ STATE.profSugeridos=[]; } }
+  renderProfissionais();
+}
+
 function renderEscolas(){
   const busca = (document.getElementById("busca-escolas")||{value:""}).value.toLowerCase();
-  let lista = ESCOLAS_MOCK.filter(e=>{
-    if(busca && !e.nome.toLowerCase().includes(busca) && !e.bairro.toLowerCase().includes(busca)) return false;
+  const firebaseEscolas = STATE.escolasSugeridas.map(normalizarEscolaDoc);
+  const todasEscolas = [...ESCOLAS_MOCK, ...firebaseEscolas];
+  let lista = todasEscolas.filter(e=>{
+    if(busca && !e.nome.toLowerCase().includes(busca) && !(e.bairro||"").toLowerCase().includes(busca)) return false;
     if(FILTROS_ESCOLAS.bairro && e.bairro!==FILTROS_ESCOLAS.bairro) return false;
-    if(FILTROS_ESCOLAS.modalidade && e.modalidade!==FILTROS_ESCOLAS.modalidade) return false;
     if(FILTROS_ESCOLAS.metodologia && e.metodologia!==FILTROS_ESCOLAS.metodologia) return false;
-    if(FILTROS_ESCOLAS.nota && e.nota<FILTROS_ESCOLAS.nota) return false;
+    if(FILTROS_ESCOLAS.nota && (e.nota||0)<FILTROS_ESCOLAS.nota) return false;
     if(FILTROS_ESCOLAS.diferenciais.size>0){
       for(const d of FILTROS_ESCOLAS.diferenciais){
         if(!(e.diferenciais||[]).includes(d)) return false;
@@ -4431,27 +4687,31 @@ function renderEscolas(){
 }
 
 function cardEscola(e){
-  const faixaStr = e.faixaMin===0 ? `${e.faixaMax>0?e.faixaMax+" anos":"recém-nascido"}` : `${e.faixaMin} a ${e.faixaMax} anos`;
-  const faixaLabel = e.faixaMin===0 ? `0 a ${e.faixaMax} anos` : `${e.faixaMin} a ${e.faixaMax} anos`;
-  const top3 = Object.entries(e.destaques).sort((a,b)=>b[1]-a[1]).slice(0,3);
-  const estrelas = Math.round(e.nota);
+  const faixaLabel = e._fromFirebase
+    ? ((e.niveis||[]).join(", ")||"—")
+    : (e.faixaMin===0 ? `0 a ${e.faixaMax} anos` : `${e.faixaMin} a ${e.faixaMax} anos`);
+  const mensStr = e._fromFirebase
+    ? (e.mensalidade||"Consultar")
+    : `R$ ${e.mensMin.toLocaleString()} - ${e.mensMax.toLocaleString()}`;
+  const top3 = Object.entries(e.destaques||{}).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]).slice(0,3);
+  const estrelas = Math.round(e.nota||0);
   return `<div class="card-escola" onclick="abrirDetalheEscola('${e.id}')">
     <div class="card-escola-foto">${e.foto?`<img src="${e.foto}" style="width:100%;height:100%;object-fit:cover;">`:""}</div>
     <div class="card-escola-body">
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px;">
         ${e.recomendada?`<div class="badge-recomendada">Muito recomendada</div>`:""}
         ${e.exemplo?`<div style="display:inline-block;background:#F0F0F0;color:#888;font-size:.62rem;font-weight:700;border-radius:999px;padding:3px 10px;">Exemplo ilustrativo</div>`:""}
+        ${e._pendente?`<div style="display:inline-block;background:#FFF9E0;color:#7A5C00;font-size:.62rem;font-weight:700;border-radius:999px;padding:3px 10px;">Aguardando aprovacao</div>`:""}
       </div>
       <div class="card-escola-nome">${e.nome}</div>
       <div class="card-escola-meta">
-        <span>📍 ${e.bairro}</span>
+        <span>📍 ${e.bairro||"—"}</span>
         <span>· ${faixaLabel}</span>
-        <span>· R$ ${e.mensMin.toLocaleString()} - ${e.mensMax.toLocaleString()}</span>
+        <span>· ${mensStr}</span>
       </div>
       <div class="card-escola-rating">
         <span style="color:var(--amarelo);font-size:.85rem;">${"★".repeat(estrelas)}${"☆".repeat(5-estrelas)}</span>
-        <span class="nota">${e.nota}</span>
-        <span class="avals">${e.avaliacoes} avaliacoes</span>
+        ${estrelas>0?`<span class="nota">${e.nota}</span><span class="avals">${e.avaliacoes} avaliacoes</span>`:`<span style="font-size:.72rem;color:var(--suave);">Sem avaliacao ainda</span>`}
       </div>
       <div class="card-escola-destaques">
         ${top3.map(([k])=>`<span class="destaque-tag">${k.charAt(0).toUpperCase()+k.slice(1)}</span>`).join("")}
@@ -4474,11 +4734,13 @@ function abrirFiltroProfissional(tipo, el){ /* expansão futura */ }
 // ═══════════════════════════════════════════════════
 function renderProfissionais(){
   const busca = (document.getElementById("busca-profissionais")||{value:""}).value.toLowerCase();
-  let lista = PROF_MOCK.filter(p=>{
+  const firebaseProfs = STATE.profSugeridos.map(normalizarProfDoc);
+  const todosProfs = [...PROF_MOCK, ...firebaseProfs];
+  let lista = todosProfs.filter(p=>{
     if(FILTROS_PROF.esp!=="Todos" && p.esp!==FILTROS_PROF.esp) return false;
     if(FILTROS_PROF.bairro && p.bairro!==FILTROS_PROF.bairro) return false;
     if(busca){
-      const hit = p.nome.toLowerCase().includes(busca)||p.esp.toLowerCase().includes(busca)||p.bairro.toLowerCase().includes(busca);
+      const hit = p.nome.toLowerCase().includes(busca)||(p.esp||"").toLowerCase().includes(busca)||(p.bairro||"").toLowerCase().includes(busca);
       if(!hit) return false;
     }
     return true;
@@ -4493,22 +4755,23 @@ function renderProfissionais(){
 
 function cardProf(p){
   const iniciais = p.nome.replace("Dra.","").replace("Dr.","").trim().split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase();
-  const top2 = p.tags.slice(0,2);
+  const top2 = (p.tags||[]).slice(0,2);
+  const notaHtml = (p.nota||0)>0
+    ? `<div style="font-size:.85rem;font-weight:800;color:var(--texto);">★ ${p.nota}</div><div style="font-size:.68rem;color:var(--suave);">${p.avaliacoes} aval.</div>`
+    : `<div style="font-size:.68rem;color:var(--suave);">Nova indicacao</div>`;
   return `<div class="card-prof" onclick="abrirDetalheProf('${p.id}')">
     <div class="card-prof-avatar">${iniciais}</div>
     <div class="card-prof-info">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;">
         <div>
           <div class="card-prof-nome">${p.nome}</div>
-          <div class="card-prof-esp">${p.esp}</div>
+          <div class="card-prof-esp">${p.esp||"—"}</div>
         </div>
-        <div style="text-align:right;">
-          <div style="font-size:.85rem;font-weight:800;color:var(--texto);">★ ${p.nota}</div>
-          <div style="font-size:.68rem;color:var(--suave);">${p.avaliacoes} aval.</div>
-        </div>
+        <div style="text-align:right;">${notaHtml}</div>
       </div>
-      <div class="card-prof-meta">${p.bairro} · R$ ${p.preco}</div>
-      <div class="card-prof-tags">${top2.map(t=>`<span class="prof-tag">${t.t}</span>`).join("")}</div>
+      <div class="card-prof-meta">${p.bairro||"—"} ${p.preco?`· ${p.preco}`:""}</div>
+      ${p._pendente?`<div style="font-size:.65rem;color:#7A5C00;font-weight:700;margin-top:4px;">Aguardando aprovacao</div>`:""}
+      <div class="card-prof-tags">${top2.map(t=>`<span class="prof-tag">${typeof t==="string"?t:t.t}</span>`).join("")}</div>
     </div>
   </div>`;
 }
@@ -4525,7 +4788,8 @@ function setEspecialidade(el, esp){
 // DETALHE ESCOLA
 // ═══════════════════════════════════════════════════
 function abrirDetalheEscola(id){
-  const e = ESCOLAS_MOCK.find(x=>x.id===id);
+  const merged = [...ESCOLAS_MOCK, ...STATE.escolasSugeridas.map(normalizarEscolaDoc)];
+  const e = merged.find(x=>x.id===id);
   if(!e) return;
   const top5 = Object.entries(e.destaques).sort((a,b)=>b[1]-a[1]);
   const palavraHtml = e.palavra
@@ -4579,7 +4843,8 @@ function fecharDetalheEscola(){
 // ═══════════════════════════════════════════════════
 const VOTOS_PROF = {};
 function abrirDetalheProf(id){
-  const p = PROF_MOCK.find(x=>x.id===id);
+  const merged = [...PROF_MOCK, ...STATE.profSugeridos.map(normalizarProfDoc)];
+  const p = merged.find(x=>x.id===id);
   if(!p) return;
   if(!VOTOS_PROF[id]) VOTOS_PROF[id] = new Set();
   const iniciais = p.nome.replace("Dra.","").replace("Dr.","").trim().split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase();
@@ -4645,7 +4910,7 @@ function fecharDetalheProf(){
 }
 function votarTag(profId, idx, el){
   if(!VOTOS_PROF[profId]) VOTOS_PROF[profId] = new Set();
-  const p = PROF_MOCK.find(x=>x.id===profId);
+  const p = [...PROF_MOCK, ...STATE.profSugeridos.map(normalizarProfDoc)].find(x=>x.id===profId);
   if(!p) return;
   if(VOTOS_PROF[profId].has(idx)){
     VOTOS_PROF[profId].delete(idx);
@@ -4705,7 +4970,6 @@ function iePreencherResumo(){
   const nome = document.getElementById("ie-nome").value.trim();
   const bairro = document.getElementById("ie-bairro").value.trim();
   const end = document.getElementById("ie-endereco").value.trim();
-  const mod = document.getElementById("ie-modalidade").value;
   const met = document.getElementById("ie-metodologia").value;
   const mens = document.getElementById("ie-mensalidade").value.trim();
   const obs = document.getElementById("ie-obs").value.trim();
@@ -4713,7 +4977,7 @@ function iePreencherResumo(){
   const notasStr = Object.entries(IE_NOTAS).filter(([,v])=>v>0).map(([k,v])=>`${k}: ${"★".repeat(v)}`).join("  ·  ");
   document.getElementById("ie-resumo").innerHTML =
     `<strong>${nome}</strong><br>${bairro}${end?" · "+end:""}`+
-    `${mod?"<br>"+mod:""}${met?" · "+met:""}${mens?"<br>Mensalidade: "+mens:""}${niveis?"<br>Niveis: "+niveis:""}`+
+    `${met?" · "+met:""}${mens?"<br>Mensalidade: "+mens:""}${niveis?"<br>Niveis: "+niveis:""}`+
     `${notasStr?"<br><br>"+notasStr:""}${obs?"<br><br><em>\""+obs+"\"</em>":""}`;
 }
 
@@ -4721,7 +4985,7 @@ function abrirIndicarEscola(){
   ["ie-nome","ie-endereco","ie-bairro","ie-tel","ie-instagram","ie-site","ie-mensalidade","ie-obs"].forEach(id=>{
     const el=document.getElementById(id); if(el) el.value="";
   });
-  ["ie-modalidade","ie-metodologia"].forEach(id=>{ const el=document.getElementById(id); if(el) el.selectedIndex=0; });
+  ["ie-metodologia"].forEach(id=>{ const el=document.getElementById(id); if(el) el.selectedIndex=0; });
   document.querySelectorAll("#ie-p1 .tag-check").forEach(t=>t.classList.remove("sel"));
   Object.keys(IE_NOTAS).forEach(k=>IE_NOTAS[k]=0);
   const autor = document.getElementById("ie-autor"); if(autor) autor.value = STATE.usuario?.nome||"";
@@ -4781,12 +5045,60 @@ function ieIniciarPin(){
   },300);
 }
 
+async function ipGeocode(){
+  const nome = document.getElementById("ip-nome").value.trim();
+  const end = document.getElementById("ip-endereco").value.trim();
+  const bairro = document.getElementById("ip-bairro").value.trim();
+  const btn = document.getElementById("ip-btn-geo");
+  const status = document.getElementById("ip-geo-status");
+  const btnPin = document.getElementById("ip-btn-pin");
+  if(!nome && !end){ toast("Preenche nome ou endereco primeiro"); return; }
+  btn.textContent="Buscando..."; btn.disabled=true;
+  status.style.display="block"; status.style.background="#F0F4FF"; status.style.color="#1A3C8B";
+  status.textContent="Procurando no mapa...";
+  btnPin.style.display="none";
+  try{
+    const q = encodeURIComponent([nome,end,bairro,"Rio de Janeiro"].filter(Boolean).join(", "));
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1&addressdetails=1`,{headers:{"Accept-Language":"pt-BR"}});
+    const data = await res.json();
+    if(data.length){
+      document.getElementById("ip-lat").value = data[0].lat;
+      document.getElementById("ip-lng").value = data[0].lon;
+      status.style.background="#E8F8EE"; status.style.color="#1A6B3C";
+      status.textContent="Localizacao encontrada! Confirme no mapa se quiser ajustar.";
+    } else {
+      status.style.background="#FFF9E0"; status.style.color="#7A5C00";
+      status.textContent="Nao encontramos automaticamente.";
+      btnPin.style.display="block";
+    }
+  }catch(e){
+    status.style.background="#FEE8F2"; status.style.color="#8B0040";
+    status.textContent="Erro de conexao. Tente marcar no mapa.";
+    btnPin.style.display="block";
+  }
+  btn.textContent="Buscar localizacao no mapa"; btn.disabled=false;
+}
+
+function ipIniciarPin(){
+  fecharIndicarProfissional();
+  setarTela("mapa");
+  setTimeout(()=>{
+    modoPin=true;
+    window._pinParaProf = true;
+    document.getElementById("leaflet-map").style.cursor="crosshair";
+    document.getElementById("aviso-pin-mapa").style.display="block";
+    document.getElementById("aviso-pin-mapa").textContent="📍 Toque no mapa onde fica o consultorio";
+  },300);
+}
+
 async function salvarIndicacaoEscola(){
   const nome = document.getElementById("ie-nome").value.trim();
   const bairro = document.getElementById("ie-bairro").value.trim();
   if(!nome||!bairro){ toast("Preenche pelo menos nome e bairro"); return; }
   const niveis = [...document.querySelectorAll("#ie-p1 .tag-check.sel")].map(t=>t.dataset.nivel);
+  const docId = Date.now()+"_"+Math.random().toString(36).slice(2,7);
   const dados = {
+    id: docId,
     nome, bairro,
     endereco: document.getElementById("ie-endereco").value.trim(),
     tel: document.getElementById("ie-tel").value.trim(),
@@ -4795,7 +5107,6 @@ async function salvarIndicacaoEscola(){
     lat: document.getElementById("ie-lat").value||null,
     lng: document.getElementById("ie-lng").value||null,
     niveis,
-    modalidade: document.getElementById("ie-modalidade").value,
     metodologia: document.getElementById("ie-metodologia").value,
     mensalidade: document.getElementById("ie-mensalidade").value.trim(),
     notas: {...IE_NOTAS},
@@ -4806,8 +5117,10 @@ async function salvarIndicacaoEscola(){
     status: "pendente"
   };
   try{
-    if(db) await fbSet("escolas_sugeridas", Date.now()+"_"+Math.random().toString(36).slice(2,7), dados);
+    if(db) await fbSet("escolas_sugeridas", docId, dados);
+    STATE.escolasSugeridas.push(dados);
     fecharIndicarEscola();
+    renderEscolas();
     toast("Obrigada pela indicacao!");
   }catch(e){ toast("Erro ao enviar. Tente novamente."); console.error(e); }
 }
@@ -4854,6 +5167,10 @@ function abrirIndicarProfissional(){
   });
   ["ip-esp","ip-atendimento"].forEach(id=>{ const el=document.getElementById(id); if(el) el.selectedIndex=0; });
   document.getElementById("ip-esp-outro-wrap").style.display="none";
+  const ipGeoSt = document.getElementById("ip-geo-status"); if(ipGeoSt) ipGeoSt.style.display="none";
+  const ipBtnPin = document.getElementById("ip-btn-pin"); if(ipBtnPin) ipBtnPin.style.display="none";
+  const ipLat = document.getElementById("ip-lat"); if(ipLat) ipLat.value="";
+  const ipLng = document.getElementById("ip-lng"); if(ipLng) ipLng.value="";
   IP_TAGS_FORM.clear();
   const autor = document.getElementById("ip-autor"); if(autor) autor.value = STATE.usuario?.nome||"";
   ipMostrarPasso(1);
@@ -4870,10 +5187,14 @@ async function salvarIndicacaoProfissional(){
   let esp = document.getElementById("ip-esp").value;
   if(esp==="Outro") esp = document.getElementById("ip-esp-outro").value.trim()||"Outro";
   if(!nome||!esp){ toast("Preenche pelo menos nome e especialidade"); return; }
+  const docId = Date.now()+"_"+Math.random().toString(36).slice(2,7);
   const dados = {
+    id: docId,
     nome, esp,
     endereco: document.getElementById("ip-endereco").value.trim(),
     bairro: document.getElementById("ip-bairro").value.trim(),
+    lat: document.getElementById("ip-lat").value||null,
+    lng: document.getElementById("ip-lng").value||null,
     whatsapp: document.getElementById("ip-whatsapp").value.trim(),
     instagram: document.getElementById("ip-instagram").value.trim(),
     preco: document.getElementById("ip-preco").value.trim(),
@@ -4887,8 +5208,10 @@ async function salvarIndicacaoProfissional(){
     status: "pendente"
   };
   try{
-    if(db) await fbSet("profissionais_sugeridos", Date.now()+"_"+Math.random().toString(36).slice(2,7), dados);
+    if(db) await fbSet("profissionais_sugeridos", docId, dados);
+    STATE.profSugeridos.push(dados);
     fecharIndicarProfissional();
+    renderProfissionais();
     toast("Obrigada pela indicacao!");
   }catch(e){ toast("Erro ao enviar. Tente novamente."); console.error(e); }
 }
