@@ -576,6 +576,43 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
   <button class="ob-btn" id="ob-entrar">Entrar no app →</button>
 </div>
 
+<!-- ══ WELCOME POPUP ══ -->
+<div id="welcome-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9100;align-items:center;justify-content:center;padding:24px;" onclick="fecharWelcome()">
+  <div style="background:var(--branco);border-radius:var(--radius);padding:28px 22px;max-width:340px;width:100%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.2);" onclick="event.stopPropagation()">
+    <img src="https://res.cloudinary.com/onde-vamos-mamae/image/upload/v1781459303/onde_vamos_mamae_puoi8h.png" alt="Onde Vamos, Mamãe?" style="height:56px;object-fit:contain;margin-bottom:14px;">
+    <div style="font-size:1.25rem;font-weight:900;color:var(--navy);margin-bottom:10px;">Bem-vinda! 🍼</div>
+    <div style="font-size:.9rem;color:var(--texto);line-height:1.65;margin-bottom:22px;">Esse app só cresce porque mães como <strong>você</strong> indicam.<br><br>Não espere que alguém descubra o seu café favorito — <strong>você mesma pode indicar</strong>! 💛</div>
+    <button onclick="fecharWelcome()" style="width:100%;background:var(--laranja);border:none;border-radius:var(--radius-sm);padding:14px;font-size:.95rem;font-weight:800;color:#fff;cursor:pointer;font-family:'Nunito',sans-serif;">Explorar →</button>
+  </div>
+</div>
+
+<!-- ══ MINI COLETA DE PERFIL ══ -->
+<div class="veu-sheet" id="veu-mini-coleta" onclick="fecharMiniColeta()"></div>
+<div class="modal-sheet" id="sheet-mini-coleta">
+  <div class="sheet-header">
+    <div class="sheet-titulo">Antes de indicar 👋</div>
+    <button class="sheet-fechar" onclick="fecharMiniColeta()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div class="sheet-body">
+    <p style="font-size:.9rem;color:var(--suave);margin-bottom:18px;line-height:1.5;">Me conta uma coisinha rápida para eu saber de quem vem a dica 🙂</p>
+    <div class="campo"><label>Como quer ser chamada? *</label><input id="mc-nome" placeholder="Ex.: Fernanda" autocomplete="given-name"></div>
+    <div class="campo"><label>Seu bairro <span style="font-weight:400;color:var(--suave);">(opcional)</span></label><input id="mc-bairro" placeholder="Ex.: Tijuca"></div>
+    <div class="campo">
+      <label>Quanto tem seu filho? <span style="font-weight:400;color:var(--suave);">(opcional)</span></label>
+      <div id="mc-faixas" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+        <div class="ob-chip" data-faixa="gestante" onclick="toggleObChip(this)">Gestante</div>
+        <div class="ob-chip" data-faixa="0-6m" onclick="toggleObChip(this)">0–6 meses</div>
+        <div class="ob-chip" data-faixa="6-12m" onclick="toggleObChip(this)">6–12 meses</div>
+        <div class="ob-chip" data-faixa="1-2a" onclick="toggleObChip(this)">1–2 anos</div>
+        <div class="ob-chip" data-faixa="3-5a" onclick="toggleObChip(this)">3–5 anos</div>
+        <div class="ob-chip" data-faixa="6+" onclick="toggleObChip(this)">6+ anos</div>
+      </div>
+    </div>
+    <button onclick="salvarMiniColeta()" style="width:100%;background:var(--laranja);border:none;border-radius:var(--radius-sm);padding:13px;font-size:.9rem;font-weight:800;color:#fff;cursor:pointer;font-family:'Nunito',sans-serif;margin-top:8px;">Continuar e indicar →</button>
+    <div style="height:16px;"></div>
+  </div>
+</div>
+
 <!-- ══ APP ══ -->
 <div id="banner-perto" style="display:none;position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:540px;z-index:500;background:var(--navy);color:#fff;padding:10px 16px;display:none;align-items:center;gap:10px;font-size:.82rem;font-weight:700;">
   <span id="banner-perto-txt">📍 Lugares pertinho de você!</span>
@@ -2440,18 +2477,19 @@ async function carregarDados(){
 // ONBOARDING
 // ═══════════════════════════════════════════════════
 function checkOnboarding(){
+  // sempre entra direto no app — sem tela de onboarding
+  document.getElementById("onboarding").classList.add("oculto");
+  document.getElementById("app").style.display="block";
+  document.getElementById("bottom-nav").style.display="flex";
+  STATE.uid = getUid();
   const nome = localStorage.getItem("ovm_nome");
   if(nome){
     const faixaFilho = JSON.parse(localStorage.getItem("ovm_faixa_filho")||"[]");
-    STATE.usuario = {nome, email:localStorage.getItem("ovm_email")||"", faixaFilho};
-    STATE.uid = getUid();
-    document.getElementById("onboarding").classList.add("oculto");
-    document.getElementById("app").style.display="block";
-    document.getElementById("bottom-nav").style.display="flex";
-    atualizarHeader();
-    atualizarCardPerfilMais();
-    mostrarTooltipPerfilSeNecessario();
+    STATE.usuario = {nome, email:localStorage.getItem("ovm_email")||"", whatsapp:localStorage.getItem("ovm_whatsapp")||"", bairro:localStorage.getItem("ovm_bairro")||"", faixaFilho};
   }
+  atualizarHeader();
+  atualizarCardPerfilMais();
+  mostrarWelcomePopup();
 }
 
 document.getElementById("ob-entrar").addEventListener("click", async ()=>{
@@ -2523,6 +2561,11 @@ function filtrarCategoria(el, cat){
   el.classList.add("ativo");
   STATE.catHome = cat;
   renderNovidades();
+  // mostra tooltip de perfil na primeira vez que toca em categoria
+  if(!localStorage.getItem("ovm_perfil_tooltip_shown_cat")){
+    localStorage.setItem("ovm_perfil_tooltip_shown_cat","1");
+    setTimeout(mostrarTooltipPerfilSeNecessario, 1500);
+  }
 }
 
 function renderHome(){
@@ -3376,6 +3419,7 @@ function aplicarFiltros(){
 // ═══════════════════════════════════════════════════
 let passoAtual = 1;
 function abrirAddLugar(){
+  if(!localStorage.getItem("ovm_nome")){ verificarPerfilParaContribuir(abrirAddLugar); return; }
   passoAtual=1;
   lugareEditandoId=null;
   document.getElementById("add-lugar-titulo").textContent="Adicionar lugar";
@@ -3758,6 +3802,7 @@ function avancarPassoEv(n){
 function voltarPassoEv(n){ mostrarPassoEv(n); document.getElementById("sheet-add-evento").scrollTop=0; }
 
 function abrirAddEvento(){
+  if(!localStorage.getItem("ovm_nome")){ verificarPerfilParaContribuir(abrirAddEvento); return; }
   document.getElementById("veu-add-evento").classList.add("aberto");
   document.getElementById("sheet-add-evento").classList.add("aberto");
   mostrarPassoEv(1);
@@ -5368,13 +5413,69 @@ function dispensarTooltipPerfil(abrirPerfil){
   localStorage.setItem("ovm_perfil_tooltip","1");
   if(abrirPerfil) abrirEditarPerfil();
 }
+// ══ WELCOME POPUP ══
+function mostrarWelcomePopup(){
+  if(localStorage.getItem("ovm_welcome_seen")) {
+    // já viu o welcome — agenda tooltip normalmente
+    setTimeout(mostrarTooltipPerfilSeNecessario, 18000);
+    return;
+  }
+  const el = document.getElementById("welcome-overlay");
+  el.style.display = "flex";
+}
+function fecharWelcome(){
+  const el = document.getElementById("welcome-overlay");
+  if(!el) return;
+  el.style.display = "none";
+  localStorage.setItem("ovm_welcome_seen","1");
+  // agenda tooltip de perfil 18s depois de fechar o welcome
+  setTimeout(mostrarTooltipPerfilSeNecessario, 18000);
+}
+
 function mostrarTooltipPerfilSeNecessario(){
   if(localStorage.getItem("ovm_perfil_tooltip")) return;
   const faixas = JSON.parse(localStorage.getItem("ovm_faixa_filho")||"[]");
   if(faixas.length) return;
-  setTimeout(()=>{
-    document.getElementById("perfil-tooltip").style.display="block";
-  }, 3000);
+  const el = document.getElementById("perfil-tooltip");
+  if(el) el.style.display="block";
+}
+
+// ══ MINI COLETA — intercept contribuições sem perfil ══
+let _acaoAposColeta = null;
+function verificarPerfilParaContribuir(acao){
+  if(localStorage.getItem("ovm_nome")){ acao(); return; }
+  _acaoAposColeta = acao;
+  // pré-preenche bairro se já tiver
+  const mc = document.getElementById("mc-bairro");
+  if(mc) mc.value = localStorage.getItem("ovm_bairro")||"";
+  const mcNome = document.getElementById("mc-nome");
+  if(mcNome) mcNome.value = "";
+  document.querySelectorAll("#mc-faixas .ob-chip").forEach(c=>c.classList.remove("sel"));
+  document.getElementById("veu-mini-coleta").classList.add("aberto");
+  document.getElementById("sheet-mini-coleta").classList.add("aberto");
+}
+function fecharMiniColeta(){
+  document.getElementById("veu-mini-coleta").classList.remove("aberto");
+  document.getElementById("sheet-mini-coleta").classList.remove("aberto");
+  _acaoAposColeta = null;
+}
+async function salvarMiniColeta(){
+  const nome = document.getElementById("mc-nome").value.trim();
+  if(!nome){ toast("Coloca como quer ser chamada 🙂"); return; }
+  const bairro = document.getElementById("mc-bairro").value.trim();
+  const faixaFilho = [...document.querySelectorAll("#mc-faixas .ob-chip.sel")].map(c=>c.dataset.faixa);
+  localStorage.setItem("ovm_nome", nome);
+  if(bairro) localStorage.setItem("ovm_bairro", bairro);
+  localStorage.setItem("ovm_faixa_filho", JSON.stringify(faixaFilho));
+  STATE.uid = getUid();
+  STATE.usuario = {nome, email:"", whatsapp:"", bairro, faixaFilho};
+  if(db) fbSet("usuarios", STATE.uid, {nome, bairro:bairro||"", faixaFilho, criadoEm:new Date().toISOString(), dispositivo:navigator.userAgent.substring(0,80)}).catch(()=>{});
+  atualizarHeader();
+  atualizarCardPerfilMais();
+  fecharMiniColeta();
+  const acao = _acaoAposColeta;
+  _acaoAposColeta = null;
+  if(acao) setTimeout(acao, 200);
 }
 
 // ═══════════════════════════════════════════════════
@@ -5868,6 +5969,7 @@ function iePreencherResumo(){
 }
 
 function abrirIndicarEscola(){
+  if(!localStorage.getItem("ovm_nome")){ verificarPerfilParaContribuir(abrirIndicarEscola); return; }
   ["ie-nome","ie-endereco","ie-bairro","ie-tel","ie-instagram","ie-site","ie-mensalidade","ie-obs"].forEach(id=>{
     const el=document.getElementById(id); if(el) el.value="";
   });
@@ -6051,6 +6153,7 @@ function ipToggleTag(el, t){
 }
 
 function abrirIndicarProfissional(){
+  if(!localStorage.getItem("ovm_nome")){ verificarPerfilParaContribuir(abrirIndicarProfissional); return; }
   ["ip-nome","ip-endereco","ip-bairro","ip-whatsapp","ip-instagram","ip-preco","ip-convenio","ip-obs","ip-esp-outro","ip-idade-atendida"].forEach(id=>{
     const el=document.getElementById(id); if(el) el.value="";
   });
