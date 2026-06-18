@@ -196,6 +196,8 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 .adm-tab.ativo{color:var(--laranja);border-bottom-color:var(--laranja);}
 .adm-section{padding:16px 16px 80px;}
 .adm-add-btn{width:100%;background:var(--laranja);color:#fff;border:none;border-radius:var(--radius-sm);padding:14px;font-size:.9rem;font-weight:800;font-family:'Nunito',sans-serif;cursor:pointer;margin-bottom:16px;display:flex;align-items:center;justify-content:center;gap:8px;}
+.adm-filter-btn{background:none;border:1.5px solid var(--borda);border-radius:999px;padding:5px 12px;font-size:.72rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;color:var(--suave);}
+.adm-filter-btn.ativo{background:var(--navy);color:#fff;border-color:var(--navy);}
 .adm-card{background:var(--branco);border-radius:var(--radius);padding:14px;margin-bottom:10px;box-shadow:var(--sombra);}
 .adm-card-top{display:flex;gap:10px;align-items:flex-start;}
 .adm-card-foto{width:52px;height:52px;border-radius:var(--radius-sm);object-fit:cover;background:var(--borda);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.4rem;}
@@ -1228,7 +1230,11 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
           </div>
           <div id="af-ev-recorrencia-preview" style="display:none;background:var(--cream);border-radius:var(--radius-sm);padding:10px 14px;font-size:.82rem;color:var(--navy);font-weight:600;margin-top:4px;"></div>
         </div>
-        <div class="campo"><label>Horário</label><input id="af-ev-hora" placeholder="Ex.: 10h às 11h"></div>
+        <div style="display:flex;gap:8px;">
+          <div class="campo" style="flex:1;"><label>Início</label><input type="time" id="af-ev-hora-inicio"></div>
+          <div class="campo" style="flex:1;"><label>Fim</label><input type="time" id="af-ev-hora-fim"></div>
+        </div>
+        <input type="hidden" id="af-ev-hora">
 
         <div style="font-size:.72rem;font-weight:800;color:var(--suave);letter-spacing:.06em;margin:16px 0 10px;">ONDE</div>
         <div class="campo"><label>Nome do local</label><input id="af-ev-local" placeholder="Ex.: Espaço Encantar"></div>
@@ -1281,16 +1287,41 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 
     <!-- tab escolas -->
     <div class="adm-section" id="adm-tab-escolas" style="display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px;flex-wrap:wrap;">
+        <button class="adm-add-btn" style="margin:0;" onclick="admNovaEscola()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Adicionar escola
+        </button>
+        <div style="display:flex;gap:6px;">
+          <button class="adm-filter-btn ativo" onclick="admFiltroEscola(this,'todos')">Todos</button>
+          <button class="adm-filter-btn" onclick="admFiltroEscola(this,'pendente')">Pendentes</button>
+          <button class="adm-filter-btn" onclick="admFiltroEscola(this,'validado')">Validados</button>
+        </div>
+      </div>
       <div id="adm-lista-escolas"><div style="color:var(--suave);text-align:center;padding:32px 0;font-size:.85rem;">Carregando...</div></div>
     </div>
 
     <!-- tab profissionais -->
     <div class="adm-section" id="adm-tab-profissionais" style="display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px;flex-wrap:wrap;">
+        <button class="adm-add-btn" style="margin:0;" onclick="admNovoProf()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Adicionar profissional
+        </button>
+        <div style="display:flex;gap:6px;">
+          <button class="adm-filter-btn ativo" onclick="admFiltroProf(this,'todos')">Todos</button>
+          <button class="adm-filter-btn" onclick="admFiltroProf(this,'pendente')">Pendentes</button>
+          <button class="adm-filter-btn" onclick="admFiltroProf(this,'validado')">Validados</button>
+        </div>
+      </div>
       <div id="adm-lista-profissionais"><div style="color:var(--suave);text-align:center;padding:32px 0;font-size:.85rem;">Carregando...</div></div>
     </div>
 
     <!-- tab usuárias -->
     <div class="adm-section" id="adm-tab-usuarios" style="display:none;">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
+        <button onclick="admExportarCSV('usuarios')" style="background:none;border:1.5px solid var(--borda);border-radius:var(--radius-sm);padding:7px 14px;font-size:.75rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;color:var(--texto);">⬇ Exportar CSV</button>
+      </div>
       <div id="adm-lista-usuarios"></div>
     </div>
 
@@ -1324,7 +1355,20 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
         <option value="praca">Praça / Parque</option>
       </select>
     </div>
-    <div class="campo"><label>Horário</label><input id="af-hora" placeholder="Ex.: Seg-Sex 8h–18h"></div>
+    <div class="campo"><label>Dias de funcionamento</label>
+      <select id="af-hora-dias">
+        <option value="">Não informado</option>
+        <option value="Seg–Sex">Seg–Sex</option>
+        <option value="Seg–Sáb">Seg–Sáb</option>
+        <option value="Todos os dias">Todos os dias</option>
+        <option value="Fins de semana">Fins de semana</option>
+        <option value="Sáb e Dom">Sáb e Dom</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <div class="campo" style="flex:1;"><label>Abre</label><input type="time" id="af-hora-inicio"></div>
+      <div class="campo" style="flex:1;"><label>Fecha</label><input type="time" id="af-hora-fim"></div>
+    </div>
     <div class="campo"><label>Dica</label><textarea id="af-dica" placeholder="Dica rápida sobre o lugar…" maxlength="300" style="height:72px;resize:none;"></textarea></div>
     <div class="campo"><label>Tags <span style="color:var(--suave);font-weight:400">(separadas por vírgula)</span></label><input id="af-tags" placeholder="café, área externa, espaço kids"></div>
     <button type="button" onclick="admBuscarEndereco()" style="width:100%;background:var(--navy);color:#fff;border:none;border-radius:var(--radius-sm);padding:11px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;margin-bottom:8px;">Buscar localização pelo nome</button>
@@ -1344,7 +1388,7 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 <div id="adm-form-escola" onclick="if(event.target===this)admFecharFormEscola()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:910;overflow-y:auto;padding:24px 16px;align-items:flex-start;justify-content:center;">
   <div style="background:var(--branco);border-radius:var(--radius);padding:20px;width:100%;max-width:500px;">
     <input type="hidden" id="af-esc-id">
-    <div style="font-weight:800;color:var(--navy);font-size:1rem;margin-bottom:14px;">Editar Escola</div>
+    <div style="font-weight:800;color:var(--navy);font-size:1rem;margin-bottom:14px;" id="af-esc-titulo-form">Editar Escola</div>
     <div class="campo"><label>Nome *</label><input id="af-esc-nome" placeholder="Nome da escola"></div>
     <div class="campo"><label>Bairro</label><input id="af-esc-bairro" placeholder="Ex.: Botafogo"></div>
     <div class="campo"><label>Endereço</label><input id="af-esc-endereco" placeholder="Ex.: Rua das Flores, 100"></div>
@@ -1375,6 +1419,11 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
       <button type="button" onclick="admGeoEscola()" style="width:100%;background:var(--navy);color:#fff;border:none;border-radius:var(--radius-sm);padding:9px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;">Buscar localização pelo nome/endereço</button>
       <div id="af-esc-geo-status" style="display:none;padding:8px 12px;border-radius:var(--radius-sm);font-size:.78rem;margin-top:6px;"></div>
     </div>
+    <div style="border-top:1px solid var(--borda);margin:14px 0 12px;"></div>
+    <div style="font-size:.78rem;font-weight:800;color:var(--navy);margin-bottom:8px;">Palavra da escola <span style="color:var(--suave);font-weight:400;font-size:.72rem;">(aparece no detalhe para as usuárias)</span></div>
+    <div class="campo"><label>Texto de apresentação</label><textarea id="af-esc-palavra" style="height:80px;resize:none;" maxlength="600" placeholder="Texto enviado pela própria escola apresentando a proposta pedagógica…"></textarea></div>
+    <div class="campo"><label>Autor / Assinatura</label><input id="af-esc-palavra-autor" placeholder="Ex.: Diretora pedagógica — verificado pelo Onde Vamos"></div>
+    <div style="border-top:1px solid var(--borda);margin:14px 0 12px;"></div>
     <div class="campo"><label>Status</label>
       <select id="af-esc-status">
         <option value="pendente">Pendente</option>
@@ -1449,6 +1498,18 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
   </div>
 </div>
 
+<!-- modal de confirmação genérico -->
+<div id="adm-confirm-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center;padding:24px;">
+  <div style="background:var(--branco);border-radius:var(--radius);padding:24px;width:100%;max-width:340px;text-align:center;">
+    <div id="adm-confirm-msg" style="font-size:.92rem;font-weight:700;color:var(--navy);margin-bottom:6px;"></div>
+    <div id="adm-confirm-sub" style="font-size:.78rem;color:var(--suave);margin-bottom:20px;">Esta ação não pode ser desfeita.</div>
+    <div style="display:flex;gap:8px;">
+      <button onclick="admConfirmCancel()" style="flex:1;border:1.5px solid var(--borda);background:none;border-radius:var(--radius-sm);padding:10px;font-size:.85rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;">Cancelar</button>
+      <button id="adm-confirm-ok-btn" onclick="admConfirmOk()" style="flex:1;background:#D32F2F;color:#fff;border:none;border-radius:var(--radius-sm);padding:10px;font-size:.85rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;">Excluir</button>
+    </div>
+  </div>
+</div>
+
 <!-- modal detalhe melhoria -->
 <div id="adm-melh-modal" onclick="if(event.target===this)fecharDetalheMelhoria()">
   <div id="adm-melh-modal-inner" style="background:var(--branco);border-radius:var(--radius);padding:20px;width:100%;max-width:500px;"></div>
@@ -1492,6 +1553,13 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
   </div>
 </div>
 
+<!-- ══ TOOLTIP PERFIL ══ -->
+<div id="perfil-tooltip" style="display:none;position:fixed;top:52px;right:12px;background:var(--navy);color:#fff;border-radius:var(--radius);padding:14px 18px;width:240px;font-size:.82rem;line-height:1.5;z-index:510;text-align:center;box-shadow:var(--sombra-forte);">
+  <div style="font-weight:800;margin-bottom:4px;">Personalize sua experiencia!</div>
+  <div>Toque no seu avatar e preencha o perfil — assim mostramos eventos e lugares certos para a fase do seu filho.</div>
+  <button onclick="dispensarTooltipPerfil(true)" style="margin-top:10px;background:var(--laranja);color:#fff;border:none;border-radius:999px;padding:6px 18px;font-size:.78rem;font-weight:800;font-family:'Nunito',sans-serif;cursor:pointer;">Editar perfil</button>
+  <div style="position:absolute;top:-7px;right:18px;width:14px;height:14px;background:var(--navy);clip-path:polygon(0 100%,100% 100%,50% 0);"></div>
+</div>
 <!-- ══ TOOLTIP FAB ══ -->
 <div id="fab-tooltip" style="display:none;position:fixed;bottom:calc(var(--nav) + 18px);left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;border-radius:var(--radius);padding:14px 18px;width:260px;font-size:.82rem;line-height:1.5;z-index:510;text-align:center;box-shadow:var(--sombra-forte);">
   <div style="font-weight:800;margin-bottom:4px;">Voce sabia?</div>
@@ -2314,6 +2382,7 @@ function checkOnboarding(){
     document.getElementById("bottom-nav").style.display="flex";
     atualizarHeader();
     atualizarCardPerfilMais();
+    mostrarTooltipPerfilSeNecessario();
   }
 }
 
@@ -2337,6 +2406,7 @@ document.getElementById("ob-entrar").addEventListener("click", async ()=>{
   document.getElementById("bottom-nav").style.display="flex";
   atualizarHeader();
   atualizarCardPerfilMais();
+  mostrarTooltipPerfilSeNecessario();
   renderHome();
 });
 
@@ -4349,8 +4419,9 @@ async function renderAdmEscolas(){
   const cont = document.getElementById("adm-lista-escolas");
   cont.innerHTML=`<div class="adm-empty">Carregando...</div>`;
   let docs = [];
-  if(db){ try{ docs = await fbList("escolas_sugeridas"); }catch(e){} }
-  if(!docs.length){ cont.innerHTML=`<div class="adm-empty">Nenhuma escola indicada ainda.</div>`; return; }
+  if(db){ try{ docs = await fbList("escolas_sugeridas"); _escCache = docs; }catch(e){} }
+  if(_escFiltro !== "todos") docs = docs.filter(e => e.status === _escFiltro);
+  if(!docs.length){ cont.innerHTML=`<div class="adm-empty">Nenhuma escola${_escFiltro!=="todos"?" "+_escFiltro:""} encontrada.</div>`; return; }
   cont.innerHTML = docs.map(e=>`<div class="adm-card">
     <div class="adm-card-top">
       <div class="adm-card-foto" style="font-size:1.2rem;">🏫</div>
@@ -4370,10 +4441,31 @@ async function renderAdmEscolas(){
 }
 
 let _escCache = [];
+let _escFiltro = "todos";
+
+function admFiltroEscola(el, filtro){
+  document.querySelectorAll("#adm-tab-escolas .adm-filter-btn").forEach(b=>b.classList.remove("ativo"));
+  el.classList.add("ativo");
+  _escFiltro = filtro;
+  renderAdmEscolas();
+}
+
+function admNovaEscola(){
+  document.getElementById("af-esc-titulo-form").textContent = "Nova Escola";
+  ["af-esc-id","af-esc-nome","af-esc-bairro","af-esc-endereco","af-esc-tel","af-esc-instagram",
+   "af-esc-site","af-esc-mensalidade","af-esc-niveis","af-esc-obs","af-esc-lat","af-esc-lng",
+   "af-esc-palavra","af-esc-palavra-autor"].forEach(i=>document.getElementById(i).value="");
+  document.getElementById("af-esc-metodologia").value="";
+  document.getElementById("af-esc-status").value="pendente";
+  document.getElementById("af-esc-geo-status").style.display="none";
+  document.getElementById("adm-form-escola").style.display="flex";
+}
+
 async function admEditarEscola(id){
   if(!_escCache.length && db){ try{ _escCache = await fbList("escolas_sugeridas"); }catch(e){} }
   const e = _escCache.find(x=>x.id===id);
   if(!e) return;
+  document.getElementById("af-esc-titulo-form").textContent = "Editar Escola";
   document.getElementById("af-esc-id").value = id;
   document.getElementById("af-esc-nome").value = e.nome||"";
   document.getElementById("af-esc-bairro").value = e.bairro||"";
@@ -4387,6 +4479,8 @@ async function admEditarEscola(id){
   document.getElementById("af-esc-obs").value = e.obs||"";
   document.getElementById("af-esc-lat").value = e.lat||"";
   document.getElementById("af-esc-lng").value = e.lng||"";
+  document.getElementById("af-esc-palavra").value = e.palavra||"";
+  document.getElementById("af-esc-palavra-autor").value = e.palavraAutor||"";
   document.getElementById("af-esc-status").value = e.status||"pendente";
   document.getElementById("af-esc-geo-status").style.display = "none";
   document.getElementById("adm-form-escola").style.display = "flex";
@@ -4418,11 +4512,15 @@ async function admGeoEscola(){
   }catch(e){ status.style.background="#FEE8F2"; status.style.color="#8B0040"; status.textContent="Erro de conexão."; }
 }
 async function admSalvarEscola(){
-  const id = document.getElementById("af-esc-id").value;
-  if(!id || !db) return;
+  const nome = document.getElementById("af-esc-nome").value.trim();
+  if(!nome){ toast("Nome é obrigatório"); return; }
+  if(!db) return;
+  const existingId = document.getElementById("af-esc-id").value;
+  const id = existingId || (Date.now()+"_"+Math.random().toString(36).slice(2,7));
   const niveisRaw = document.getElementById("af-esc-niveis").value;
   const dados = {
-    nome: document.getElementById("af-esc-nome").value.trim(),
+    id,
+    nome,
     bairro: document.getElementById("af-esc-bairro").value.trim(),
     endereco: document.getElementById("af-esc-endereco").value.trim(),
     tel: document.getElementById("af-esc-tel").value.trim(),
@@ -4434,11 +4532,18 @@ async function admSalvarEscola(){
     obs: document.getElementById("af-esc-obs").value.trim(),
     lat: document.getElementById("af-esc-lat").value||null,
     lng: document.getElementById("af-esc-lng").value||null,
+    palavra: document.getElementById("af-esc-palavra").value.trim(),
+    palavraAutor: document.getElementById("af-esc-palavra-autor").value.trim(),
     status: document.getElementById("af-esc-status").value,
   };
+  if(!existingId) dados.criadoEm = new Date().toISOString();
   try{
-    await db.collection("escolas_sugeridas").doc(id).update(dados);
-    toast("Escola salva!");
+    if(existingId){
+      await db.collection("escolas_sugeridas").doc(id).update(dados);
+    } else {
+      await db.collection("escolas_sugeridas").doc(id).set(dados);
+    }
+    toast(existingId ? "Escola salva!" : "Escola adicionada!");
     admFecharFormEscola();
     _escCache = [];
     renderAdmEscolas();
@@ -4457,12 +4562,17 @@ async function admDeletarEscolaSugerida(id){
   catch(e){ toast("Erro ao excluir"); }
 }
 
+let _profFiltro = "todos";
+function admFiltroProf(el,filtro){ document.querySelectorAll("#adm-tab-profissionais .adm-filter-btn").forEach(b=>b.classList.remove("ativo")); el.classList.add("ativo"); _profFiltro=filtro; renderAdmProfissionais(); }
+function admNovoProf(){ document.getElementById("af-prof-id").value=""; ["af-prof-nome","af-prof-endereco","af-prof-bairro","af-prof-whatsapp","af-prof-instagram","af-prof-preco","af-prof-convenio","af-prof-tags","af-prof-obs","af-prof-lat","af-prof-lng"].forEach(i=>document.getElementById(i).value=""); document.getElementById("af-prof-esp").value=""; document.getElementById("af-prof-atendimento").value=""; document.getElementById("af-prof-status").value="pendente"; document.getElementById("af-prof-geo-status").style.display="none"; document.getElementById("adm-form-prof").style.display="flex"; }
+
 async function renderAdmProfissionais(){
   const cont = document.getElementById("adm-lista-profissionais");
   cont.innerHTML=`<div class="adm-empty">Carregando...</div>`;
   let docs = [];
-  if(db){ try{ docs = await fbList("profissionais_sugeridos"); }catch(e){} }
-  if(!docs.length){ cont.innerHTML=`<div class="adm-empty">Nenhum profissional indicado ainda.</div>`; return; }
+  if(db){ try{ docs = await fbList("profissionais_sugeridos"); _profCache=docs; }catch(e){} }
+  if(_profFiltro!=="todos") docs=docs.filter(p=>p.status===_profFiltro);
+  if(!docs.length){ cont.innerHTML=`<div class="adm-empty">Nenhum profissional${_profFiltro!=="todos"?" "+_profFiltro:""} encontrado.</div>`; return; }
   cont.innerHTML = docs.map(p=>`<div class="adm-card">
     <div class="adm-card-top">
       <div class="adm-card-foto" style="font-size:1.2rem;">👩‍⚕️</div>
@@ -4634,14 +4744,16 @@ function admAbrirFormLugar(id){
     document.getElementById("af-nome").value=l.nome||"";
     document.getElementById("af-bairro").value=l.bairro||"";
     document.getElementById("af-tipo").value=l.tipo||"cafe";
-    document.getElementById("af-hora").value=l.hora||"";
+    document.getElementById("af-hora-dias").value=l.horaDias||"";
+    document.getElementById("af-hora-inicio").value=l.horaInicio||"";
+    document.getElementById("af-hora-fim").value=l.horaFim||"";
     document.getElementById("af-dica").value=l.dica||"";
     document.getElementById("af-tags").value=(l.tags||[]).join(", ");
     document.getElementById("af-foto").value=l.foto||"";
     document.getElementById("af-lat").value=l.lat||"";
     document.getElementById("af-lng").value=l.lng||"";
   } else {
-    ["af-id","af-nome","af-bairro","af-hora","af-dica","af-tags","af-foto","af-lat","af-lng"].forEach(i=>{
+    ["af-id","af-nome","af-bairro","af-dica","af-tags","af-foto","af-lat","af-lng"].forEach(i=>{
       document.getElementById(i).value="";
     });
     document.getElementById("af-tipo").value="cafe";
@@ -4703,7 +4815,10 @@ async function admSalvarLugar(){
   const lugar={
     id, nome, bairro,
     tipo:document.getElementById("af-tipo").value,
-    hora:document.getElementById("af-hora").value.trim(),
+    horaDias:document.getElementById("af-hora-dias").value,
+    horaInicio:document.getElementById("af-hora-inicio").value,
+    horaFim:document.getElementById("af-hora-fim").value,
+    hora:(()=>{const d=document.getElementById("af-hora-dias").value;const i=document.getElementById("af-hora-inicio").value;const f=document.getElementById("af-hora-fim").value;const fmt=t=>t?t.replace(/^0/,"").replace(":00","")+"h":"";return [d,i||f?[fmt(i),fmt(f)].filter(Boolean).join("–"):""].filter(Boolean).join(" · ");})(),
     dica:document.getElementById("af-dica").value.trim(),
     tags, ideal:[],
     lat:parseFloat(document.getElementById("af-lat").value)||null,
@@ -4785,7 +4900,7 @@ function admAbrirFormEvento(id){
   document.getElementById("adm-form-evento-titulo").textContent = id?"Editar evento":"Novo evento";
   document.getElementById("af-ev-geo-status").style.display="none";
   document.getElementById("af-ev-geo-opcoes").style.display="none";
-  const campos = ["af-ev-id","af-ev-titulo","af-ev-local","af-ev-endereco","af-ev-bairro","af-ev-data","af-ev-hora",
+  const campos = ["af-ev-id","af-ev-titulo","af-ev-local","af-ev-endereco","af-ev-bairro","af-ev-data","af-ev-hora","af-ev-hora-inicio","af-ev-hora-fim",
     "af-ev-etaria","af-ev-contato","af-ev-desc","af-ev-foto","af-ev-lat","af-ev-lng","af-ev-preco","af-ev-autor"];
   // reset recorrência estruturada
   document.querySelectorAll("[data-af-dia]").forEach(el=>el.classList.remove("sel"));
@@ -4801,7 +4916,8 @@ function admAbrirFormEvento(id){
     document.getElementById("af-ev-endereco").value=e.endereco||"";
     document.getElementById("af-ev-bairro").value=e.bairro||"";
     document.getElementById("af-ev-data").value=e.dataInicio||"";
-    document.getElementById("af-ev-hora").value=e.hora||"";
+    document.getElementById("af-ev-hora-inicio").value=e.horaInicio||"";
+    document.getElementById("af-ev-hora-fim").value=e.horaFim||"";
     document.getElementById("af-ev-etaria").value=e.faixaEtaria||"";
     document.getElementById("af-ev-contato").value=e.contato||"";
     document.getElementById("af-ev-desc").value=e.descricao||"";
@@ -4905,7 +5021,9 @@ async function admSalvarEvento(){
     endereco:document.getElementById("af-ev-endereco").value.trim(),
     bairro:document.getElementById("af-ev-bairro").value.trim()||document.getElementById("af-ev-local").value.trim(),
     dataInicio:recorrente?"":document.getElementById("af-ev-data").value,
-    hora:document.getElementById("af-ev-hora").value.trim(),
+    horaInicio:document.getElementById("af-ev-hora-inicio").value,
+    horaFim:document.getElementById("af-ev-hora-fim").value,
+    hora:(()=>{const fmt=t=>t?t.replace(/^0/,"").replace(":00","")+"h":"";const i=document.getElementById("af-ev-hora-inicio").value;const f=document.getElementById("af-ev-hora-fim").value;return [fmt(i),fmt(f)].filter(Boolean).join("–");})(),
     faixaEtaria:document.getElementById("af-ev-etaria").value.trim(),
     contato:document.getElementById("af-ev-contato").value.trim(),
     descricao:document.getElementById("af-ev-desc").value.trim(),
@@ -5012,6 +5130,20 @@ function mostrarTooltipFabSeNecessario(){
       if(el) el.style.display="block";
     }, 2000);
   }
+}
+
+function dispensarTooltipPerfil(abrirPerfil){
+  document.getElementById("perfil-tooltip").style.display="none";
+  localStorage.setItem("ovm_perfil_tooltip","1");
+  if(abrirPerfil) abrirEditarPerfil();
+}
+function mostrarTooltipPerfilSeNecessario(){
+  if(localStorage.getItem("ovm_perfil_tooltip")) return;
+  const faixas = JSON.parse(localStorage.getItem("ovm_faixa_filho")||"[]");
+  if(faixas.length) return;
+  setTimeout(()=>{
+    document.getElementById("perfil-tooltip").style.display="block";
+  }, 3000);
 }
 
 // ═══════════════════════════════════════════════════
