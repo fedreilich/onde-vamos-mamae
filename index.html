@@ -4025,11 +4025,18 @@ async function renderAdmGeral(){
   const pendentes = reports.filter(r=>!r.resolvido);
 
   cont.innerHTML = `
-    <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
       <button onclick="renderAdmGeral()" style="background:var(--navy);color:#fff;border:none;border-radius:var(--radius-sm);padding:8px 16px;font-size:.78rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;display:flex;align-items:center;gap:6px;">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
         Atualizar dados
       </button>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button onclick="admExportarCSV('lugares')" style="background:none;border:1.5px solid var(--borda);border-radius:var(--radius-sm);padding:6px 11px;font-size:.72rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;">⬇ Locais</button>
+        <button onclick="admExportarCSV('eventos')" style="background:none;border:1.5px solid var(--borda);border-radius:var(--radius-sm);padding:6px 11px;font-size:.72rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;">⬇ Eventos</button>
+        <button onclick="admExportarCSV('escolas')" style="background:none;border:1.5px solid var(--borda);border-radius:var(--radius-sm);padding:6px 11px;font-size:.72rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;">⬇ Escolas</button>
+        <button onclick="admExportarCSV('profissionais')" style="background:none;border:1.5px solid var(--borda);border-radius:var(--radius-sm);padding:6px 11px;font-size:.72rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;">⬇ Profissionais</button>
+        <button onclick="admExportarCSV('usuarios')" style="background:none;border:1.5px solid var(--borda);border-radius:var(--radius-sm);padding:6px 11px;font-size:.72rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;">⬇ Usuárias</button>
+      </div>
     </div>
     <div class="adm-kpi-grid">
       <div class="adm-kpi">
@@ -4357,10 +4364,11 @@ async function admSalvarMelhoria(){
 }
 
 async function deletarMelhoria(id){
-  if(!confirm("Excluir esta melhoria?")) return;
-  STATE_melhorias = STATE_melhorias.filter(m=>m.id!==id);
-  if(db) try{ await db.collection("melhorias").doc(id).delete(); }catch(e){}
-  renderListaMelhorias();
+  admConfirm("Excluir esta melhoria?", "Esta ação não pode ser desfeita.", async()=>{
+    STATE_melhorias = STATE_melhorias.filter(m=>m.id!==id);
+    if(db) try{ await db.collection("melhorias").doc(id).delete(); }catch(e){}
+    renderListaMelhorias();
+  });
 }
 
 function renderAdmLugares(){
@@ -4552,14 +4560,16 @@ async function admSalvarEscola(){
 
 async function admValidarEscola(id){
   if(!db) return;
-  if(!confirm("Validar esta escola?")) return;
-  try{ await db.collection("escolas_sugeridas").doc(id).update({status:"validado"}); _escCache=[]; toast("Escola validada!"); renderAdmEscolas(); }
-  catch(e){ toast("Erro ao validar"); }
+  admConfirm("Validar esta escola?", "Ela ficará marcada como ✓ Validado para as usuárias.", async()=>{
+    try{ await db.collection("escolas_sugeridas").doc(id).update({status:"validado"}); _escCache=[]; toast("Escola validada!"); renderAdmEscolas(); }
+    catch(e){ toast("Erro ao validar"); }
+  }, false);
 }
 async function admDeletarEscolaSugerida(id){
-  if(!confirm("Excluir esta indicacao?")) return;
-  try{ if(db) await fbDel("escolas_sugeridas", id); toast("Removida."); renderAdmEscolas(); }
-  catch(e){ toast("Erro ao excluir"); }
+  admConfirm("Excluir esta escola?", "Esta ação não pode ser desfeita.", async()=>{
+    try{ if(db) await fbDel("escolas_sugeridas", id); _escCache=[]; toast("Removida."); renderAdmEscolas(); }
+    catch(e){ toast("Erro ao excluir"); }
+  });
 }
 
 let _profFiltro = "todos";
@@ -4642,11 +4652,14 @@ async function admGeoProf(){
   }catch(e){ status.style.background="#FEE8F2"; status.style.color="#8B0040"; status.textContent="Erro de conexão."; }
 }
 async function admSalvarProf(){
-  const id = document.getElementById("af-prof-id").value;
-  if(!id || !db) return;
+  const nome = document.getElementById("af-prof-nome").value.trim();
+  if(!nome){ toast("Nome é obrigatório"); return; }
+  if(!db) return;
+  const existingId = document.getElementById("af-prof-id").value;
+  const id = existingId || (Date.now()+"_"+Math.random().toString(36).slice(2,7));
   const tags = document.getElementById("af-prof-tags").value.split(",").map(t=>t.trim()).filter(Boolean);
   const dados = {
-    nome: document.getElementById("af-prof-nome").value.trim(),
+    id, nome,
     esp: document.getElementById("af-prof-esp").value,
     endereco: document.getElementById("af-prof-endereco").value.trim(),
     bairro: document.getElementById("af-prof-bairro").value.trim(),
@@ -4661,57 +4674,114 @@ async function admSalvarProf(){
     lng: document.getElementById("af-prof-lng").value||null,
     status: document.getElementById("af-prof-status").value,
   };
+  if(!existingId) dados.criadoEm = new Date().toISOString();
   try{
-    await db.collection("profissionais_sugeridos").doc(id).update(dados);
-    toast("Profissional salvo!");
-    admFecharFormProf();
-    _profCache = [];
-    renderAdmProfissionais();
+    if(existingId){ await db.collection("profissionais_sugeridos").doc(id).update(dados); }
+    else { await db.collection("profissionais_sugeridos").doc(id).set(dados); }
+    toast(existingId ? "Profissional salvo!" : "Profissional adicionado!");
+    admFecharFormProf(); _profCache=[]; renderAdmProfissionais();
   } catch(e){ toast("Erro ao salvar"); }
 }
 
 async function admValidarProf(id){
   if(!db) return;
-  if(!confirm("Validar este profissional?")) return;
-  try{ await db.collection("profissionais_sugeridos").doc(id).update({status:"validado"}); _profCache=[]; toast("Profissional validado!"); renderAdmProfissionais(); }
-  catch(e){ toast("Erro ao validar"); }
+  admConfirm("Validar este profissional?", "Ele ficará marcado como ✓ Validado para as usuárias.", async()=>{
+    try{ await db.collection("profissionais_sugeridos").doc(id).update({status:"validado"}); _profCache=[]; toast("Profissional validado!"); renderAdmProfissionais(); }
+    catch(e){ toast("Erro ao validar"); }
+  }, false);
 }
 async function admDeletarProfSugerido(id){
-  if(!confirm("Excluir esta indicacao?")) return;
-  try{ if(db) await fbDel("profissionais_sugeridos", id); toast("Removido."); renderAdmProfissionais(); }
-  catch(e){ toast("Erro ao excluir"); }
+  admConfirm("Excluir este profissional?", "Esta ação não pode ser desfeita.", async()=>{
+    try{ if(db) await fbDel("profissionais_sugeridos", id); _profCache=[]; toast("Removido."); renderAdmProfissionais(); }
+    catch(e){ toast("Erro ao excluir"); }
+  });
 }
 
 async function renderAdmUsuarios(){
   const cont = document.getElementById("adm-lista-usuarios");
   cont.innerHTML=`<div class="adm-empty">Carregando...</div>`;
   let usuarios = [];
-  if(db){ try{ const s=await db.collection("usuarios").get(); usuarios=s.docs.map(d=>d.data()); }catch(e){} }
+  if(db){ try{ const s=await db.collection("usuarios").get(); usuarios=s.docs.map(d=>({uid:d.id,...d.data()})); }catch(e){} }
   if(!usuarios.length){ cont.innerHTML=`<div class="adm-empty">Nenhuma usuária cadastrada ainda.</div>`; return; }
   cont.innerHTML = usuarios.map(u=>`
     <div class="adm-card">
-      <div class="adm-card-nome">${esc(u.nome||"—")}</div>
-      <div class="adm-card-sub" style="margin-top:4px;">
-        ${u.email?`${esc(u.email)}`:''}${u.whatsapp?` · ${esc(u.whatsapp)}`:''}
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div>
+          <div class="adm-card-nome">${esc(u.nome||"—")}</div>
+          <div class="adm-card-sub" style="margin-top:4px;">${u.email?`${esc(u.email)}`:''}${u.whatsapp?` · ${esc(u.whatsapp)}`:''}</div>
+          <div style="font-size:.72rem;color:var(--suave);margin-top:4px;">${u.criadoEm?new Date(u.criadoEm).toLocaleDateString("pt-BR"):""}</div>
+        </div>
+        <button class="adm-btn-del" onclick="admDeletarUsuaria('${esc(u.uid||u.email||u.nome)}')" style="font-size:.72rem;padding:5px 10px;">Excluir</button>
       </div>
-      <div style="font-size:.72rem;color:var(--suave);margin-top:4px;">${u.criadoEm?new Date(u.criadoEm).toLocaleDateString("pt-BR"):""}</div>
     </div>`).join("");
 }
 
+async function admDeletarUsuaria(uid){
+  admConfirm("Excluir esta usuária?", "Todos os dados dela serão removidos.", async()=>{
+    try{ if(db) await db.collection("usuarios").doc(uid).delete(); toast("Usuária removida."); renderAdmUsuarios(); }
+    catch(e){ toast("Erro ao excluir"); }
+  });
+}
+
+function admExportarCSV(tipo){
+  let dados=[], campos=[], nome="";
+  if(tipo==="usuarios"){
+    // recarregar e exportar
+    if(!db){ toast("Sem conexão"); return; }
+    db.collection("usuarios").get().then(s=>{
+      const rows = s.docs.map(d=>({uid:d.id,...d.data()}));
+      const cols = ["uid","nome","email","whatsapp","criadoEm"];
+      _downloadCSV(rows, cols, "usuarias.csv");
+    });
+    return;
+  }
+  if(tipo==="lugares"){ dados=STATE.lugares; campos=["id","nome","bairro","tipo","hora","dica","tags","lat","lng","foto","criadoEm"]; nome="lugares.csv"; }
+  if(tipo==="eventos"){ dados=STATE.eventos; campos=["id","titulo","categoria","local","bairro","dataInicio","hora","faixaEtaria","descricao","contato","pago","preco","adicionadoPor","criadoEm"]; nome="eventos.csv"; }
+  if(tipo==="escolas"){ dados=_escCache; campos=["id","nome","bairro","endereco","tel","instagram","site","metodologia","mensalidade","niveis","status","autor","criadoEm"]; nome="escolas.csv"; }
+  if(tipo==="profissionais"){ dados=_profCache; campos=["id","nome","esp","bairro","endereco","whatsapp","instagram","preco","convenio","atendimento","tags","status","autor","criadoEm"]; nome="profissionais.csv"; }
+  if(!dados.length){ toast("Sem dados para exportar"); return; }
+  _downloadCSV(dados, campos, nome);
+}
+
+function _downloadCSV(rows, cols, filename){
+  const esc2 = v => { if(v===null||v===undefined) return ""; if(Array.isArray(v)) return '"'+v.join(", ")+'"'; const s=String(v); return s.includes(",")||s.includes('"')||s.includes("\n")?'"'+s.replace(/"/g,'""')+'"':s; };
+  const csv = [cols.join(","), ...rows.map(r=>cols.map(c=>esc2(r[c])).join(","))].join("\n");
+  const blob = new Blob(["﻿"+csv],{type:"text/csv;charset=utf-8;"});
+  const a = document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=filename; a.click();
+  toast("CSV exportado!");
+}
+
+// ─── MODAL DE CONFIRMAÇÃO ───────────────────────────────────
+let _admConfirmCb = null;
+function admConfirm(msg, sub, cb, isDanger=true){
+  if(typeof sub === "function"){ cb=sub; sub="Esta ação não pode ser desfeita."; }
+  document.getElementById("adm-confirm-msg").textContent = msg;
+  document.getElementById("adm-confirm-sub").textContent = sub;
+  const btn = document.getElementById("adm-confirm-ok-btn");
+  btn.textContent = isDanger ? "Excluir" : "Confirmar";
+  btn.style.background = isDanger ? "#D32F2F" : "var(--navy)";
+  _admConfirmCb = cb;
+  document.getElementById("adm-confirm-modal").style.display="flex";
+}
+function admConfirmOk(){ document.getElementById("adm-confirm-modal").style.display="none"; if(_admConfirmCb) _admConfirmCb(); _admConfirmCb=null; }
+function admConfirmCancel(){ document.getElementById("adm-confirm-modal").style.display="none"; _admConfirmCb=null; }
+
 async function deletarLugar(id){
-  if(!confirm("Excluir este lugar?")) return;
-  STATE.lugares = STATE.lugares.filter(l=>l.id!==id);
-  if(db) await fbDel("lugares",id);
-  renderAdmLugares();
-  toast("Lugar excluído.");
+  admConfirm("Excluir este lugar?", "Esta ação não pode ser desfeita.", async()=>{
+    STATE.lugares = STATE.lugares.filter(l=>l.id!==id);
+    if(db) await fbDel("lugares",id);
+    renderAdmLugares();
+    toast("Lugar excluído.");
+  });
 }
 
 async function deletarEvento(id){
-  if(!confirm("Excluir este evento?")) return;
-  STATE.eventos = STATE.eventos.filter(e=>e.id!==id);
-  if(db) await fbDel("eventos",id);
-  renderAdmEventos();
-  toast("Evento excluído.");
+  admConfirm("Excluir este evento?", "Esta ação não pode ser desfeita.", async()=>{
+    STATE.eventos = STATE.eventos.filter(e=>e.id!==id);
+    if(db) await fbDel("eventos",id);
+    renderAdmEventos();
+    toast("Evento excluído.");
+  });
 }
 
 function admAbrirModalForms(formId){
