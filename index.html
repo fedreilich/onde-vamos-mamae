@@ -22,7 +22,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Onde Vamos">
-<link rel="apple-touch-icon" href="https://res.cloudinary.com/onde-vamos-mamae/image/upload/v1781459303/onde_vamos_mamae_puoi8h.png">
+<link rel="apple-touch-icon" href="logo/logo ovm.png">
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
@@ -35,6 +35,7 @@
   --nav:68px; --radius:18px; --radius-sm:12px;
   --sombra:0 2px 16px rgba(0,0,0,.08);
   --sombra-forte:0 4px 28px rgba(0,0,0,.14);
+  --sat: env(safe-area-inset-top, 20px);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background:var(--cinza);color:var(--texto);}
@@ -70,7 +71,7 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 .nav-fab svg{width:26px;height:26px;color:#fff;}
 
 /* ── HEADER ── */
-.app-header{padding:52px 20px 16px;background:var(--branco);}
+.app-header{padding:calc(var(--sat) + 20px) 20px 16px;background:var(--branco);}
 .header-row{display:flex;align-items:center;justify-content:space-between;}
 .header-logo{display:flex;align-items:center;gap:10px;}
 .header-logo svg{width:36px;height:36px;}
@@ -145,7 +146,7 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 
 /* ── MAPA ── */
 #tela-mapa{padding-bottom:0;}
-.mapa-header{position:absolute;top:0;left:0;right:0;z-index:400;padding:52px 16px 12px;background:linear-gradient(180deg,rgba(255,255,255,.98) 70%,transparent);}
+.mapa-header{position:absolute;top:0;left:0;right:0;z-index:400;padding:calc(var(--sat) + 20px) 16px 12px;background:linear-gradient(180deg,rgba(255,255,255,.98) 70%,transparent);}
 .mapa-header-row{display:flex;gap:10px;align-items:center;}
 .mapa-busca{flex:1;background:var(--branco);border:none;border-radius:var(--radius-sm);padding:11px 16px 11px 40px;font-size:.88rem;font-family:'Nunito',sans-serif;outline:none;box-shadow:var(--sombra);}
 .mapa-busca-wrap{position:relative;flex:1;}
@@ -186,7 +187,7 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 /* ── ADMIN ── */
 #tela-admin{position:fixed;inset:0;background:var(--cinza);z-index:600;display:none;overflow-y:auto;}
 #tela-admin.ativa{display:block;}
-.adm-header{background:var(--navy);color:#fff;padding:52px 20px 16px;display:flex;align-items:center;gap:14px;}
+.adm-header{background:var(--navy);color:#fff;padding:calc(var(--sat) + 20px) 20px 16px;display:flex;align-items:center;gap:14px;}
 .adm-header-back{background:rgba(255,255,255,.15);border:none;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;flex-shrink:0;}
 .adm-header-back svg{width:18px;height:18px;}
 .adm-header-title{font-size:1.2rem;font-weight:900;}
@@ -259,7 +260,7 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 .adm-badge-seed{background:#EDE9FE;color:#6D28D9;}
 .adm-badge-user{background:#DCFCE7;color:#166534;}
 /* ── AGENDA ── */
-.agenda-header{padding:52px 20px 16px;background:var(--branco);}
+.agenda-header{padding:calc(var(--sat) + 20px) 20px 16px;background:var(--branco);}
 .agenda-titulo{font-size:1.4rem;font-weight:900;color:var(--texto);}
 .agenda-tabs{display:flex;gap:0;margin-top:14px;background:var(--cinza);border-radius:12px;padding:3px;}
 .agenda-tab{flex:1;border:none;background:none;border-radius:10px;padding:8px 0;font-size:.82rem;font-weight:800;cursor:pointer;color:var(--suave);font-family:'Nunito',sans-serif;transition:all .15s;}
@@ -296,7 +297,7 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 .agenda-vazia p{font-size:.9rem;margin-top:8px;}
 
 /* ── SALVOS ── */
-.salvos-header{padding:52px 20px 16px;background:var(--branco);}
+.salvos-header{padding:calc(var(--sat) + 20px) 20px 16px;background:var(--branco);}
 .salvos-titulo{font-size:1.4rem;font-weight:900;color:var(--texto);}
 .salvos-tabs{display:flex;gap:0;margin-top:12px;background:var(--cinza);border-radius:var(--radius-sm);padding:3px;}
 .salvos-tab{flex:1;border:none;background:none;padding:8px;border-radius:10px;font-size:.85rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;color:var(--suave);}
@@ -472,7 +473,7 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 /* detalhe profissional / escola */
 .detalhe-tela{position:fixed;inset:0;background:var(--cinza);z-index:700;display:none;overflow-y:auto;}
 .detalhe-tela.aberto{display:block;}
-.detalhe-back{display:flex;align-items:center;gap:8px;padding:52px 16px 12px;background:var(--branco);cursor:pointer;}
+.detalhe-back{display:flex;align-items:center;gap:8px;padding:calc(var(--sat) + 20px) 16px 12px;background:var(--branco);cursor:pointer;}
 .detalhe-back svg{width:20px;height:20px;color:var(--suave);}
 .detalhe-back span{font-size:.9rem;font-weight:700;color:var(--suave);}
 .detalhe-secao{background:var(--branco);margin-bottom:8px;padding:16px;}
@@ -758,6 +759,36 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
         <div class="cal-grid-body" id="cal-grid-body"></div>
       </div>
       <div class="cal-divider"></div>
+      <!-- filtros -->
+      <div style="display:flex;justify-content:flex-end;padding:8px 20px 4px;">
+        <button id="cal-filtros-btn" onclick="toggleCalFiltros()" style="display:flex;align-items:center;gap:5px;font-size:.78rem;font-weight:700;color:var(--navy);background:none;border:1.5px solid var(--borda);border-radius:999px;padding:5px 12px;font-family:'Nunito',sans-serif;cursor:pointer;transition:all .15s;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+          <span>Filtrar</span>
+        </button>
+      </div>
+      <div id="cal-filtros-bar" style="display:none;padding:14px 20px 12px;border-top:1px solid var(--borda);border-bottom:1px solid var(--borda);background:var(--branco);">
+        <div style="margin-bottom:12px;">
+          <span class="filtro-secao-label">Bairro</span>
+          <div class="filtro-chips" id="cal-filtro-bairro-chips" style="flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;-webkit-overflow-scrolling:touch;"></div>
+        </div>
+        <div style="margin-bottom:12px;">
+          <span class="filtro-secao-label">Faixa etária</span>
+          <div class="filtro-chips" id="cal-filtro-etaria-chips">
+            <button class="filtro-chip ativo" onclick="setCalFiltroEtaria(this,'')">Todas</button>
+            <button class="filtro-chip" onclick="setCalFiltroEtaria(this,'0-1')">👶 0-1 ano</button>
+            <button class="filtro-chip" onclick="setCalFiltroEtaria(this,'1-3')">🐣 1-3 anos</button>
+            <button class="filtro-chip" onclick="setCalFiltroEtaria(this,'3+')">🧒 3+ anos</button>
+          </div>
+        </div>
+        <div>
+          <span class="filtro-secao-label">Preço</span>
+          <div class="filtro-chips" id="cal-filtro-preco-chips">
+            <button class="filtro-chip ativo" onclick="setCalFiltroGratuito(this,null)">Todos</button>
+            <button class="filtro-chip" onclick="setCalFiltroGratuito(this,false)">✅ Gratuito</button>
+            <button class="filtro-chip" onclick="setCalFiltroGratuito(this,true)">💰 Pago</button>
+          </div>
+        </div>
+      </div>
       <div class="agenda-lista pb-nav" id="agenda-lista"></div>
     </div>
 
@@ -1123,7 +1154,7 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 <div id="tela-admin">
   <!-- senha gate -->
   <div id="adm-senha-gate">
-    <div class="adm-header" style="padding:52px 20px 20px;">
+    <div class="adm-header" style="padding:calc(var(--sat) + 20px) 20px 20px;">
       <div>
         <div class="adm-header-title">Painel Admin</div>
         <div class="adm-header-sub">Onde Vamos, Mamãe?</div>
@@ -2360,34 +2391,34 @@ const SEED_LUGARES = [
   dica:"Gramado plano ótimo pra manta de piquenique, lagos com patos. Silêncio que ajuda o bebê a dormir.",
   tags:["área externa","silencioso"],ideal:["bebê de colo","amamentação"]},
  {id:"largo-machado",nome:"Largo do Machado",bairro:"Catete",lat:-22.9530,lng:-43.1760,tipo:"praca",
-  foto:"https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Largo_do_Machado_-_Rio_de_Janeiro.jpg/640px-Largo_do_Machado_-_Rio_de_Janeiro.jpg",
+  foto:"",
   dica:"Muito arborizado, plano e acesso pelo metrô. Cafés ao redor e parquinho cercado com muitas famílias.",
   tags:["área externa","espaço kids","piso plano"],ideal:["acessível para carrinho","encontrar mães"]},
  {id:"parque-patins",nome:"Parque dos Patins",bairro:"Lagoa",lat:-22.9717,lng:-43.2155,tipo:"praca",
   dica:"Extensão plana à beira da Lagoa. Ideal pra sentar na grama e fazer estimulação sensorial.",
   tags:["área externa","vista","piso plano","acessível para carrinho"],ideal:["bebê de colo","acessível para carrinho"]},
  {id:"aterro-flamengo",nome:"Aterro do Flamengo",bairro:"Flamengo",lat:-22.9350,lng:-43.1776,tipo:"praca",
-  foto:"https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Aterro_do_Flamengo_-_Rio_de_Janeiro.jpg/640px-Aterro_do_Flamengo_-_Rio_de_Janeiro.jpg",
+  foto:"",
   dica:"Imensas áreas gramadas planas pra caminhar sem pressa com o bebê.",
   tags:["área externa","vista","piso plano","acessível para carrinho"],ideal:["acessível para carrinho","bebê de colo"]},
  {id:"parque-botanico",nome:"Jardim Botânico",bairro:"Jardim Botânico",lat:-22.9671,lng:-43.2287,tipo:"praca",
-  foto:"https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Jardim_Bot%C3%A2nico_do_Rio_de_Janeiro_-_panoramio_%2813%29.jpg/640px-Jardim_Bot%C3%A2nico_do_Rio_de_Janeiro_-_panoramio_%2813%29.jpg",
+  foto:"",
   dica:"Alamedas de palmeiras imperiais planas, extremamente calmas. Entrada paga, mas vale.",
   tags:["área externa","vista","silencioso","acessível para carrinho"],ideal:["bebê de colo","amamentação","acessível para carrinho"]},
  {id:"parque-lage",nome:"Parque Lage",bairro:"Jardim Botânico",lat:-22.9688,lng:-43.2269,tipo:"praca",
-  foto:"https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Parque_Lage_Rio_de_Janeiro_2014.jpg/640px-Parque_Lage_Rio_de_Janeiro_2014.jpg",
+  foto:"",
   dica:"Caminhos de terra sob mata fechada — clima fresco. Gramados perto das cavernas artificiais.",
   tags:["área externa","vista","silencioso"],ideal:["bebê de colo","encontrar mães"]},
  {id:"quinta-boa-vista",nome:"Quinta da Boa Vista",bairro:"São Cristóvão",lat:-22.8986,lng:-43.2321,tipo:"praca",
-  foto:"https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Quinta_da_Boa_Vista_-_Rio_de_Janeiro%2C_Brasil.jpg/640px-Quinta_da_Boa_Vista_-_Rio_de_Janeiro%2C_Brasil.jpg",
+  foto:"",
   dica:"Gramados planos perto dos lagos, perfeitos pra relaxar ao sol da manhã.",
   tags:["área externa","vista","acessível para carrinho"],ideal:["acessível para carrinho","bebê de colo"]},
  {id:"parque-madureira",nome:"Parque Madureira",bairro:"Madureira",lat:-22.8762,lng:-43.3368,tipo:"praca",
-  foto:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Parque_Madureira.jpg/640px-Parque_Madureira.jpg",
+  foto:"",
   dica:"Parque linear gigantesco e totalmente plano. Ótimo pra longas caminhadas de manhã.",
   tags:["área externa","piso plano","acessível para carrinho"],ideal:["acessível para carrinho"]},
  {id:"praca-osorio",nome:"Praça General Osório",bairro:"Ipanema",lat:-22.9843,lng:-43.2029,tipo:"praca",
-  foto:"https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Pra%C3%A7a_General_Os%C3%B3rio%2C_Ipanema%2C_Rio_de_Janeiro%2C_Brasil.jpg/640px-Pra%C3%A7a_General_Os%C3%B3rio%2C_Ipanema%2C_Rio_de_Janeiro%2C_Brasil.jpg",
+  foto:"",
   dica:"Árvores frondosas com ótimas sombras, calçadas largas e parquinho infantil tradicional.",
   tags:["área externa","espaço kids"],ideal:["espaço kids","encontrar mães"]},
  {id:"bosque-barra",nome:"Bosque da Barra",bairro:"Barra da Tijuca",lat:-23.0068,lng:-43.3655,tipo:"praca",
@@ -2815,6 +2846,74 @@ function filtrarMapa(q){
 let calAno = new Date().getFullYear();
 let calMes = new Date().getMonth();
 let calDiaSel = null;
+let calFiltroBairro = "";
+let calFiltroEtaria = "";
+let calFiltroGratuito = null; // null=todos, false=só gratuito, true=só pago
+
+function calFaixaMatch(etaria, filtro){
+  if(!filtro) return true;
+  if(!etaria) return false;
+  const e = etaria.toLowerCase();
+  if(filtro==="0-1") return /0\s*a\s*1|0\s*a\s*12|m[eê]s|bebê|bebe/.test(e);
+  if(filtro==="1-3") return /1\s*a\s*[23]|[12]\s*ano/.test(e);
+  if(filtro==="3+") return /[3-9]\+|[3-9]\s*a\s*\d|acima/.test(e);
+  return true;
+}
+
+function aplicarCalFiltros(lista){
+  return lista.filter(e=>{
+    if(calFiltroBairro && (e.bairro||"")!==calFiltroBairro) return false;
+    if(!calFaixaMatch(e.faixaEtaria, calFiltroEtaria)) return false;
+    if(calFiltroGratuito===false && e.pago) return false;
+    if(calFiltroGratuito===true && !e.pago) return false;
+    return true;
+  });
+}
+
+function toggleCalFiltros(){
+  const bar = document.getElementById("cal-filtros-bar");
+  const aberto = bar.style.display!=="none";
+  bar.style.display = aberto?"none":"block";
+  atualizarCalFiltrosBtn();
+  if(!aberto) atualizarCalFiltroBairroChips();
+}
+
+function atualizarCalFiltroBairroChips(){
+  const bairros = [...new Set(STATE.eventos.filter(e=>!e.recorrente && e.bairro).map(e=>e.bairro))].sort();
+  const cont = document.getElementById("cal-filtro-bairro-chips");
+  cont.innerHTML = `<button class="filtro-chip${!calFiltroBairro?" ativo":""}" onclick="setCalFiltroBairro(this,'')">Todos</button>`
+    +bairros.map(b=>`<button class="filtro-chip${calFiltroBairro===b?" ativo":""}" onclick="setCalFiltroBairro(this,'${b.replace(/'/g,"&apos;")}')">${esc(b)}</button>`).join("");
+}
+
+function atualizarCalFiltrosBtn(){
+  const temFiltro = calFiltroBairro||calFiltroEtaria||calFiltroGratuito!==null;
+  const aberto = document.getElementById("cal-filtros-bar").style.display!=="none";
+  const btn = document.getElementById("cal-filtros-btn");
+  const ativo = temFiltro||aberto;
+  btn.style.background = ativo?"var(--navy)":"none";
+  btn.style.color = ativo?"#fff":"var(--navy)";
+  btn.style.borderColor = ativo?"var(--navy)":"var(--borda)";
+  btn.querySelector("span").textContent = temFiltro?`Filtros (${[calFiltroBairro,calFiltroEtaria,calFiltroGratuito!==null?"preço":""].filter(Boolean).length})`:"Filtrar";
+}
+
+function setCalFiltroBairro(el,v){
+  calFiltroBairro = v;
+  document.querySelectorAll("#cal-filtro-bairro-chips .filtro-chip").forEach(c=>c.classList.remove("ativo"));
+  el.classList.add("ativo");
+  atualizarCalFiltrosBtn(); renderCalendario();
+}
+
+function setCalFiltroEtaria(el,v){
+  document.querySelectorAll("#cal-filtro-etaria-chips .filtro-chip").forEach(c=>c.classList.remove("ativo"));
+  el.classList.add("ativo"); calFiltroEtaria=v;
+  atualizarCalFiltrosBtn(); renderCalendario();
+}
+
+function setCalFiltroGratuito(el,v){
+  document.querySelectorAll("#cal-filtro-preco-chips .filtro-chip").forEach(c=>c.classList.remove("ativo"));
+  el.classList.add("ativo"); calFiltroGratuito=v;
+  atualizarCalFiltrosBtn(); renderCalendario();
+}
 
 function trocarTabAgenda(tab){
   document.getElementById("atab-agenda").classList.toggle("ativo", tab==="agenda");
@@ -2838,7 +2937,7 @@ function renderCalendario(){
   document.getElementById("cal-mes-label").textContent = label.charAt(0).toUpperCase()+label.slice(1);
 
   const diasComEvento = new Set();
-  STATE.eventos.filter(e=>!e.recorrente && e.dataInicio).forEach(e=>{
+  aplicarCalFiltros(STATE.eventos.filter(e=>!e.recorrente && e.dataInicio)).forEach(e=>{
     const d = new Date(e.dataInicio+"T12:00:00");
     if(d.getFullYear()===calAno && d.getMonth()===calMes) diasComEvento.add(d.getDate());
   });
@@ -2885,9 +2984,9 @@ function renderListaAbaixo(modo){
   if(modo==="mes"){
     const nomeMes = new Date(calAno,calMes,1).toLocaleDateString("pt-BR",{month:"long"});
     tituloEl.textContent = ("Eventos em "+nomeMes).toUpperCase();
-    const lista = STATE.eventos
+    const lista = aplicarCalFiltros(STATE.eventos
       .filter(e=>!e.recorrente && e.dataInicio && e.dataInicio.startsWith(`${calAno}-${String(calMes+1).padStart(2,"0")}`))
-      .sort((a,b)=>a.dataInicio.localeCompare(b.dataInicio));
+      .sort((a,b)=>a.dataInicio.localeCompare(b.dataInicio)));
     if(!lista.length){
       cont.innerHTML=`<div class="agenda-vazia"><p>Nenhum evento este mês.<br>Toque em um dia para ver mais.</p></div>`;
     } else {
@@ -2899,8 +2998,8 @@ function renderListaAbaixo(modo){
     const label = data.toLocaleDateString("pt-BR",{weekday:"long",day:"2-digit",month:"long"});
     tituloEl.textContent = label.toUpperCase();
     const dataStr = `${sel.ano}-${String(sel.mes+1).padStart(2,"0")}-${String(sel.dia).padStart(2,"0")}`;
-    const lista = STATE.eventos.filter(e=>!e.recorrente && e.dataInicio===dataStr)
-      .sort((a,b)=>(a.hora||"").localeCompare(b.hora||""));
+    const lista = aplicarCalFiltros(STATE.eventos.filter(e=>!e.recorrente && e.dataInicio===dataStr)
+      .sort((a,b)=>(a.hora||"").localeCompare(b.hora||"")));
     if(!lista.length){
       cont.innerHTML=`<div class="agenda-vazia"><p>Nenhum evento neste dia.</p></div>`;
     } else {
@@ -6212,9 +6311,36 @@ async function salvarIndicacaoProfissional(){
   }catch(e){ toast("Erro ao enviar. Tente novamente."); console.error(e); }
 }
 
-if("serviceWorker" in navigator){
+// Botão voltar Android (Capacitor)
+document.addEventListener("backbutton", function(e){
+  e.preventDefault();
+  // Fecha qualquer sheet ou modal aberto, na ordem de prioridade
+  const sheets = [
+    "veu-add-local","sheet-add-local",
+    "veu-add-prof","sheet-add-prof",
+    "veu-mini-coleta","sheet-mini-coleta",
+    "veu-filtros","painel-filtros",
+  ];
+  for(let i = 0; i < sheets.length; i += 2){
+    const veu = document.getElementById(sheets[i]);
+    if(veu && veu.classList.contains("aberto")){
+      veu.classList.remove("aberto");
+      document.getElementById(sheets[i+1])?.classList.remove("aberto");
+      return;
+    }
+  }
+  // Fecha detalhe aberto
+  const detalhe = document.querySelector(".detalhe-tela.aberto");
+  if(detalhe){ detalhe.classList.remove("aberto"); return; }
+  // Fecha filtros genéricos
+  const filtroAberto = document.querySelector(".veu-sheet.aberto, .modal-sheet.aberto");
+  if(filtroAberto){ filtroAberto.classList.remove("aberto"); return; }
+  // Se não tem nada aberto, não faz nada (evita fechar o app acidentalmente)
+}, false);
+
+if("serviceWorker" in navigator && !window.Capacitor){
   window.addEventListener("load", ()=>{
-    navigator.serviceWorker.register("/onde-vamos-mamae/sw.js").then(reg=>{
+    navigator.serviceWorker.register("sw.js").then(reg=>{
       reg.addEventListener("updatefound",()=>{
         const novo = reg.installing;
         novo.addEventListener("statechange",()=>{
