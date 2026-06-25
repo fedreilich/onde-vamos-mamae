@@ -4174,7 +4174,7 @@ async function publicarEvento(){
     faixaEtaria:document.getElementById("ev-etaria").value.trim(),
     local:document.getElementById("ev-local").value.trim(),
     endereco:enderecoVal,
-    bairro:document.getElementById("ev-bairro").value.trim()||document.getElementById("ev-local").value.trim(),
+    bairro:document.getElementById("ev-bairro").value.trim(),
     lat:parseFloat(document.getElementById("ev-lat").value)||null,
     lng:parseFloat(document.getElementById("ev-lng").value)||null,
     foto:document.getElementById("ev-foto-url").value||"",
@@ -4421,6 +4421,25 @@ async function renderAdmGeral(){
       </div>
     </div>
 
+    <div style="background:var(--branco);border-radius:var(--radius);padding:16px;box-shadow:var(--sombra);margin-bottom:14px;">
+      <div style="font-size:.78rem;font-weight:800;color:var(--navy);margin-bottom:12px;">📍 Bairros dos eventos</div>
+      ${(()=>{
+        const semBairroEv = STATE.eventos.filter(e=>!e.bairro).length;
+        const bairroErrado = STATE.eventos.filter(e=>e.bairro && e.bairro===e.local).length;
+        const total = STATE.eventos.length;
+        return `
+        <div class="adm-incompleto-row"><span>Sem bairro</span>${badgeAlerta(semBairroEv,total)}</div>
+        <div class="adm-incompleto-row"><span>Bairro = nome do local (suspeito)</span>${badgeAlerta(bairroErrado,total)}</div>
+        <div class="adm-incompleto-row"><span>Com bairro válido ✓</span><span class="adm-badge-alerta ok">${total-semBairroEv-bairroErrado} eventos</span></div>
+        <div style="margin-top:12px;">
+          <button id="btn-corrigir-bairros" onclick="admCorrigirBairrosEventos()" style="background:var(--laranja);color:#fff;border:none;border-radius:var(--radius-sm);padding:9px 16px;font-size:.78rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;width:100%;">
+            🔄 Corrigir bairros automaticamente (${semBairroEv+bairroErrado} eventos)
+          </button>
+          <div id="corrigir-bairros-status" style="margin-top:8px;font-size:.74rem;color:var(--suave);min-height:16px;"></div>
+        </div>`;
+      })()}
+    </div>
+
     ${pendentes.length ? `
     <div style="background:var(--branco);border-radius:var(--radius);padding:16px;box-shadow:var(--sombra);">
       <div style="font-size:.78rem;font-weight:800;color:var(--navy);margin-bottom:10px;">⚠️ Reportes pendentes (${pendentes.length})</div>
@@ -4437,6 +4456,42 @@ async function renderAdmGeral(){
         </div>`).join("")}
     </div>` : ""}
   `;
+}
+
+async function admCorrigirBairrosEventos(){
+  const btn = document.getElementById("btn-corrigir-bairros");
+  const statusEl = document.getElementById("corrigir-bairros-status");
+  const alvos = STATE.eventos.filter(e=>!e.bairro || e.bairro===e.local);
+  if(!alvos.length){ toast("Nenhum evento precisa de correção!"); return; }
+  btn.disabled=true; btn.style.opacity=".6";
+  let corrigidos=0, falhos=0;
+  for(let i=0;i<alvos.length;i++){
+    const e=alvos[i];
+    statusEl.textContent=`Consultando ${i+1}/${alvos.length}: ${e.titulo}…`;
+    const q = (e.endereco||e.local||"").trim();
+    if(!q){ falhos++; continue; }
+    try{
+      const res=await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q+", Rio de Janeiro")}&format=json&limit=1&countrycodes=br&addressdetails=1`,
+        {headers:{"User-Agent":"OndeVamosMamae/1.0"}}
+      );
+      const data=await res.json();
+      const addr=data[0]?.address;
+      // garante sempre bairro, nunca nome de logradouro ou local
+      const bairro=addr?.suburb||addr?.neighbourhood||addr?.city_district||addr?.quarter||"";
+      if(bairro){
+        if(db) await db.collection("eventos").doc(e.id).update({bairro});
+        const idx=STATE.eventos.findIndex(x=>x.id===e.id);
+        if(idx>=0) STATE.eventos[idx].bairro=bairro;
+        corrigidos++;
+      } else { falhos++; }
+    }catch(err){ falhos++; }
+    if(i<alvos.length-1) await new Promise(r=>setTimeout(r,1100));
+  }
+  btn.disabled=false; btn.style.opacity="1";
+  statusEl.textContent=`✓ ${corrigidos} corrigidos · ${falhos} sem resultado`;
+  toast(`Bairros corrigidos: ${corrigidos} ✓`);
+  setTimeout(renderAdmGeral,800);
 }
 
 async function resolverReport(id){
@@ -5484,7 +5539,7 @@ async function admSalvarEvento(){
     categoria:document.getElementById("af-ev-cat").value,
     local:document.getElementById("af-ev-local").value.trim(),
     endereco:document.getElementById("af-ev-endereco").value.trim(),
-    bairro:document.getElementById("af-ev-bairro").value.trim()||document.getElementById("af-ev-local").value.trim(),
+    bairro:document.getElementById("af-ev-bairro").value.trim(),
     dataInicio:recorrente?"":document.getElementById("af-ev-data").value,
     horaInicio:document.getElementById("af-ev-hora-inicio").value,
     horaFim:document.getElementById("af-ev-hora-fim").value,
