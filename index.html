@@ -173,6 +173,9 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 .mapa-preview-nome{font-size:.95rem;font-weight:800;color:var(--texto);}
 .mapa-preview-bairro{font-size:.75rem;color:var(--suave);margin-top:1px;}
 .mapa-preview-seta{color:var(--suave);}
+#lugares-lista-view{display:none;position:absolute;inset:0;overflow-y:auto;padding:0 16px 80px;-webkit-overflow-scrolling:touch;}
+#lugares-lista-view.ativa{display:block;}
+.btn-vista{background:var(--branco);border:none;border-radius:var(--radius-sm);width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:var(--sombra);color:var(--texto);flex-shrink:0;}
 
 /* ── PIN MAPA ── */
 .pin-ovm{width:32px;height:32px;border-radius:50% 50% 50% 4px;transform:rotate(-45deg);border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;}
@@ -708,9 +711,13 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
           Filtros
         </button>
+        <button class="btn-vista" id="btn-vista-toggle" onclick="trocarVistaMapa()" title="Alternar vista">
+          <svg id="btn-vista-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        </button>
       </div>
     </div>
     <div id="leaflet-map"></div>
+    <div id="lugares-lista-view"></div>
     <div id="aviso-pin-mapa" class="aviso-pin-mapa">📍 Toque no mapa exatamente onde fica o lugar</div>
     <!-- strip de lugares -->
     <div class="mapa-strip-wrap" id="mapa-strip-wrap">
@@ -2763,6 +2770,87 @@ function desenharPins(){
   });
 }
 
+let mapaVistaLista = false;
+
+function trocarVistaMapa(){
+  mapaVistaLista = !mapaVistaLista;
+  const listaView = document.getElementById("lugares-lista-view");
+  const mapEl = document.getElementById("leaflet-map");
+  const strip = document.getElementById("mapa-strip-wrap");
+  const preview = document.getElementById("mapa-preview");
+  const ico = document.getElementById("btn-vista-ico");
+  if(mapaVistaLista){
+    mapEl.style.visibility = "hidden";
+    if(strip) strip.style.display = "none";
+    if(preview) preview.classList.remove("visivel");
+    listaView.classList.add("ativa");
+    // calcular top para não sobrepor o header
+    const header = document.querySelector(".mapa-header");
+    listaView.style.paddingTop = (header ? header.offsetHeight + 8 : 80) + "px";
+    renderLugaresLista();
+    // ícone muda para mapa
+    ico.innerHTML = `<circle cx="12" cy="12" r="3"/><path d="M2 12 Q7 2 12 12 Q17 22 22 12"/><path d="M2 12 Q7 22 12 12 Q17 2 22 12"/>`;
+    ico.setAttribute("viewBox","0 0 24 24");
+  } else {
+    mapEl.style.visibility = "visible";
+    if(strip) strip.style.display = "";
+    listaView.classList.remove("ativa");
+    if(map) setTimeout(()=>map.invalidateSize(),50);
+    renderMapaStrip();
+    // ícone volta para lista
+    ico.innerHTML = `<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>`;
+  }
+}
+
+function renderLugaresLista(){
+  const cont = document.getElementById("lugares-lista-view");
+  if(!cont) return;
+  const q = (document.getElementById("mapa-busca-inp")?.value||"").toLowerCase().trim();
+  let lista = STATE.lugares.filter(l=>lugarPassaFiltros(l));
+  if(q) lista = lista.filter(l=>(l.nome||"").toLowerCase().includes(q)||(l.bairro||"").toLowerCase().includes(q)||(l.tags||[]).some(t=>t.toLowerCase().includes(q)));
+  lista = lista.sort((a,b)=>(a.nome||"").localeCompare(b.nome||"","pt-BR"));
+  if(!lista.length){
+    const msg = q ? `Nenhum lugar encontrado para "<b>${esc(q)}</b>".` : "Nenhum lugar encontrado com os filtros ativos.";
+    cont.innerHTML = `<div style="text-align:center;padding:60px 20px;color:var(--suave);font-size:.88rem;">${msg}</div>`;
+    return;
+  }
+  cont.innerHTML = lista.map(l=>{
+    const emoji = l.tipo==="praca"?"🌳":l.tipo==="escola"?"🏫":l.tipo==="prof"?"👩‍⚕️":"☕";
+    const fotoHtml = l.foto ? `<img class="card-lugar-foto" src="${esc(l.foto)}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">` : "";
+    const phHtml = `<div class="card-lugar-foto-ph" style="${l.foto?'display:none':''}">${emoji}</div>`;
+    const salvo = (STATE.salvos.lugares||[]).includes(l.id);
+    const icoSalvo = salvo
+      ? `<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`
+      : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
+    return `<div class="card-lugar" onclick="abrirDetalhe('${esc(l.id)}')">
+      ${fotoHtml}${phHtml}
+      <div class="card-lugar-body">
+        <div class="card-lugar-row">
+          <div style="flex:1;min-width:0;">
+            <div class="card-lugar-nome">${esc(l.nome)}</div>
+            <div class="card-lugar-bairro">${esc(l.bairro||"")}</div>
+          </div>
+          <button class="card-lugar-salvar${salvo?" salvo":""}" onclick="event.stopPropagation();toggleSalvarLugarLista('${esc(l.id)}',this)">${icoSalvo}</button>
+        </div>
+        ${(l.tags||[]).length?`<div class="card-lugar-tags">${(l.tags||[]).slice(0,3).map(t=>`<span class="tag-pill">${esc(t)}</span>`).join("")}</div>`:""}
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function toggleSalvarLugarLista(id, btn){
+  const idx = (STATE.salvos.lugares||[]).indexOf(id);
+  if(idx>=0) STATE.salvos.lugares.splice(idx,1);
+  else STATE.salvos.lugares.push(id);
+  lsSet("ovm_salvos", STATE.salvos);
+  const salvo = STATE.salvos.lugares.includes(id);
+  btn.classList.toggle("salvo", salvo);
+  btn.innerHTML = salvo
+    ? `<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`
+    : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
+  toast(salvo?"Lugar salvo 🔖":"Lugar removido dos salvos");
+}
+
 function renderMapaStrip(userLat, userLng){
   const cont = document.getElementById("mapa-lista-strip");
   if(!cont) return;
@@ -2829,6 +2917,7 @@ function scrollStrip(dir){
 }
 
 function filtrarMapa(q){
+  if(mapaVistaLista){ renderLugaresLista(); return; }
   if(!q){ desenharPins(); fecharPreviewMapa(); return; }
   const ql = q.toLowerCase();
   if(!camadaPins) return;
@@ -3509,7 +3598,8 @@ function toggleIdealFiltro(el){
 }
 function aplicarFiltros(){
   fecharFiltros();
-  desenharPins();
+  if(mapaVistaLista) renderLugaresLista();
+  else desenharPins();
   setarTela("mapa");
 }
 
