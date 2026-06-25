@@ -4315,6 +4315,11 @@ async function renderAdmGeral(){
       : `<span class="adm-badge-alerta warn">${n} locais (${pct}%)</span>`;
   };
 
+  // qualidade dos dados — eventos
+  const semBairroEv = STATE.eventos.filter(e=>!e.bairro).length;
+  const bairroErrado = STATE.eventos.filter(e=>e.bairro && e.bairro===e.local).length;
+  const totalEv = STATE.eventos.length;
+
   // top colaboradoras
   const colabMap = {};
   [...STATE.lugares,...STATE.eventos].forEach(x=>{
@@ -4423,21 +4428,15 @@ async function renderAdmGeral(){
 
     <div style="background:var(--branco);border-radius:var(--radius);padding:16px;box-shadow:var(--sombra);margin-bottom:14px;">
       <div style="font-size:.78rem;font-weight:800;color:var(--navy);margin-bottom:12px;">📍 Bairros dos eventos</div>
-      ${(()=>{
-        const semBairroEv = STATE.eventos.filter(e=>!e.bairro).length;
-        const bairroErrado = STATE.eventos.filter(e=>e.bairro && e.bairro===e.local).length;
-        const total = STATE.eventos.length;
-        return `
-        <div class="adm-incompleto-row"><span>Sem bairro</span>${badgeAlerta(semBairroEv,total)}</div>
-        <div class="adm-incompleto-row"><span>Bairro = nome do local (suspeito)</span>${badgeAlerta(bairroErrado,total)}</div>
-        <div class="adm-incompleto-row"><span>Com bairro válido ✓</span><span class="adm-badge-alerta ok">${total-semBairroEv-bairroErrado} eventos</span></div>
-        <div style="margin-top:12px;">
-          <button id="btn-corrigir-bairros" onclick="admCorrigirBairrosEventos()" style="background:var(--laranja);color:#fff;border:none;border-radius:var(--radius-sm);padding:9px 16px;font-size:.78rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;width:100%;">
-            🔄 Corrigir bairros automaticamente (${semBairroEv+bairroErrado} eventos)
-          </button>
-          <div id="corrigir-bairros-status" style="margin-top:8px;font-size:.74rem;color:var(--suave);min-height:16px;"></div>
-        </div>`;
-      })()}
+      <div class="adm-incompleto-row"><span>Sem bairro</span>${badgeAlerta(semBairroEv,totalEv)}</div>
+      <div class="adm-incompleto-row"><span>Bairro = nome do local (suspeito)</span>${badgeAlerta(bairroErrado,totalEv)}</div>
+      <div class="adm-incompleto-row"><span>Com bairro válido ✓</span><span class="adm-badge-alerta ok">${totalEv-semBairroEv-bairroErrado} eventos</span></div>
+      <div style="margin-top:12px;">
+        <button id="btn-corrigir-bairros" onclick="admCorrigirBairrosEventos()" style="background:var(--laranja);color:#fff;border:none;border-radius:var(--radius-sm);padding:9px 16px;font-size:.78rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;width:100%;">
+          🔄 Corrigir bairros automaticamente (${semBairroEv+bairroErrado} eventos)
+        </button>
+        <div id="corrigir-bairros-status" style="margin-top:8px;font-size:.74rem;color:var(--suave);min-height:16px;"></div>
+      </div>
     </div>
 
     ${pendentes.length ? `
