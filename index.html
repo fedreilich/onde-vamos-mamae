@@ -4395,11 +4395,27 @@ async function renderAdmGeral(){
       <div class="adm-incompleto-row">
         <span>Completos ✓</span><span class="adm-badge-alerta ok">${completos} locais</span>
       </div>
-      <button onclick="admIrParaLugares()"
-        style="margin-top:10px;font-size:.75rem;font-weight:700;color:var(--navy);background:none;border:1.5px solid var(--borda);border-radius:var(--radius-sm);padding:6px 14px;cursor:pointer;font-family:'Nunito',sans-serif;">
-        Ir para Lugares para corrigir →
-      </button>
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+        <button onclick="admIrParaLugares()"
+          style="font-size:.75rem;font-weight:700;color:var(--navy);background:none;border:1.5px solid var(--borda);border-radius:var(--radius-sm);padding:6px 14px;cursor:pointer;font-family:'Nunito',sans-serif;">
+          Ir para Lugares →
+        </button>
+        ${semBairro>0?`<button id="btn-corrigir-bairros-locais" onclick="admCorrigirBairros('locais')" style="flex:1;background:var(--laranja);color:#fff;border:none;border-radius:var(--radius-sm);padding:6px 14px;font-size:.75rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;">🔄 Corrigir ${semBairro} bairros via GPS</button>`:""}
+      </div>
+      <div id="corrigir-bairros-locais-status" style="margin-top:6px;font-size:.74rem;color:var(--suave);min-height:14px;"></div>
     </div>
+
+    ${(()=>{
+      const semBairroEsc = escolas.filter(e=>!e.bairro).length;
+      if(!escolas.length) return "";
+      return `<div style="background:var(--branco);border-radius:var(--radius);padding:16px;box-shadow:var(--sombra);margin-bottom:14px;">
+        <div style="font-size:.78rem;font-weight:800;color:var(--navy);margin-bottom:12px;">🏫 Bairros das escolas</div>
+        <div class="adm-incompleto-row"><span>Sem bairro</span>${badgeAlerta(semBairroEsc,escolas.length)}</div>
+        <div class="adm-incompleto-row"><span>Com bairro ✓</span><span class="adm-badge-alerta ok">${escolas.length-semBairroEsc} escolas</span></div>
+        ${semBairroEsc>0?`<button id="btn-corrigir-bairros-escolas" onclick="admCorrigirBairros('escolas')" style="margin-top:10px;background:var(--laranja);color:#fff;border:none;border-radius:var(--radius-sm);padding:9px 16px;font-size:.78rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;width:100%;">🔄 Corrigir ${semBairroEsc} bairros de escolas</button>`:""}
+        <div id="corrigir-bairros-escolas-status" style="margin-top:6px;font-size:.74rem;color:var(--suave);min-height:14px;"></div>
+      </div>`;
+    })()}
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
       <div style="background:var(--branco);border-radius:var(--radius);padding:14px;box-shadow:var(--sombra);">
@@ -4457,41 +4473,79 @@ async function renderAdmGeral(){
   `;
 }
 
-async function admCorrigirBairrosEventos(){
-  const btn = document.getElementById("btn-corrigir-bairros");
-  const statusEl = document.getElementById("corrigir-bairros-status");
-  const alvos = STATE.eventos.filter(e=>!e.bairro || e.bairro===e.local);
-  if(!alvos.length){ toast("Nenhum evento precisa de correção!"); return; }
+async function admCorrigirBairros(tipo){
+  const btnId = `btn-corrigir-bairros-${tipo}`;
+  const statusId = `corrigir-bairros-${tipo}-status`;
+  const btn = document.getElementById(btnId);
+  const statusEl = document.getElementById(statusId);
+  if(!btn||!statusEl) return;
   btn.disabled=true; btn.style.opacity=".6";
+
+  // define alvos e coleção por tipo
+  let alvos=[], colecao="";
+  if(tipo==="locais"){
+    alvos = STATE.lugares.filter(l=>!l.bairro && l.lat && l.lng);
+    colecao = "lugares";
+  } else if(tipo==="eventos"){
+    alvos = STATE.eventos.filter(e=>!e.bairro || e.bairro===e.local);
+    colecao = "eventos";
+  } else if(tipo==="escolas"){
+    alvos = (STATE.escolasSugeridas||[]).filter(e=>!e.bairro && e.endereco);
+    colecao = "escolas_sugeridas";
+  }
+
+  if(!alvos.length){ toast("Nenhum item precisa de correção!"); btn.disabled=false; btn.style.opacity="1"; return; }
+
   let corrigidos=0, falhos=0;
-  for(let i=0;i<alvos.length;i++){
-    const e=alvos[i];
-    statusEl.textContent=`Consultando ${i+1}/${alvos.length}: ${e.titulo}…`;
-    const q = (e.endereco||e.local||"").trim();
-    if(!q){ falhos++; continue; }
-    try{
-      const res=await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q+", Rio de Janeiro")}&format=json&limit=1&countrycodes=br&addressdetails=1`,
+
+  async function extrairBairro(item){
+    // locais: reverse geocoding por lat/lng (mais preciso)
+    if(tipo==="locais"){
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?lat=${item.lat}&lon=${item.lng}&format=json&addressdetails=1`,
         {headers:{"User-Agent":"OndeVamosMamae/1.0"}}
       );
-      const data=await res.json();
-      const addr=data[0]?.address;
-      // garante sempre bairro, nunca nome de logradouro ou local
-      const bairro=addr?.suburb||addr?.neighbourhood||addr?.city_district||addr?.quarter||"";
+      const data = await res.json();
+      return data?.address?.suburb||data?.address?.neighbourhood||data?.address?.city_district||data?.address?.quarter||"";
+    }
+    // eventos e escolas: forward geocoding por endereço
+    const q = tipo==="eventos"
+      ? (item.endereco||item.local||"").trim()
+      : (item.endereco||"").trim();
+    if(!q) return "";
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q+", Rio de Janeiro")}&format=json&limit=1&countrycodes=br&addressdetails=1`,
+      {headers:{"User-Agent":"OndeVamosMamae/1.0"}}
+    );
+    const data = await res.json();
+    const addr = data[0]?.address;
+    return addr?.suburb||addr?.neighbourhood||addr?.city_district||addr?.quarter||"";
+  }
+
+  for(let i=0;i<alvos.length;i++){
+    const item=alvos[i];
+    const nome=item.nome||item.titulo||item.id;
+    statusEl.textContent=`Consultando ${i+1}/${alvos.length}: ${nome}…`;
+    try{
+      const bairro = await extrairBairro(item);
       if(bairro){
-        if(db) await db.collection("eventos").doc(e.id).update({bairro});
-        const idx=STATE.eventos.findIndex(x=>x.id===e.id);
-        if(idx>=0) STATE.eventos[idx].bairro=bairro;
+        if(db) await db.collection(colecao).doc(item.id).update({bairro});
+        if(tipo==="locais"){ const idx=STATE.lugares.findIndex(x=>x.id===item.id); if(idx>=0) STATE.lugares[idx].bairro=bairro; }
+        if(tipo==="eventos"){ const idx=STATE.eventos.findIndex(x=>x.id===item.id); if(idx>=0) STATE.eventos[idx].bairro=bairro; }
+        if(tipo==="escolas"){ const idx=(STATE.escolasSugeridas||[]).findIndex(x=>x.id===item.id); if(idx>=0) STATE.escolasSugeridas[idx].bairro=bairro; }
         corrigidos++;
       } else { falhos++; }
     }catch(err){ falhos++; }
     if(i<alvos.length-1) await new Promise(r=>setTimeout(r,1100));
   }
+
   btn.disabled=false; btn.style.opacity="1";
   statusEl.textContent=`✓ ${corrigidos} corrigidos · ${falhos} sem resultado`;
   toast(`Bairros corrigidos: ${corrigidos} ✓`);
-  setTimeout(renderAdmGeral,800);
+  setTimeout(renderAdmGeral,1000);
 }
+
+function admCorrigirBairrosEventos(){ admCorrigirBairros("eventos"); }
 
 async function resolverReport(id){
   if(db) try{ await db.collection("reports").doc(id).update({resolvido:true}); }catch(e){}
