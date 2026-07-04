@@ -296,6 +296,8 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 .card-rec-titulo{font-size:.9rem;font-weight:800;color:var(--texto);}
 .card-rec-quando{font-size:.78rem;color:var(--suave);margin-top:2px;}
 .rec-freq-titulo{font-size:.72rem;font-weight:800;color:var(--suave);letter-spacing:.05em;padding:14px 20px 6px;}
+.agenda-filtro{border:1.5px solid var(--borda);background:var(--branco);border-radius:999px;padding:6px 14px;font-size:.78rem;font-weight:700;cursor:pointer;color:var(--texto);font-family:'Nunito',sans-serif;}
+.agenda-filtro.ativo{background:var(--navy);border-color:var(--navy);color:#fff;}
 .agenda-vazia{text-align:center;padding:60px 20px;color:var(--suave);}
 .agenda-vazia p{font-size:.9rem;margin-top:8px;}
 
@@ -618,7 +620,7 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 </div>
 
 <!-- ══ APP ══ -->
-<div id="banner-perto" style="display:none;position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:540px;z-index:500;background:var(--navy);color:#fff;padding:10px 16px;display:none;align-items:center;gap:10px;font-size:.82rem;font-weight:700;">
+<div id="banner-perto" style="display:none;position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:540px;z-index:500;background:var(--navy);color:#fff;padding:10px 16px;align-items:center;gap:10px;font-size:.82rem;font-weight:700;">
   <span id="banner-perto-txt">📍 Lugares pertinho de você!</span>
   <button onclick="irParaMapaPerto()" style="margin-left:auto;background:var(--laranja);color:#fff;border:none;border-radius:8px;padding:5px 12px;font-size:.78rem;font-weight:800;font-family:'Nunito',sans-serif;cursor:pointer;white-space:nowrap;">Ver no mapa</button>
   <button onclick="fecharBannerPerto()" style="background:none;border:none;color:#fff;font-size:1.1rem;cursor:pointer;padding:0 4px;">×</button>
@@ -2649,12 +2651,13 @@ function renderHomeEventos(){
   const cont = document.getElementById("home-eventos");
   if(!cont) return;
   const agora = new Date();
+  const hojeInicio = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate());
   const pontuais = STATE.eventos.filter(e=>{
     if(e.recorrente) return false;
     if(!e.dataInicio) return false;
-    const d = new Date(e.dataInicio);
-    return d >= agora && (d-agora)<7*24*3600*1000;
-  }).sort((a,b)=>new Date(a.dataInicio)-new Date(b.dataInicio));
+    const d = new Date(e.dataInicio+"T12:00:00");
+    return d >= hojeInicio && (d-hojeInicio)<7*24*3600*1000;
+  }).sort((a,b)=>a.dataInicio.localeCompare(b.dataInicio));
   const recorrentes = STATE.eventos.filter(e=>e.recorrente);
   const emBreve = [...pontuais, ...recorrentes].slice(0,3);
   if(!emBreve.length){
@@ -2922,7 +2925,7 @@ function filtrarMapa(q){
   const ql = q.toLowerCase();
   if(!camadaPins) return;
   camadaPins.clearLayers();
-  STATE.lugares.filter(l=>l.lat!=null&&(l.nome.toLowerCase().includes(ql)||l.bairro.toLowerCase().includes(ql))).forEach(l=>{
+  STATE.lugares.filter(l=>l.lat!=null&&((l.nome||"").toLowerCase().includes(ql)||(l.bairro||"").toLowerCase().includes(ql))).forEach(l=>{
     const m=L.marker([l.lat,l.lng],{icon:iconePin(l)});
     m.on("click",()=>mostrarPreviewMapa(l.id));
     camadaPins.addLayer(m);
@@ -2943,9 +2946,11 @@ function calFaixaMatch(etaria, filtro){
   if(!filtro) return true;
   if(!etaria) return false;
   const e = etaria.toLowerCase();
-  if(filtro==="0-1") return /0\s*a\s*1|0\s*a\s*12|m[eê]s|bebê|bebe/.test(e);
-  if(filtro==="1-3") return /1\s*a\s*[23]|[12]\s*ano/.test(e);
-  if(filtro==="3+") return /[3-9]\+|[3-9]\s*a\s*\d|acima/.test(e);
+  // "todas as idades", "livre" etc. passam em qualquer filtro
+  if(/toda|livre|qualquer|família|familia/.test(e)) return true;
+  if(filtro==="0-1") return /0\s*[-–a]\s*1\b|0\s*[-–a]\s*12|m[eê]s|beb[eê]|rec[eé]m/.test(e);
+  if(filtro==="1-3") return /1\s*[-–a]\s*[23]|\b[123]\s*ano/.test(e);
+  if(filtro==="3+") return /[3-9]\s*\+|[3-9]\s*[-–a]\s*\d|\b[3-9]\s*ano|1[0-2]\s*ano|acima|crian[çc]a/.test(e);
   return true;
 }
 
@@ -2971,7 +2976,7 @@ function atualizarCalFiltroBairroChips(){
   const bairros = [...new Set(STATE.eventos.filter(e=>!e.recorrente && e.bairro).map(e=>e.bairro))].sort();
   const cont = document.getElementById("cal-filtro-bairro-chips");
   cont.innerHTML = `<button class="filtro-chip${!calFiltroBairro?" ativo":""}" onclick="setCalFiltroBairro(this,'')">Todos</button>`
-    +bairros.map(b=>`<button class="filtro-chip${calFiltroBairro===b?" ativo":""}" onclick="setCalFiltroBairro(this,'${b.replace(/'/g,"&apos;")}')">${esc(b)}</button>`).join("");
+    +bairros.map(b=>`<button class="filtro-chip${calFiltroBairro===b?" ativo":""}" onclick="setCalFiltroBairro(this,'${b.replace(/\\/g,"\\\\").replace(/'/g,"\\'")}')">${esc(b)}</button>`).join("");
 }
 
 function atualizarCalFiltrosBtn(){
@@ -3409,11 +3414,21 @@ function editarLugarAtual(){
   abrirAddLugar();
   setTimeout(()=>{
     const l=detLugarAtual;
+    lugareEditandoId=l.id;
     document.getElementById("f-nome").value=l.nome||"";
     document.getElementById("f-bairro").value=l.bairro||"";
     document.getElementById("f-hora").value=l.hora||"";
     document.getElementById("f-dica").value=l.dica||"";
     document.getElementById("add-lugar-titulo").textContent="Editar lugar";
+    // preserva localização e foto existentes
+    if(l.lat!=null){ pinTemp={lat:l.lat,lng:l.lng};
+      document.getElementById("btn-pin-mapa").className="btn-pin-mapa ok";
+      document.getElementById("btn-pin-mapa").textContent="✅ Localização já marcada";
+    }
+    if(l.foto){ document.getElementById("f-foto-url").value=l.foto;
+      const fp=document.getElementById("f-foto-preview");
+      if(fp){ fp.src=l.foto; fp.style.display="block"; }
+    }
     // marcar tags
     (l.tags||[]).forEach(v=>{
       const el=document.querySelector(`#add-p2 .tag-check[data-v="${v}"]`);
@@ -3572,7 +3587,7 @@ function abrirFiltros(){
   // popular bairros
   const bairros=[...new Set(STATE.lugares.map(l=>l.bairro))].sort();
   const cont=document.getElementById("filtro-bairro-chips");
-  cont.innerHTML=bairros.map(b=>`<button class="filtro-chip${STATE.filtros.bairro===b?" ativo":""}" onclick="selecionarFiltroBairro(this,'${b.replace(/'/g,"&apos;")}')">${esc(b)}</button>`).join("");
+  cont.innerHTML=bairros.map(b=>`<button class="filtro-chip${STATE.filtros.bairro===b?" ativo":""}" onclick="selecionarFiltroBairro(this,'${b.replace(/\\/g,"\\\\").replace(/'/g,"\\'")}')">${esc(b)}</button>`).join("");
   document.getElementById("veu-filtros").classList.add("aberto");
   document.getElementById("painel-filtros").classList.add("aberto");
 }
@@ -4203,8 +4218,13 @@ async function publicarEvento(){
 // ═══════════════════════════════════════════════════
 // ADMIN
 // ═══════════════════════════════════════════════════
-const ADMIN_SENHA = "ovm2025";
+// hash SHA-256 da senha — a senha em si não aparece no código
+const ADMIN_SENHA_HASH = "ab6eb26b11fb477e23998186142411bab71c451402f9b05af638bc800b6c3b12";
 let admTabAtiva = "geral";
+async function sha256Hex(str){
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
+  return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0")).join("");
+}
 
 function abrirAdmin(){
   document.getElementById("tela-admin").classList.add("ativa");
@@ -4214,9 +4234,10 @@ function abrirAdmin(){
   history.pushState(null,"","#admin");
 }
 
-function verificarSenhaAdmin(){
+async function verificarSenhaAdmin(){
   const v = document.getElementById("adm-senha-input").value;
-  if(v===ADMIN_SENHA){
+  const hash = await sha256Hex(v);
+  if(hash===ADMIN_SENHA_HASH){
     document.getElementById("adm-senha-gate").style.display="none";
     document.getElementById("adm-painel").style.display="block";
     renderAdmin();
@@ -4284,7 +4305,7 @@ async function renderAdmGeral(){
     try{ const s=await db.collection("usuarios").get(); usuarios=s.docs.map(d=>d.data()); }catch(e){}
     try{ const s=await db.collection("feedbacks").get(); feedbacks=s.docs.map(d=>d.data()); }catch(e){}
     try{ const s=await db.collection("reports").get(); reports=s.docs.map(d=>({id:d.id,...d.data()})); }catch(e){}
-    try{ escolas = await fbList("escolas_sugeridas"); }catch(e){}
+    try{ escolas = await fbList("escolas_sugeridas"); STATE.escolasSugeridas = escolas; }catch(e){}
     try{ profs = await fbList("profissionais_sugeridos"); }catch(e){}
     try{ const lDocs = await fbList("lugares"); if(lDocs.length) STATE.lugares=lDocs; }catch(e){}
     try{ const eDocs = await fbList("eventos"); STATE.eventos=eDocs; }catch(e){}
@@ -4448,10 +4469,10 @@ async function renderAdmGeral(){
       <div class="adm-incompleto-row"><span>Bairro = nome do local (suspeito)</span>${badgeAlerta(bairroErrado,totalEv)}</div>
       <div class="adm-incompleto-row"><span>Com bairro válido ✓</span><span class="adm-badge-alerta ok">${totalEv-semBairroEv-bairroErrado} eventos</span></div>
       <div style="margin-top:12px;">
-        <button id="btn-corrigir-bairros" onclick="admCorrigirBairrosEventos()" style="background:var(--laranja);color:#fff;border:none;border-radius:var(--radius-sm);padding:9px 16px;font-size:.78rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;width:100%;">
+        <button id="btn-corrigir-bairros-eventos" onclick="admCorrigirBairros('eventos')" style="background:var(--laranja);color:#fff;border:none;border-radius:var(--radius-sm);padding:9px 16px;font-size:.78rem;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;width:100%;">
           🔄 Corrigir bairros automaticamente (${semBairroEv+bairroErrado} eventos)
         </button>
-        <div id="corrigir-bairros-status" style="margin-top:8px;font-size:.74rem;color:var(--suave);min-height:16px;"></div>
+        <div id="corrigir-bairros-eventos-status" style="margin-top:8px;font-size:.74rem;color:var(--suave);min-height:16px;"></div>
       </div>
     </div>
 
@@ -5240,8 +5261,16 @@ function admExportarCSV(tipo){
   }
   if(tipo==="lugares"){ dados=STATE.lugares; campos=["id","nome","bairro","tipo","hora","dica","tags","lat","lng","foto","criadoEm"]; nome="lugares.csv"; }
   if(tipo==="eventos"){ dados=STATE.eventos; campos=["id","titulo","categoria","local","bairro","dataInicio","hora","faixaEtaria","descricao","contato","pago","preco","adicionadoPor","criadoEm"]; nome="eventos.csv"; }
-  if(tipo==="escolas"){ dados=_escCache; campos=["id","nome","bairro","endereco","tel","instagram","site","metodologia","mensalidade","niveis","status","autor","criadoEm"]; nome="escolas.csv"; }
-  if(tipo==="profissionais"){ dados=_profCache; campos=["id","nome","esp","bairro","endereco","whatsapp","instagram","preco","convenio","atendimento","tags","status","autor","criadoEm"]; nome="profissionais.csv"; }
+  if(tipo==="escolas"){
+    const campos2=["id","nome","bairro","endereco","tel","instagram","site","metodologia","mensalidade","niveis","status","autor","criadoEm"];
+    if(!_escCache.length && db){ fbList("escolas_sugeridas").then(docs=>{ _escCache=docs; if(docs.length) _downloadCSV(docs,campos2,"escolas.csv"); else toast("Sem dados para exportar"); }); return; }
+    dados=_escCache; campos=campos2; nome="escolas.csv";
+  }
+  if(tipo==="profissionais"){
+    const campos2=["id","nome","esp","bairro","endereco","whatsapp","instagram","preco","convenio","atendimento","tags","status","autor","criadoEm"];
+    if(!_profCache.length && db){ fbList("profissionais_sugeridos").then(docs=>{ _profCache=docs; if(docs.length) _downloadCSV(docs,campos2,"profissionais.csv"); else toast("Sem dados para exportar"); }); return; }
+    dados=_profCache; campos=campos2; nome="profissionais.csv";
+  }
   if(!dados.length){ toast("Sem dados para exportar"); return; }
   _downloadCSV(dados, campos, nome);
 }
@@ -5382,10 +5411,13 @@ async function admSalvarLugar(){
   const nome=document.getElementById("af-nome").value.trim();
   const bairro=document.getElementById("af-bairro").value.trim();
   if(!nome||!bairro){ toast("Nome e bairro são obrigatórios"); return; }
-  const id=document.getElementById("af-id").value||uid();
+  const existingId=document.getElementById("af-id").value;
+  const id=existingId||uid();
+  const anterior=existingId?STATE.lugares.find(l=>l.id===existingId):null;
   const tagsRaw=document.getElementById("af-tags").value;
   const tags=tagsRaw?tagsRaw.split(",").map(t=>t.trim()).filter(Boolean):[];
   const lugar={
+    ...(anterior||{}),
     id, nome, bairro,
     tipo:document.getElementById("af-tipo").value,
     horaDias:document.getElementById("af-hora-dias").value,
@@ -5393,12 +5425,13 @@ async function admSalvarLugar(){
     horaFim:document.getElementById("af-hora-fim").value,
     hora:(()=>{const d=document.getElementById("af-hora-dias").value;const i=document.getElementById("af-hora-inicio").value;const f=document.getElementById("af-hora-fim").value;const fmt=t=>t?t.replace(/^0/,"").replace(":00","")+"h":"";return [d,i||f?[fmt(i),fmt(f)].filter(Boolean).join("–"):""].filter(Boolean).join(" · ");})(),
     dica:document.getElementById("af-dica").value.trim(),
-    tags, ideal:[],
+    tags, ideal:anterior?.ideal||[],
     lat:parseFloat(document.getElementById("af-lat").value)||null,
     lng:parseFloat(document.getElementById("af-lng").value)||null,
-    foto:document.getElementById("af-foto").value.trim(),
+    foto:document.getElementById("af-foto").value.trim()||(anterior?.foto||""),
   };
   if(!existingId) lugar.criadoEm = new Date().toISOString();
+  if(existingId && !lugar.lat && anterior?.lat){ lugar.lat=anterior.lat; lugar.lng=anterior.lng; }
   const idx=STATE.lugares.findIndex(l=>l.id===id);
   if(idx>=0) STATE.lugares[idx]=lugar; else STATE.lugares.push(lugar);
   if(db) await fbSet("lugares",id,lugar);
@@ -5511,6 +5544,12 @@ function admAbrirFormEvento(id){
           if(e.diasSemana.includes(el.getAttribute("data-af-dia"))) el.classList.add("sel");
         });
       }
+      admAtualizarPreviewRecorrencia();
+    } else if(recorrente && e.recorrenciaTexto){
+      // evento antigo sem frequência estruturada: preserva o texto via "outro"
+      const rad=document.querySelector('[name="af-ev-freq"][value="outro"]');
+      if(rad){ rad.checked=true; admTrocarFreq("outro"); }
+      document.getElementById("af-ev-outro-texto").value=e.recorrenciaTexto;
       admAtualizarPreviewRecorrencia();
     }
     const pago=!!e.pago;
@@ -5815,7 +5854,7 @@ function renderEscolas(){
   const firebaseEscolas = STATE.escolasSugeridas.map(normalizarEscolaDoc);
   const todasEscolas = [...ESCOLAS_MOCK, ...firebaseEscolas];
   let lista = todasEscolas.filter(e=>{
-    if(busca && !e.nome.toLowerCase().includes(busca) && !(e.bairro||"").toLowerCase().includes(busca)) return false;
+    if(busca && !(e.nome||"").toLowerCase().includes(busca) && !(e.bairro||"").toLowerCase().includes(busca)) return false;
     if(FILTROS_ESCOLAS.bairro && e.bairro!==FILTROS_ESCOLAS.bairro) return false;
     if(FILTROS_ESCOLAS.metodologia && e.metodologia!==FILTROS_ESCOLAS.metodologia) return false;
     if(FILTROS_ESCOLAS.nota && (e.nota||0)<FILTROS_ESCOLAS.nota) return false;
@@ -5844,26 +5883,26 @@ function cardEscola(e){
     : `R$ ${e.mensMin.toLocaleString()} - ${e.mensMax.toLocaleString()}`;
   const top3 = Object.entries(e.destaques||{}).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]).slice(0,3);
   const estrelas = Math.round(e.nota||0);
-  return `<div class="card-escola" onclick="abrirDetalheEscola('${e.id}')">
-    <div class="card-escola-foto">${e.foto?`<img src="${e.foto}" style="width:100%;height:100%;object-fit:cover;">`:""}</div>
+  return `<div class="card-escola" onclick="abrirDetalheEscola('${esc(e.id)}')">
+    <div class="card-escola-foto">${e.foto?`<img src="${esc(e.foto)}" style="width:100%;height:100%;object-fit:cover;">`:""}</div>
     <div class="card-escola-body">
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px;">
         ${e.recomendada?`<div class="badge-recomendada">Muito recomendada</div>`:""}
         ${e.exemplo?`<div style="display:inline-block;background:#F0F0F0;color:#888;font-size:.62rem;font-weight:700;border-radius:999px;padding:3px 10px;">Exemplo ilustrativo</div>`:""}
         ${e._fromFirebase && e._validado?`<div style="display:inline-block;background:#E8F5E9;color:#2E7D32;font-size:.62rem;font-weight:700;border-radius:999px;padding:3px 10px;">✓ Validado</div>`:e._fromFirebase?`<div style="display:inline-block;background:#F5F5F5;color:#888;font-size:.62rem;font-weight:700;border-radius:999px;padding:3px 10px;">Indicação da comunidade</div>`:""}
       </div>
-      <div class="card-escola-nome">${e.nome}</div>
+      <div class="card-escola-nome">${esc(e.nome)}</div>
       <div class="card-escola-meta">
-        <span>📍 ${e.bairro||"—"}</span>
-        <span>· ${faixaLabel}</span>
-        <span>· ${mensStr}</span>
+        <span>📍 ${esc(e.bairro||"—")}</span>
+        <span>· ${esc(faixaLabel)}</span>
+        <span>· ${esc(mensStr)}</span>
       </div>
       <div class="card-escola-rating">
         <span style="color:var(--amarelo);font-size:.85rem;">${"★".repeat(estrelas)}${"☆".repeat(5-estrelas)}</span>
         ${estrelas>0?`<span class="nota">${e.nota}</span><span class="avals">${e.avaliacoes} avaliacoes</span>`:`<span style="font-size:.72rem;color:var(--suave);">Sem avaliacao ainda</span>`}
       </div>
       <div class="card-escola-destaques">
-        ${top3.map(([k])=>`<span class="destaque-tag">${k.charAt(0).toUpperCase()+k.slice(1)}</span>`).join("")}
+        ${top3.map(([k])=>`<span class="destaque-tag">${esc(k.charAt(0).toUpperCase()+k.slice(1))}</span>`).join("")}
       </div>
     </div>
   </div>`;
@@ -5878,7 +5917,7 @@ function toggleDiferencial(el, dif){
 function abrirFiltrosEscola(){
   const bairros = [...new Set(STATE.escolasSugeridas.map(e=>e.bairro).filter(Boolean))].sort();
   const bc = document.getElementById("filtro-escola-bairro-chips");
-  bc.innerHTML = bairros.map(b=>`<button class="filtro-chip${FILTROS_ESCOLAS.bairro===b?" ativo":""}" onclick="setFiltroEscolaBairro(this,'${b.replace(/'/g,"&apos;")}')">${esc(b)}</button>`).join("");
+  bc.innerHTML = bairros.map(b=>`<button class="filtro-chip${FILTROS_ESCOLAS.bairro===b?" ativo":""}" onclick="setFiltroEscolaBairro(this,'${b.replace(/\\/g,"\\\\").replace(/'/g,"\\'")}')">${esc(b)}</button>`).join("");
   document.querySelectorAll("#filtro-escola-nota-chips .filtro-chip").forEach(c=>c.classList.toggle("ativo",parseFloat(c.onclick.toString().match(/[\d.]+/)?.[0]||"0")===FILTROS_ESCOLAS.nota));
   document.getElementById("veu-filtros-escola").classList.add("aberto");
   document.getElementById("painel-filtros-escola").classList.add("aberto");
@@ -5916,7 +5955,7 @@ function aplicarFiltrosEscola(){
 function abrirFiltrosProf(){
   const bairros = [...new Set(STATE.profSugeridos.map(p=>p.bairro).filter(Boolean))].sort();
   const bc = document.getElementById("filtro-prof-bairro-chips");
-  bc.innerHTML = bairros.map(b=>`<button class="filtro-chip${FILTROS_PROF.bairro===b?" ativo":""}" onclick="setFiltroProfBairro(this,'${b.replace(/'/g,"&apos;")}')">${esc(b)}</button>`).join("");
+  bc.innerHTML = bairros.map(b=>`<button class="filtro-chip${FILTROS_PROF.bairro===b?" ativo":""}" onclick="setFiltroProfBairro(this,'${b.replace(/\\/g,"\\\\").replace(/'/g,"\\'")}')">${esc(b)}</button>`).join("");
   document.getElementById("veu-filtros-prof").classList.add("aberto");
   document.getElementById("painel-filtros-prof").classList.add("aberto");
 }
@@ -5953,7 +5992,7 @@ function renderProfissionais(){
     if(FILTROS_PROF.esp!=="Todos" && p.esp!==FILTROS_PROF.esp) return false;
     if(FILTROS_PROF.bairro && p.bairro!==FILTROS_PROF.bairro) return false;
     if(busca){
-      const hit = p.nome.toLowerCase().includes(busca)||(p.esp||"").toLowerCase().includes(busca)||(p.bairro||"").toLowerCase().includes(busca);
+      const hit = (p.nome||"").toLowerCase().includes(busca)||(p.esp||"").toLowerCase().includes(busca)||(p.bairro||"").toLowerCase().includes(busca);
       if(!hit) return false;
     }
     return true;
@@ -5968,24 +6007,24 @@ function renderProfissionais(){
 }
 
 function cardProf(p){
-  const iniciais = p.nome.replace("Dra.","").replace("Dr.","").trim().split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase();
+  const iniciais = (p.nome||"?").replace("Dra.","").replace("Dr.","").trim().split(" ").filter(Boolean).map(w=>w[0]).slice(0,2).join("").toUpperCase()||"?";
   const top2 = (p.tags||[]).slice(0,2);
   const notaHtml = (p.nota||0)>0
     ? `<div style="font-size:.85rem;font-weight:800;color:var(--texto);">★ ${p.nota}</div><div style="font-size:.68rem;color:var(--suave);">${p.avaliacoes} aval.</div>`
     : `<div style="font-size:.68rem;color:var(--suave);">Nova indicacao</div>`;
-  return `<div class="card-prof" onclick="abrirDetalheProf('${p.id}')">
-    <div class="card-prof-avatar">${iniciais}</div>
+  return `<div class="card-prof" onclick="abrirDetalheProf('${esc(p.id)}')">
+    <div class="card-prof-avatar">${esc(iniciais)}</div>
     <div class="card-prof-info">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;">
         <div>
-          <div class="card-prof-nome">${p.nome}</div>
-          <div class="card-prof-esp">${p.esp||"—"}</div>
+          <div class="card-prof-nome">${esc(p.nome)}</div>
+          <div class="card-prof-esp">${esc(p.esp||"—")}</div>
         </div>
         <div style="text-align:right;">${notaHtml}</div>
       </div>
-      <div class="card-prof-meta">${p.bairro||"—"} ${p.preco?`· ${p.preco}`:""}</div>
+      <div class="card-prof-meta">${esc(p.bairro||"—")} ${p.preco?`· ${esc(p.preco)}`:""}</div>
       ${p._fromFirebase && p._validado?`<div style="font-size:.65rem;color:#2E7D32;font-weight:700;margin-top:4px;">✓ Validado</div>`:p._fromFirebase?`<div style="font-size:.65rem;color:#888;font-weight:600;margin-top:4px;">Indicação da comunidade</div>`:""}
-      <div class="card-prof-tags">${top2.map(t=>`<span class="prof-tag">${typeof t==="string"?t:t.t}</span>`).join("")}</div>
+      <div class="card-prof-tags">${top2.map(t=>`<span class="prof-tag">${esc(typeof t==="string"?t:t.t)}</span>`).join("")}</div>
     </div>
   </div>`;
 }
@@ -6008,7 +6047,7 @@ function abrirDetalheEscola(id){
   const top5 = Object.entries(e.destaques||{}).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
   const palavraHtml = e.palavra
     ? `<div class="detalhe-secao"><div class="detalhe-secao-titulo">Palavra da escola</div>
-        <div class="palavra-box"><div class="palavra-texto">"${e.palavra}"</div><div class="palavra-autor">${e.palavraAutor} — verificado pelo Onde Vamos</div></div></div>`
+        <div class="palavra-box"><div class="palavra-texto">"${esc(e.palavra)}"</div><div class="palavra-autor">${esc(e.palavraAutor||"")} — verificado pelo Onde Vamos</div></div></div>`
     : `<div class="detalhe-secao"><div class="detalhe-secao-titulo">Palavra da escola</div>
         <div style="font-size:.85rem;color:var(--suave);line-height:1.5;">Esta escola ainda nao enviou uma apresentacao. <a href="https://forms.gle/47Kd6cWrtWxeHoXJ6" target="_blank" style="color:var(--laranja);font-weight:700;">Representa esta escola? Fale com a gente.</a></div></div>`;
 
@@ -6024,9 +6063,9 @@ function abrirDetalheEscola(id){
   const infoHtml = e._fromFirebase ? `
     <div class="detalhe-secao">
       <div class="detalhe-secao-titulo">Informacoes</div>
-      ${(e.niveis||[]).length?`<div class="info-linha"><span class="label">Niveis</span><span class="valor">${e.niveis.join(", ")}</span></div>`:""}
-      ${e.metodologia?`<div class="info-linha"><span class="label">Metodologia</span><span class="valor">${e.metodologia}</span></div>`:""}
-      ${e.mensalidade?`<div class="info-linha"><span class="label">Mensalidade</span><span class="valor">${e.mensalidade}</span></div>`:""}
+      ${(e.niveis||[]).length?`<div class="info-linha"><span class="label">Niveis</span><span class="valor">${esc(e.niveis.join(", "))}</span></div>`:""}
+      ${e.metodologia?`<div class="info-linha"><span class="label">Metodologia</span><span class="valor">${esc(e.metodologia)}</span></div>`:""}
+      ${e.mensalidade?`<div class="info-linha"><span class="label">Mensalidade</span><span class="valor">${esc(e.mensalidade)}</span></div>`:""}
     </div>` : `
     <div class="detalhe-secao">
       <div class="detalhe-secao-titulo">Informacoes</div>
@@ -6040,21 +6079,21 @@ function abrirDetalheEscola(id){
   const contatoHtml = e._fromFirebase && (e.tel||e.instagram||e.site||e.endereco) ? `
     <div class="detalhe-secao">
       <div class="detalhe-secao-titulo">Contato e endereco</div>
-      ${e.endereco?`<div class="info-linha"><span class="label">Endereço</span><span class="valor">${e.endereco}</span></div>`:""}
+      ${e.endereco?`<div class="info-linha"><span class="label">Endereço</span><span class="valor">${esc(e.endereco)}</span></div>`:""}
       ${e.tel?`<div style="display:flex;gap:8px;margin-top:8px;">
         <button class="contato-btn" onclick="window.open('https://wa.me/55${e.tel.replace(/\D/g,'')}','_blank')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>
           <span>WhatsApp</span></button>
       </div>`:""}
-      ${e.instagram?`<div style="margin-top:8px;font-size:.82rem;color:var(--texto);">Instagram: <a href="https://instagram.com/${e.instagram.replace('@','')}" target="_blank" style="color:var(--laranja);font-weight:700;">${e.instagram}</a></div>`:""}
-      ${e.site?`<div style="margin-top:4px;font-size:.82rem;color:var(--texto);">Site: <a href="${e.site}" target="_blank" style="color:var(--laranja);font-weight:700;">${e.site}</a></div>`:""}
+      ${e.instagram?`<div style="margin-top:8px;font-size:.82rem;color:var(--texto);">Instagram: <a href="https://instagram.com/${esc(e.instagram.replace('@',''))}" target="_blank" style="color:var(--laranja);font-weight:700;">${esc(e.instagram)}</a></div>`:""}
+      ${e.site?`<div style="margin-top:4px;font-size:.82rem;color:var(--texto);">Site: <a href="${esc(e.site)}" target="_blank" style="color:var(--laranja);font-weight:700;">${esc(e.site)}</a></div>`:""}
     </div>` : "";
 
   // observações da comunidade
   const obsHtml = e.obs ? `
     <div class="detalhe-secao">
       <div class="detalhe-secao-titulo">Observações da comunidade</div>
-      <div style="font-size:.85rem;color:var(--texto);line-height:1.6;background:var(--cream);padding:10px 12px;border-radius:var(--radius-sm);">${e.obs}</div>
+      <div style="font-size:.85rem;color:var(--texto);line-height:1.6;background:var(--cream);padding:10px 12px;border-radius:var(--radius-sm);">${esc(e.obs)}</div>
     </div>` : "";
 
   const html = `<div class="detalhe-back" onclick="fecharDetalheEscola()">
@@ -6063,13 +6102,13 @@ function abrirDetalheEscola(id){
     <div style="background:var(--branco);padding:14px 16px 12px;border-bottom:1px solid var(--borda);">
       ${e.recomendada?`<div class="badge-recomendada">Muito recomendada</div>`:""}
       ${e._fromFirebase && e._validado?`<div style="display:inline-block;background:#E8F5E9;color:#2E7D32;font-size:.62rem;font-weight:700;border-radius:999px;padding:3px 10px;margin-bottom:6px;">✓ Validado</div>`:e._fromFirebase?`<div style="display:inline-block;background:#F5F5F5;color:#888;font-size:.62rem;font-weight:700;border-radius:999px;padding:3px 10px;margin-bottom:6px;">Indicação da comunidade</div>`:""}
-      <div style="font-size:1.3rem;font-weight:900;color:var(--texto);margin-bottom:6px;">${e.nome}</div>
-      <div style="font-size:.8rem;color:var(--suave);">📍 ${e.bairro||"—"} · ${faixaStr} · ${mensStr}</div>
+      <div style="font-size:1.3rem;font-weight:900;color:var(--texto);margin-bottom:6px;">${esc(e.nome)}</div>
+      <div style="font-size:.8rem;color:var(--suave);">📍 ${esc(e.bairro||"—")} · ${esc(faixaStr)} · ${esc(mensStr)}</div>
       ${(e.nota||0)>0?`<div style="margin-top:8px;font-size:.9rem;font-weight:800;">★ ${e.nota} <span style="font-size:.75rem;font-weight:600;color:var(--suave);">${e.avaliacoes} avaliacoes</span></div>`:""}
     </div>
     ${top5.length?`<div class="detalhe-secao">
       <div class="detalhe-secao-titulo">Destaques da comunidade</div>
-      <div class="destaques-grid">${top5.map(([k,v])=>`<div class="destaque-box"><div class="valor">${v}</div><div class="nome">${k.charAt(0).toUpperCase()+k.slice(1)}</div></div>`).join("")}</div>
+      <div class="destaques-grid">${top5.map(([k,v])=>`<div class="destaque-box"><div class="valor">${esc(String(v))}</div><div class="nome">${esc(k.charAt(0).toUpperCase()+k.slice(1))}</div></div>`).join("")}</div>
     </div>`:""}
     ${palavraHtml}
     ${infoHtml}
@@ -6123,38 +6162,38 @@ function abrirDetalheProf(id){
   const p = merged.find(x=>x.id===id);
   if(!p) return;
   if(!VOTOS_PROF[id]) VOTOS_PROF[id] = new Set();
-  const iniciais = p.nome.replace("Dra.","").replace("Dr.","").trim().split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase();
+  const iniciais = (p.nome||"?").replace("Dra.","").replace("Dr.","").trim().split(" ").filter(Boolean).map(w=>w[0]).slice(0,2).join("").toUpperCase()||"?";
   const palavraHtml = p.palavra
     ? `<div class="detalhe-secao"><div class="detalhe-secao-titulo">Palavra da profissional</div>
-        <div class="palavra-box"><div class="palavra-texto">"${p.palavra}"</div><div class="palavra-autor">${p.palavraAutor} — verificado pelo Onde Vamos</div></div></div>`
+        <div class="palavra-box"><div class="palavra-texto">"${esc(p.palavra)}"</div><div class="palavra-autor">${esc(p.palavraAutor||"")} — verificado pelo Onde Vamos</div></div></div>`
     : `<div class="detalhe-secao"><div class="detalhe-secao-titulo">Palavra da profissional</div>
         <div style="font-size:.85rem;color:var(--suave);line-height:1.5;">Esta profissional ainda nao enviou uma apresentacao. <a href="https://forms.gle/47Kd6cWrtWxeHoXJ6" target="_blank" style="color:var(--laranja);font-weight:700;">E esta profissional? Fale com a gente.</a></div></div>`;
   const tagsHtml = p.tags.map((t,i)=>{
     const votado = VOTOS_PROF[id].has(i);
     const confiavel = t.v>=8;
-    return `<span class="votavel-tag ${votado?"votado":""} ${confiavel?"confiavel":""}" onclick="votarTag('${id}',${i},this)">
-      ${t.t} <span class="contagem">${t.v} maes confirmaram</span>
+    return `<span class="votavel-tag ${votado?"votado":""} ${confiavel?"confiavel":""}" onclick="votarTag('${esc(id)}',${i},this)">
+      ${esc(t.t)} <span class="contagem">${t.v} maes confirmaram</span>
     </span>`;
   }).join("");
   const html = `<div class="detalhe-back" onclick="fecharDetalheProf()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
       <span>Profissionais</span></div>
     <div style="background:var(--branco);padding:14px 16px 12px;border-bottom:1px solid var(--borda);display:flex;gap:14px;align-items:flex-start;">
-      <div class="card-prof-avatar" style="width:60px;height:60px;font-size:1.3rem;">${iniciais}</div>
+      <div class="card-prof-avatar" style="width:60px;height:60px;font-size:1.3rem;">${esc(iniciais)}</div>
       <div>
-        <div style="font-size:1.2rem;font-weight:900;color:var(--texto);">${p.nome}</div>
-        <div style="font-size:.85rem;font-weight:700;color:var(--laranja);">${p.esp}</div>
-        <div style="font-size:.8rem;color:var(--suave);margin-top:3px;">📍 ${p.bairro} · ★ ${p.nota} (${p.avaliacoes} aval.)</div>
+        <div style="font-size:1.2rem;font-weight:900;color:var(--texto);">${esc(p.nome)}</div>
+        <div style="font-size:.85rem;font-weight:700;color:var(--laranja);">${esc(p.esp||"—")}</div>
+        <div style="font-size:.8rem;color:var(--suave);margin-top:3px;">📍 ${esc(p.bairro||"—")}${(p.nota||0)>0?` · ★ ${p.nota} (${p.avaliacoes} aval.)`:""}</div>
       </div>
     </div>
     <div class="detalhe-secao">
       <div class="detalhe-secao-titulo">Contato</div>
       <div style="display:flex;gap:8px;">
-        ${p.whatsapp?`<button class="contato-btn" onclick="window.open('https://wa.me/55${p.whatsapp}','_blank')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg><span>WhatsApp</span></button>`:""}
-        ${p.instagram?`<button class="contato-btn" onclick="window.open('https://instagram.com/${p.instagram.replace('@','')}','_blank')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg><span>Instagram</span></button>`:""}
+        ${p.whatsapp?`<button class="contato-btn" onclick="window.open('https://wa.me/55${p.whatsapp.replace(/\D/g,"")}','_blank')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg><span>WhatsApp</span></button>`:""}
+        ${p.instagram?`<button class="contato-btn" onclick="window.open('https://instagram.com/${esc(p.instagram.replace(/[@'"]/g,""))}','_blank')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg><span>Instagram</span></button>`:""}
       </div>
     </div>
-    ${p.sobre?`<div class="detalhe-secao"><div class="detalhe-secao-titulo">Sobre</div><div style="font-size:.85rem;color:var(--texto);line-height:1.6;">${p.sobre}</div></div>`:""}
+    ${p.sobre?`<div class="detalhe-secao"><div class="detalhe-secao-titulo">Sobre</div><div style="font-size:.85rem;color:var(--texto);line-height:1.6;">${esc(p.sobre)}</div></div>`:""}
     <div class="detalhe-secao">
       <div class="detalhe-secao-titulo">O que as maes dizem</div>
       <div style="display:flex;flex-wrap:wrap;gap:2px;" id="tags-prof-${id}">${tagsHtml}</div>
@@ -6162,11 +6201,11 @@ function abrirDetalheProf(id){
     </div>
     <div class="detalhe-secao">
       <div class="detalhe-secao-titulo">Informacoes</div>
-      <div class="info-linha"><span class="label">Consulta</span><span class="valor">R$ ${p.preco}</span></div>
-      ${p.convenio?`<div class="info-linha"><span class="label">Convenios</span><span class="valor">${p.convenio}</span></div>`:p.convenios&&p.convenios.length?`<div class="info-linha"><span class="label">Convenios</span><span class="valor">${p.convenios.join(", ")}</span></div>`:""}
-      <div class="info-linha"><span class="label">Atendimento</span><span class="valor">${p.atendimento}</span></div>
-      <div class="info-linha"><span class="label">Idade atendida</span><span class="valor">${p.idadeAtendida}</span></div>
-      ${p.crm?`<div class="info-linha"><span class="label">Registro</span><span class="valor">${p.crm}</span></div>`:""}
+      <div class="info-linha"><span class="label">Consulta</span><span class="valor">${p.preco?esc(/r\$/i.test(p.preco)?p.preco:"R$ "+p.preco):"Consultar"}</span></div>
+      ${p.convenio?`<div class="info-linha"><span class="label">Convenios</span><span class="valor">${esc(p.convenio)}</span></div>`:p.convenios&&p.convenios.length?`<div class="info-linha"><span class="label">Convenios</span><span class="valor">${esc(p.convenios.join(", "))}</span></div>`:""}
+      ${p.atendimento?`<div class="info-linha"><span class="label">Atendimento</span><span class="valor">${esc(p.atendimento)}</span></div>`:""}
+      ${p.idadeAtendida?`<div class="info-linha"><span class="label">Idade atendida</span><span class="valor">${esc(p.idadeAtendida)}</span></div>`:""}
+      ${p.crm?`<div class="info-linha"><span class="label">Registro</span><span class="valor">${esc(p.crm)}</span></div>`:""}
     </div>
     ${palavraHtml}
     <div style="display:flex;gap:8px;padding:14px 16px 8px;background:var(--branco);margin-top:8px;flex-wrap:wrap;">
@@ -6514,10 +6553,17 @@ document.addEventListener("backbutton", function(e){
   e.preventDefault();
   // Fecha qualquer sheet ou modal aberto, na ordem de prioridade
   const sheets = [
-    "veu-add-local","sheet-add-local",
+    "veu-add-lugar","sheet-add-lugar",
+    "veu-add-evento","sheet-add-evento",
+    "veu-add-escola","sheet-add-escola",
     "veu-add-prof","sheet-add-prof",
     "veu-mini-coleta","sheet-mini-coleta",
+    "veu-feedback","sheet-feedback",
+    "veu-editar-perfil","sheet-editar-perfil",
+    "veu-contribuicoes","sheet-contribuicoes",
     "veu-filtros","painel-filtros",
+    "veu-filtros-escola","painel-filtros-escola",
+    "veu-filtros-prof","painel-filtros-prof",
   ];
   for(let i = 0; i < sheets.length; i += 2){
     const veu = document.getElementById(sheets[i]);
@@ -6530,9 +6576,15 @@ document.addEventListener("backbutton", function(e){
   // Fecha detalhe aberto
   const detalhe = document.querySelector(".detalhe-tela.aberto");
   if(detalhe){ detalhe.classList.remove("aberto"); return; }
-  // Fecha filtros genéricos
-  const filtroAberto = document.querySelector(".veu-sheet.aberto, .modal-sheet.aberto");
-  if(filtroAberto){ filtroAberto.classList.remove("aberto"); return; }
+  // Fecha filtros genéricos (fecha véu e sheet juntos)
+  const filtroAberto = document.querySelector(".veu-sheet.aberto, .modal-sheet.aberto, .veu-filtros.aberto, .painel-filtros.aberto");
+  if(filtroAberto){
+    document.querySelectorAll(".veu-sheet.aberto, .modal-sheet.aberto, .veu-filtros.aberto, .painel-filtros.aberto").forEach(el=>el.classList.remove("aberto"));
+    return;
+  }
+  // Fecha overlay de lugar/evento
+  const overlayAberto = document.querySelector(".overlay.aberto");
+  if(overlayAberto){ overlayAberto.classList.remove("aberto"); return; }
   // Se não tem nada aberto, não faz nada (evita fechar o app acidentalmente)
 }, false);
 
