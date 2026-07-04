@@ -876,6 +876,14 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
         </div>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;color:var(--suave);flex-shrink:0;"><path d="m9 18 6-6-6-6"/></svg>
       </div>
+      <div class="mais-item" onclick="window.open('privacidade.html','_blank')">
+        <div class="mais-icone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div>
+        <div class="mais-info">
+          <div class="mais-label">Política de privacidade</div>
+          <div class="mais-sub">Como cuidamos dos seus dados</div>
+        </div>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;color:var(--suave);flex-shrink:0;"><path d="m9 18 6-6-6-6"/></svg>
+      </div>
     </div>
     <div style="height:calc(var(--nav) + 16px);"></div>
   </div>
@@ -1171,7 +1179,7 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
     </div>
     <div class="adm-senha-wrap">
       <div style="font-size:1.1rem;font-weight:800;color:var(--navy);">Acesso restrito</div>
-      <p style="font-size:.85rem;color:var(--suave);text-align:center;">Digite a senha para entrar no painel</p>
+      <p style="font-size:.85rem;color:var(--suave);text-align:center;">Digite a senha e confirme com sua conta Google de admin</p>
       <input type="password" id="adm-senha-input" placeholder="••••••" onkeydown="if(event.key==='Enter')verificarSenhaAdmin()">
       <button onclick="verificarSenhaAdmin()" style="background:var(--navy);color:#fff;border:none;border-radius:var(--radius-sm);padding:12px 32px;font-size:.9rem;font-weight:800;font-family:'Nunito',sans-serif;cursor:pointer;">Entrar</button>
       <button onclick="sairAdmin()" style="background:none;border:none;color:var(--suave);font-size:.82rem;font-family:'Nunito',sans-serif;cursor:pointer;margin-top:4px;">Voltar ao app</button>
@@ -2335,11 +2343,45 @@ async function initFirebase(){
   try{
     await Promise.all([
       loadScript("https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"),
-      loadScript("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js")
+      loadScript("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"),
+      loadScript("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js")
     ]);
     firebase.initializeApp(FB_CONFIG);
     db = firebase.firestore();
+    await initAuth();
   }catch(e){ console.warn("Firebase offline, usando localStorage",e); }
+}
+
+// login anônimo — identidade estável por dispositivo, exigida pelas Security Rules
+async function initAuth(){
+  try{
+    const auth = firebase.auth();
+    // espera o estado persistido restaurar antes de decidir criar um user novo
+    let user = await new Promise(res=>{ const un = auth.onAuthStateChanged(u=>{ un(); res(u); }); });
+    if(!user) user = (await auth.signInAnonymously()).user;
+    STATE.uid = user.uid;
+    await migrarUidLegado();
+  }catch(e){ console.warn("Auth indisponível, usando uid local", e); }
+}
+
+// migra o perfil do uid antigo (localStorage) para o uid do Firebase Auth
+async function migrarUidLegado(){
+  const legado = localStorage.getItem("ovm_uid");
+  if(!legado || legado===STATE.uid || localStorage.getItem("ovm_uid_migrado")) return;
+  const nome = localStorage.getItem("ovm_nome");
+  if(nome && db){
+    const faixaFilho = JSON.parse(localStorage.getItem("ovm_faixa_filho")||"[]");
+    await fbSet("usuarios", STATE.uid, {
+      nome,
+      email: localStorage.getItem("ovm_email")||"",
+      whatsapp: localStorage.getItem("ovm_whatsapp")||"",
+      bairro: localStorage.getItem("ovm_bairro")||"",
+      faixaFilho,
+      uidLegado: legado,
+      migradoEm: new Date().toISOString()
+    });
+  }
+  localStorage.setItem("ovm_uid_migrado","1");
 }
 function loadScript(src){ return new Promise((ok,fail)=>{ const s=document.createElement("script"); s.src=src; s.onload=ok; s.onerror=fail; document.head.appendChild(s); }); }
 
@@ -2462,7 +2504,16 @@ let detLugarAtual = null, detEventoAtual = null;
 
 function esc(s){ const d=document.createElement("div"); d.textContent=s||""; return d.innerHTML; }
 function uid(){ return "x"+Date.now()+Math.random().toString(36).slice(2,7); }
-function getUid(){ let u=localStorage.getItem("ovm_uid"); if(!u){ u="u"+Date.now(); localStorage.setItem("ovm_uid",u); } return u; }
+function getUid(){
+  // preferência: uid do Firebase Auth (login anônimo). Fallback local só quando offline.
+  try{ const u = firebase.auth().currentUser; if(u) return u.uid; }catch(e){}
+  let l=localStorage.getItem("ovm_uid"); if(!l){ l="u"+Date.now(); localStorage.setItem("ovm_uid",l); } return l;
+}
+// uids que identificam esta usuária (atual + legado pré-auth), para "Minhas contribuições"
+function meusUids(){
+  const arr=[STATE.uid, localStorage.getItem("ovm_uid")].filter(Boolean);
+  return [...new Set(arr)];
+}
 
 // ═══════════════════════════════════════════════════
 // FIREBASE HELPERS
@@ -3741,20 +3792,20 @@ function fecharMinhasContribuicoes(){
 
 async function renderMinhasContribuicoes(){
   const cont = document.getElementById("contrib-body");
-  const uid = STATE.uid;
-  if(!uid){ cont.innerHTML=`<div style="text-align:center;padding:32px;color:var(--suave);font-size:.85rem;">Faça login para ver suas contribuições.</div>`; return; }
+  const uids = meusUids();
+  if(!uids.length){ cont.innerHTML=`<div style="text-align:center;padding:32px;color:var(--suave);font-size:.85rem;">Faça login para ver suas contribuições.</div>`; return; }
   cont.innerHTML=`<div style="text-align:center;padding:32px 0;color:var(--suave);font-size:.85rem;">Carregando...</div>`;
 
-  const lugaresMeus = STATE.lugares.filter(l=>l.uid===uid);
-  const eventosMeus = STATE.eventos.filter(e=>e.uid===uid);
+  const lugaresMeus = STATE.lugares.filter(l=>uids.includes(l.uid));
+  const eventosMeus = STATE.eventos.filter(e=>uids.includes(e.uid));
   let escolasMinas = [], profsMeus = [];
   if(db){
     try{
-      const eSnap = await db.collection("escolas_sugeridas").where("uid","==",uid).get();
+      const eSnap = await db.collection("escolas_sugeridas").where("uid","in",uids).get();
       escolasMinas = eSnap.docs.map(d=>({id:d.id,...d.data()}));
     }catch(e){}
     try{
-      const pSnap = await db.collection("profissionais_sugeridos").where("uid","==",uid).get();
+      const pSnap = await db.collection("profissionais_sugeridos").where("uid","in",uids).get();
       profsMeus = pSnap.docs.map(d=>({id:d.id,...d.data()}));
     }catch(e){}
   }
@@ -4237,13 +4288,39 @@ function abrirAdmin(){
 async function verificarSenhaAdmin(){
   const v = document.getElementById("adm-senha-input").value;
   const hash = await sha256Hex(v);
-  if(hash===ADMIN_SENHA_HASH){
-    document.getElementById("adm-senha-gate").style.display="none";
-    document.getElementById("adm-painel").style.display="block";
-    renderAdmin();
-  } else {
+  if(hash!==ADMIN_SENHA_HASH){
     toast("Senha incorreta");
     document.getElementById("adm-senha-input").value="";
+    return;
+  }
+  // a senha é só a porta de entrada visual — a autorização real é o
+  // custom claim admin:true no Firebase Auth, checado pelas Security Rules
+  const ok = await loginAdminGoogle();
+  if(!ok) return;
+  document.getElementById("adm-senha-gate").style.display="none";
+  document.getElementById("adm-painel").style.display="block";
+  renderAdmin();
+}
+
+async function loginAdminGoogle(){
+  if(!db) return true; // offline: painel abre só com dados locais, sem poder de escrita
+  try{
+    const auth = firebase.auth();
+    let user = auth.currentUser;
+    let token = user && !user.isAnonymous ? await user.getIdTokenResult() : null;
+    if(!token || !token.claims.admin){
+      toast("Confirme com sua conta Google de admin");
+      const cred = await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+      token = await cred.user.getIdTokenResult(true);
+      STATE.uid = cred.user.uid;
+    }
+    if(token.claims.admin) return true;
+    toast("Esta conta Google não tem permissão de admin");
+    return false;
+  }catch(e){
+    console.warn("Login admin falhou", e);
+    toast("Não foi possível confirmar sua conta de admin");
+    return false;
   }
 }
 

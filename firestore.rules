@@ -1,0 +1,129 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── helpers ──
+    function isSignedIn(){ return request.auth != null; }
+    function isAdmin(){ return isSignedIn() && request.auth.token.admin == true; }
+    function isOwner(uid){ return isSignedIn() && request.auth.uid == uid; }
+    // update que só mexe no campo "votos" (votos da comunidade em tags)
+    function soVotos(){
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['votos']);
+    }
+
+    // ── usuárias: dados pessoais NUNCA são públicos ──
+    match /usuarios/{uid} {
+      allow read, write: if isOwner(uid) || isAdmin();
+    }
+
+    // ── lugares (cafés, praças) ──
+    match /lugares/{id} {
+      allow read: if true;
+      allow create: if isAdmin() || (
+        isSignedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.nome is string
+        && request.resource.data.nome.size() >= 1
+        && request.resource.data.nome.size() <= 200
+      );
+      // dona pode editar a própria contribuição (sem trocar a autoria)
+      allow update: if isAdmin() || (
+        isOwner(resource.data.uid)
+        && request.resource.data.uid == resource.data.uid
+      );
+      allow delete: if isAdmin();
+    }
+
+    // ── eventos ──
+    match /eventos/{id} {
+      allow read: if true;
+      allow create: if isAdmin() || (
+        isSignedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.titulo is string
+        && request.resource.data.titulo.size() >= 1
+        && request.resource.data.titulo.size() <= 200
+      );
+      allow update: if isAdmin() || (
+        isOwner(resource.data.uid)
+        && request.resource.data.uid == resource.data.uid
+      );
+      allow delete: if isAdmin();
+    }
+
+    // ── indicações da comunidade: nascem pendentes, só admin valida ──
+    match /escolas_sugeridas/{id} {
+      allow read: if true;
+      allow create: if isAdmin() || (
+        isSignedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.status == 'pendente'
+        && request.resource.data.nome is string
+        && request.resource.data.nome.size() >= 1
+        && request.resource.data.nome.size() <= 200
+      );
+      allow update: if isAdmin()
+        || (isSignedIn() && soVotos())
+        || (isOwner(resource.data.uid)
+            && request.resource.data.uid == resource.data.uid
+            && request.resource.data.status == resource.data.status);
+      allow delete: if isAdmin();
+    }
+
+    match /profissionais_sugeridos/{id} {
+      allow read: if true;
+      allow create: if isAdmin() || (
+        isSignedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.status == 'pendente'
+        && request.resource.data.nome is string
+        && request.resource.data.nome.size() >= 1
+        && request.resource.data.nome.size() <= 200
+      );
+      allow update: if isAdmin()
+        || (isSignedIn() && soVotos())
+        || (isOwner(resource.data.uid)
+            && request.resource.data.uid == resource.data.uid
+            && request.resource.data.status == resource.data.status);
+      allow delete: if isAdmin();
+    }
+
+    // ── comentários e avaliações (doc compartilhado por lugar/evento) ──
+    // limitação conhecida: qualquer usuária logada escreve no doc inteiro.
+    // corrigir na v2 com subcoleção por autor.
+    match /comentarios/{id} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+    match /avaliacoes/{id} {
+      allow read: if true;
+      allow write: if isSignedIn()
+        && request.resource.data.media is number
+        && request.resource.data.total is number;
+    }
+
+    // ── feedbacks e reports: usuária cria, só admin lê/gerencia ──
+    match /feedbacks/{id} {
+      allow create: if isSignedIn();
+      allow read, update, delete: if isAdmin();
+    }
+    match /reports/{id} {
+      allow create: if isSignedIn();
+      allow read, update, delete: if isAdmin();
+    }
+
+    // ── interno do admin ──
+    match /melhorias/{id} {
+      allow read, write: if isAdmin();
+    }
+    match /meta/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ── tudo que não foi listado: negado ──
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

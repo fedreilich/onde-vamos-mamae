@@ -1,0 +1,19 @@
+# dependências
+node_modules/
+admin-tools/node_modules/
+
+# builds e artefatos
+android/app/build/
+android/build/
+android/.gradle/
+android/local.properties
+www/
+
+# segredos — NUNCA commitar
+admin-tools/serviceAccountKey.json
+*.keystore
+*.jks
+
+# sistema
+.DS_Store
+Thumbs.db
